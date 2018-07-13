@@ -11,17 +11,19 @@
 </template>
 
 <script>
-    import {Component, Vue} from 'vue-property-decorator';
     import NavigationBar from './components/shared/navigation-bar';
-    import SideBar from './components/shared/side-bar';
+    require('./services/user.service');
 
-    @Component({
+    const injector = require('vue-inject/dist/vue-inject');
+    injector.constant('baseUrl', 'http://2zxysdpz2bbbnaiby-mock.stoplight-proxy.io');
+
+    export default {
+        dependencies: ['$user'],
         components: {
             NavigationBar
         },
-    })
-
-    export default class App extends Vue {
+        mounted(){
+        }
     }
 </script>
 

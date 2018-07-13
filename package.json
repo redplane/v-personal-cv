@@ -7,12 +7,18 @@
     "build": "vue-cli-service build"
   },
   "dependencies": {
+    "axios": "^0.18.0",
+    "bluebird": "^3.5.1",
     "bootstrap3": "^3.3.5",
     "jquery": "^3.3.1",
+    "uiv": "^0.25.0",
     "vue": "^2.5.16",
     "vue-class-component": "^6.0.0",
+    "vue-inject": "^2.1.0",
     "vue-property-decorator": "^6.0.0",
+    "vue-resource": "^1.5.1",
     "vue-router": "^3.0.1",
+    "vuetify": "^1.0.19",
     "vuex": "^3.0.1"
   },
   "devDependencies": {
@@ -22,6 +28,7 @@
     "expose-loader": "^0.7.5",
     "node-sass": "^4.9.0",
     "sass-loader": "^7.0.1",
+    "vue-cli-plugin-vuetify": "^0.1.6",
     "vue-template-compiler": "^2.5.16"
   },
   "postcss": {
