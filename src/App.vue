@@ -18,10 +18,15 @@
     import NavigationBar from './components/shared/navigation-bar';
 
     require('./services/user.service');
+    require('./services/skill.service');
     require('./services/toastr.service');
 
     const injector = require('vue-inject/dist/vue-inject');
     injector.constant('baseUrl', 'http://2zxysdpz2bbbnaiby-mock.stoplight-proxy.io');
+
+    // Import constants.
+    const paginationConstant = require('./constants/pagination.constant');
+    injector.constant('paginationConstant', paginationConstant);
 
     export default {
         dependencies: ['$user', '$toastr'],

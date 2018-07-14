@@ -1,54 +1,32 @@
 <template>
     <div>
-        <h3 v-if="!user.id">Add user</h3>
-        <h3 v-if="user.id">Edit user</h3>
+        <h3 v-if="!skill.id">Add skill</h3>
+        <h3 v-if="skill.id">Edit skill</h3>
         <hr/>
-        <div v-if="user">
-            <!--First name-->
+        <div v-if="skill">
+
+            <!--Name-->
             <div class="row">
                 <div class="col-lg-3">
-                    <label>First name</label>
+                    <label>Name</label>
                 </div>
                 <div class="col-lg-9">
                     <div class="form-group">
                         <input class="form-control"
-                               v-model="user.firstName"/>
+                               v-model="skill.name"/>
                     </div>
                 </div>
             </div>
 
+            <!--Created time-->
             <div class="row">
                 <div class="col-lg-3">
-                    <label>Last name</label>
+                    <label>Created time</label>
                 </div>
                 <div class="col-lg-9">
                     <div class="form-group">
                         <input class="form-control"
-                               v-model="user.lastName"/>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-lg-3">
-                    <label>Birthday</label>
-                </div>
-                <div class="col-lg-9">
-                    <div class="form-group">
-                        <input class="form-control"
-                               v-model="user.birthday"/>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-lg-3">
-                    <label>Role</label>
-                </div>
-                <div class="col-lg-9">
-                    <div class="form-group">
-                        <input class="form-control"
-                               v-model="user.role"/>
+                               v-model="skill.createdTime"/>
                     </div>
                 </div>
             </div>
@@ -69,43 +47,42 @@
 
 <script>
 
-    // Import vue.
     import Vue from 'vue';
 
     export default {
-        name: 'user-detail',
+        name: 'skill-detail',
         props: {
-            pUser: {},
+            skillProperty: {},
             visibilityProperty: false
         },
         data() {
             return {
-                user: this.pUser,
+                skill: this.skillProperty,
                 visibility: false
             }
         },
         mounted() {
 
             let self = this;
-            let ngUser = self.pUser;
-
-            let pGetUserDetailPromise = new Promise(resolve => {
-                resolve(ngUser);
+            let pGetSkillDetailPromise = new Promise(resolve => {
+                resolve(self.skillProperty);
             });
 
-            pGetUserDetailPromise
-                .then((user) => {
-                    if (!user)
-                        self.user = Vue.util.extend({}, {});
+            pGetSkillDetailPromise
+                .then((skill) => {
+                    if (!skill)
+                        self.skill = Vue.util.extend({}, {});
+                    // Object.assign(self.skill, {});
                     else
-                        self.user = Vue.util.extend({}, user);
+                    // Object.assign(self.skill, skill);
+                        self.skill = Vue.util.extend({}, skill);
                 });
 
             this.visibility = this.visibilityProperty;
         },
         methods: {
             vOnClickOk() {
-                this.$emit('confirm', {user: this.user});
+                this.$emit('confirm', {skill: this.skill});
             },
             vOnClickCancel() {
                 this.$emit('cancel');
