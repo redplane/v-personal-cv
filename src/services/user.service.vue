@@ -30,15 +30,15 @@
                 addUser(user) {
                     return axios
                         .post(`${baseUrl}/api/user`, user)
-                        .then((loadUserResponse) => {
-                            if (!loadUserResponse)
+                        .then((addUserResponse) => {
+                            if (!addUserResponse)
                                 throw 'No user has been found';
 
-                            let loadUserResult = loadUserResponse.data;
-                            if (!loadUserResult)
+                            let user = addUserResponse.data;
+                            if (!user)
                                 throw 'No user has been found';
 
-                            return loadUserResult;
+                            return user;
                         });
                 },
 

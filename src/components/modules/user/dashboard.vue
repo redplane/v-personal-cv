@@ -19,6 +19,12 @@
                 <td class="text-center">{{user.birthday}}</td>
                 <td class="text-center">{{user.role}}</td>
                 <td class="text-center">
+                    <router-link tag="button"
+                                 class="btn btn-default"
+                                 :to="{ name: 'profile', params: { id: user.id }}">
+                        <span class="glyphicon glyphicon-comment"></span>
+                    </router-link>
+                    <span>&nbsp;</span>
                     <button class="btn btn-info"
                             v-on:click="vOnUserClicked(user)">
                         <i class="glyphicon glyphicon-pencil"></i>

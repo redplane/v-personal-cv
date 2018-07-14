@@ -8,7 +8,7 @@ import UserDashboard from './components/modules/user/dashboard.vue';
 import SkillDashboard from './components/modules/skill/dashboard.vue';
 import SkillCategoryDashboard from './components/modules/responsibility/dashboard.vue';
 
-import AboutMe from './components/modules/user/about-me.vue';
+import Profile from './components/modules/user/profile.vue';
 
 Vue.use(Router);
 
@@ -46,9 +46,9 @@ export default new Router({
             ]
         },
         {
-            path: '/about-me',
-            name: 'about-me',
-            component: AboutMe
+            path: '/user/:id',
+            name: 'profile',
+            component: Profile
         }
     ]
 })

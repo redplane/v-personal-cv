@@ -1,7 +1,7 @@
 <template>
     <div>
-        <h3 v-if="!user.id">Add user</h3>
-        <h3 v-if="user.id">Edit user</h3>
+        <h3 v-if="!user || !user.id">Add user</h3>
+        <h3 v-if="user && user.id">Edit user</h3>
         <hr/>
         <div v-if="user">
             <!--First name-->
@@ -93,7 +93,7 @@
             pGetUserDetailPromise
                 .then((user) => {
                     if (!user)
-                        self.user = Vue.util.extend({}, {});
+                        self.user = {};
                     else
                         self.user = Vue.util.extend({}, user);
                 });
