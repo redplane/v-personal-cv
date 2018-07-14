@@ -24,7 +24,8 @@
                         <i class="glyphicon glyphicon-pencil"></i>
                     </button>
                     <span>&nbsp;</span>
-                    <button class="btn btn-danger">
+                    <button class="btn btn-danger"
+                            v-on:click="vOnDeleteUserClick(user)">
                         <i class="glyphicon glyphicon-remove"></i>
                     </button>
                 </td>
@@ -48,6 +49,7 @@
             </tbody>
         </table>
 
+        <!--Add/edit user-->
         <modal :header="false"
                :footer="false"
                size="lg"
@@ -60,6 +62,31 @@
             </div>
         </modal>
 
+        <!--Delete user-->
+        <modal :header="false"
+               v-model="bIsDeleteUserModalOpened"
+               v-if="bIsDeleteUserModalOpened">
+            <div slot="default">
+                <div class="text-center">
+                    <i class="text-danger">Are you sure to delete</i>&nbsp;<b class="text-danger">{{user.firstName}}
+                    {{user.lastName}}</b>&nbsp;<i class="text-danger">from the system</i>
+                </div>
+            </div>
+            <div slot="footer">
+                <div class="text-center">
+                    <button class="btn btn-danger"
+                            v-on:click="deleteUserResponse(user)">
+                        <span>OK</span>
+                    </button>
+                    <span>&nbsp;</span>
+                    <button class="btn btn-default"
+                            v-on:click="bIsDeleteUserModalOpened = false">
+                        <span>Cancel</span>
+                    </button>
+                </div>
+            </div>
+        </modal>
+
     </div>
 </template>
 
@@ -69,7 +96,7 @@
 
     export default {
         name: 'user-dashboard',
-        dependencies: ['$user'],
+        dependencies: ['$user', '$toastr'],
         components: {
             UserDetail
         },
@@ -78,7 +105,8 @@
                 self: this,
                 users: [],
                 user: {},
-                bIsUserModalOpened: false
+                bIsUserModalOpened: false,
+                bIsDeleteUserModalOpened: false
             }
         },
         methods: {
@@ -86,9 +114,15 @@
                 this.user = user;
                 this.bIsUserModalOpened = true;
             },
+
             vOnAddUserClicked() {
                 this.user = {};
                 this.bIsUserModalOpened = true;
+            },
+
+            vOnDeleteUserClick(user) {
+                this.user = user;
+                this.bIsDeleteUserModalOpened = true;
             },
 
             /*
@@ -98,20 +132,21 @@
 
                 // Promise to be completed.
                 let promise = null;
+                let self = this;
 
                 if (!user.id) {
                     promise = this
                         .$user
                         .addUser(user)
                         .then(() => {
-                            console.log('Added user');
+                            self.$toastr.success('User has been added');
                         });
                 } else {
                     promise = this
                         .$user
                         .editUser(user.id, user)
                         .then(() => {
-                            console.log('Edited user');
+                            self.$toastr.success('User has been edited');
                         });
                 }
 
@@ -120,6 +155,20 @@
                         // Close the modal dialog.
                         this.bIsUserModalOpened = false;
                     })
+            },
+
+            /*
+            * Event which is fired when user is deleted.
+            * */
+            deleteUserResponse(user) {
+                // Get context.
+                let self = this;
+                this.$user
+                    .deleteUser(user.id)
+                    .then(() => {
+                        self.$toastr.success('User has been deleted from the system');
+                        self.bIsDeleteUserModalOpened = false;
+                    });
             }
         },
         mounted() {

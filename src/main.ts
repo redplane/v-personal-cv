@@ -15,11 +15,14 @@ import App from './App.vue';
 import router from './router';
 import store from './store';
 
+// Register DI service.
 const injector = require('vue-inject/dist/vue-inject');
 Vue.use(injector);
 
+// Register UIV.
 const uiv = require('uiv');
 Vue.use(uiv);
+
 
 Vue.config.productionTip = false;
 

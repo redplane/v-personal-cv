@@ -53,7 +53,20 @@
                                 throw 'Cannot edit user detail';
 
                             return editUserResponse.data;
-                        })
+                        });
+                },
+
+                /*
+                * Find and delete user.
+                * */
+                deleteUser(id){
+                    return axios
+                        .delete(`${baseUrl}/api/user/${id}`)
+                        .then((deleteUserResponse) => {
+                            if (!deleteUserResponse)
+                                throw 'Cannot delete user detail';
+                            return deleteUserResponse.data;
+                        });
                 }
             }
         });
