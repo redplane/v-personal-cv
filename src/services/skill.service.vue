@@ -61,9 +61,9 @@
                 * */
                 deleteSkill(id){
                     return axios
-                        .delete(`${baseUrl}/api/skil/${id}`)
+                        .delete(`${baseUrl}/api/skill/${id}`)
                         .then((deleteSkillResponse) => {
-                            if (!deleteUserResponse)
+                            if (!deleteSkillResponse)
                                 throw 'Cannot delete skill detail';
                             return deleteSkillResponse.data;
                         });

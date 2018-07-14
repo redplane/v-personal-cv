@@ -75,22 +75,19 @@
     export default {
         name: 'user-detail',
         props: {
-            pUser: {},
-            visibilityProperty: false
+            userProperty: {}
         },
         data() {
             return {
-                user: this.pUser,
+                user: null,
                 visibility: false
             }
         },
         mounted() {
 
             let self = this;
-            let ngUser = self.pUser;
-
             let pGetUserDetailPromise = new Promise(resolve => {
-                resolve(ngUser);
+                resolve(self.userProperty);
             });
 
             pGetUserDetailPromise
@@ -100,20 +97,14 @@
                     else
                         self.user = Vue.util.extend({}, user);
                 });
-
-            this.visibility = this.visibilityProperty;
         },
         methods: {
             vOnClickOk() {
-                this.$emit('confirm', {user: this.user});
+                let user = Vue.util.extend({}, this.user);
+                this.$emit('confirm', user);
             },
             vOnClickCancel() {
                 this.$emit('cancel');
-            }
-        },
-        watch: {
-            visibilityProperty(val) {
-                this.visibility = val;
             }
         }
     }

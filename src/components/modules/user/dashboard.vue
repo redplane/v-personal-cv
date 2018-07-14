@@ -56,8 +56,8 @@
                v-model="bIsUserModalOpened"
                v-if="bIsUserModalOpened">
             <div slot="default">
-                <user-detail :p-user="user"
-                             v-on:confirm="addEditUser(user)"
+                <user-detail :user-property="user"
+                             v-on:confirm="addEditUser($event)"
                              v-on:cancel="bIsUserModalOpened = false"></user-detail>
             </div>
         </modal>

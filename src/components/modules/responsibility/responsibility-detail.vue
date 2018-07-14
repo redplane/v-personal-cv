@@ -1,10 +1,9 @@
 <template>
     <div>
-        <h3 v-if="!skill.id">Add skill</h3>
-        <h3 v-if="skill.id">Edit skill</h3>
+        <h3 v-if="!responsibility.id">Add responsibility</h3>
+        <h3 v-if="responsibility.id">Edit responsibility</h3>
         <hr/>
-        <div v-if="skill">
-
+        <div v-if="responsibility">
             <!--Name-->
             <div class="row">
                 <div class="col-lg-3">
@@ -13,7 +12,7 @@
                 <div class="col-lg-9">
                     <div class="form-group">
                         <input class="form-control"
-                               v-model="skill.name"
+                               v-model="responsibility.name"
                                :readonly="bIsReadOnly"/>
                     </div>
                 </div>
@@ -21,14 +20,29 @@
 
             <!--Created time-->
             <div class="row"
-                 v-if="skill && skill.id">
+                 v-if="responsibility && responsibility.id">
                 <div class="col-lg-3">
                     <label>Created time</label>
                 </div>
                 <div class="col-lg-9">
                     <div class="form-group">
                         <input class="form-control"
-                               v-model="skill.createdTime"
+                               v-model="responsibility.createdTime"
+                               v-bind:readonly="bIsReadOnly"/>
+                    </div>
+                </div>
+            </div>
+
+            <!--Last modified time-->
+            <div class="row"
+                 v-if="responsibility && responsibility.id">
+                <div class="col-lg-3">
+                    <label>Last modified time</label>
+                </div>
+                <div class="col-lg-9">
+                    <div class="form-group">
+                        <input class="form-control"
+                               v-model="responsibility.lastModifiedTime"
                                v-bind:readonly="bIsReadOnly"/>
                     </div>
                 </div>
@@ -52,42 +66,47 @@
     import Vue from 'vue';
 
     export default {
-        name: 'skill-detail',
+        name: 'responsibility-detail',
         props: {
             readonlyProperty: false,
-            skillProperty: {}
+            responsibilityProperty: {}
         },
         data() {
             return {
-                bIsReadOnly: this.readonlyProperty,
-                skill: this.skillProperty,
+                bIsReadOnly: false,
+                responsibility: {},
                 visibility: false
             }
         },
         mounted() {
 
             let self = this;
-            let pGetSkillDetailPromise = new Promise(resolve => {
-                resolve(self.skillProperty);
+            let pGetResponsibilityPromise = new Promise(resolve => {
+                resolve(self.responsibilityProperty);
             });
 
-            pGetSkillDetailPromise
-                .then((skill) => {
-                    if (!skill)
-                        self.skill = Vue.util.extend({}, {});
+            pGetResponsibilityPromise
+                .then((responsibility) => {
+                    if (!responsibility)
+                        self.responsibility = {};
                     else
-                        self.skill = Vue.util.extend({}, skill);
+                        self.responsibility = Vue.util.extend({}, responsibility);
                 });
 
             this.visibility = this.visibilityProperty;
         },
         methods: {
             vOnClickOk() {
-                let skill = Vue.util.extend({}, this.skill);
-                this.$emit('confirm', skill);
+                let responsibility = Vue.util.extend({}, this.responsibility);
+                this.$emit('confirm', responsibility);
             },
             vOnClickCancel() {
                 this.$emit('cancel');
+            }
+        },
+        watch: {
+            readonlyProperty(value) {
+                this.readonlyProperty = value;
             }
         }
     }

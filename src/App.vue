@@ -20,6 +20,7 @@
     require('./services/user.service');
     require('./services/skill.service');
     require('./services/toastr.service');
+    require('./services/responsibility.service');
 
     const injector = require('vue-inject/dist/vue-inject');
     injector.constant('baseUrl', 'http://2zxysdpz2bbbnaiby-mock.stoplight-proxy.io');
