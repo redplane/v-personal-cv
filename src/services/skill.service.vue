@@ -6,68 +6,167 @@
         .service('$skill', ['baseUrl'], (baseUrl) => {
             return {
 
+                //#region Methods
+
                 /*
-                * Get users by using specific conditions.
+                * Get hobbies by using specific conditions.
                 * */
-                getSkills(condition) {
+                loadSkillCategories(ids, userIds) {
+
+                    // Construct search model.
+                    let condition = {
+                        ids: ids,
+                        userIds: userIds
+                    };
+
                     return axios
-                        .post(`${baseUrl}/api/skill/search`, condition)
-                        .then((loadSkillResponse) => {
-                            if (!loadSkillResponse)
-                                throw 'No skill has been found';
+                        .post(`${baseUrl}/api/skill-category/search`, condition)
+                        .then((loadSkillCategoriesResponse) => {
+                            if (!loadSkillCategoriesResponse)
+                                throw 'No skill category is found';
 
-                            let loadSkillResult = loadSkillResponse.data;
-                            if (!loadSkillResult)
-                                throw 'No skill has been found';
+                            let loadSkillCategoriesResult = loadSkillCategoriesResponse.data;
+                            if (!loadSkillCategoriesResult)
+                                throw 'No skill category is found';
 
-                            return loadSkillResult;
+                            return loadSkillCategoriesResult;
                         });
                 },
 
                 /*
-                * Add user using specific conditions.
+                * Add skill category by using specific information.
                 * */
-                addSkill(skill) {
+                addSkillCategory(id, userId, photo, name) {
+
+                    // Initialize model to submit api.
+                    let model = {
+                        id: id,
+                        userId: userId,
+                        photo: photo,
+                        name: name
+                    };
+
                     return axios
-                        .post(`${baseUrl}/api/skill`, skill)
-                        .then((addSkillResponse) => {
-                            if (!addSkillResponse)
-                                throw 'Failed to add skill';
+                        .post(`${baseUrl}/api/skill-category/search`, model)
+                        .then((loadSkillCategoriesResponse) => {
+                            if (!loadSkillCategoriesResponse)
+                                throw 'No skill category is found';
 
-                            let addSkillResult = addSkillResponse.data;
-                            if (!addSkillResult)
-                                throw 'Failed to add skill';
+                            let loadSkillCategoriesResult = loadSkillCategoriesResponse.data;
+                            if (!loadSkillCategoriesResult)
+                                throw 'No skill category is found';
 
-                            return addSkillResult;
+                            return loadSkillCategoriesResult;
+                        });
+                },
+
+                /*
+                * Edit skill category by using specific information.
+                * */
+                editSkillCategory(id, userId, photo, name) {
+                    // Initialize model to submit api.
+                    let model = {
+                        userId: userId,
+                        photo: photo,
+                        name: name
+                    };
+
+                    return axios
+                        .put(`${baseUrl}/api/skill-category/${id}`, model)
+                        .then((editSkillCategoryResponse) => {
+                            if (!editSkillCategoryResponse)
+                                throw 'Failed to edit skill category';
+                            return editSkillCategoryResponse.data;
+                        });
+                },
+
+                /*
+                * Add hobby.
+                * */
+                loadSkillCategorySkillRelationships(skillCategoryIds, userIds, names) {
+                    // Build model to submit api end-point.
+                    let condition = {
+                        skillCategoryIds: skillCategoryIds,
+                        userIds: userIds,
+                        names: names
+                    };
+
+                    return axios
+                        .post(`${baseUrl}/api/skill-category-skill/search`, condition)
+                        .then((loadSkillCategorySkillRelationshipResponse) => {
+                            if (!loadSkillCategorySkillRelationshipResponse)
+                                throw 'Failed to load skill-category-skill relationship.';
+
+                            let loadSkillCategorySkillRelationshipsResult = loadSkillCategorySkillRelationshipResponse.data;
+                            if (!loadSkillCategorySkillRelationshipsResult)
+                                throw 'Failed to load skill-category-skill relationship.';
+
+                            return loadSkillCategorySkillRelationshipsResult;
+                        });
+                },
+
+                /*
+                * Add skill category - skill relationship.
+                * */
+                addSkillCategorySkillRelationship(id, userId, photo, name){
+
+                    // Initialize model to submit to server.
+                    let model = {
+                        id: id,
+                        userId: userId,
+                        photo: photo,
+                        name: name
+                    };
+
+                    return axios
+                        .post(`${baseUrl}/api/skill-category-skill`, model)
+                        .then((addSkillCategorySkillResponse) => {
+                            if (!addSkillCategorySkillResponse)
+                                throw 'Failed to add skill-category-skill relationship.';
+
+                            return addSkillCategorySkillResponse.data;
+                        });
+                },
+
+                /*
+                * Edit skill category - skill relationship.
+                * */
+                editSkillCategorySkillRelationship(skillCategoryId, skillId, point) {
+                    // Initialize model to submit to api end-point.
+                    let model = {
+                        point: point
+                    };
+
+                    return axios
+                        .put(`${baseUrl}/api/skill-category-skill?skillCategoryId=${skillCategoryId}&skillId=${skillId}`, model)
+                        .then((editSkillCategorySkillRelationshipResponse) => {
+                            if (!editSkillCategorySkillRelationshipResponse)
+                                throw 'Failed to edit skill-category-skill relationship.';
+
+                            return editSkillCategorySkillRelationshipResponse.data;
                         });
                 },
 
                 /*
                 * Edit user using specific condition.
                 * */
-                editSkill(id, skill) {
-                    return axios
-                        .put(`${baseUrl}/api/skill/${id}`, skill)
-                        .then((editSkillResponse) => {
-                            if (!editSkillResponse)
-                                throw 'Failed to add edit skill';
+                loadSkills(ids, names, createdTime) {
+                    let conditions = {
+                        ids: ids,
+                        names: names,
+                        createdTime: createdTime
+                    };
 
-                            return editSkillResponse.data;
-                        });
-                },
-
-                /*
-                * Find and delete user.
-                * */
-                deleteSkill(id){
                     return axios
-                        .delete(`${baseUrl}/api/skill/${id}`)
-                        .then((deleteSkillResponse) => {
-                            if (!deleteSkillResponse)
-                                throw 'Cannot delete skill detail';
-                            return deleteSkillResponse.data;
+                        .post(`${baseUrl}/api/skill/search`, conditions)
+                        .then((loadSkillsResponse) => {
+                            if (!loadSkillsResponse)
+                                throw 'No skill is found';
+                            return loadSkillsResponse.data;
                         });
                 }
+
+                //#endregion
             }
         });
 </script>

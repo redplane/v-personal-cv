@@ -117,7 +117,7 @@
             };
 
             this.$skill
-                .getSkills(loadSkillCondition)
+                .loadSkills(loadSkillCondition)
                 .then((loadSkillsResult) => {
                     self.skills = loadSkillsResult.records;
                 });

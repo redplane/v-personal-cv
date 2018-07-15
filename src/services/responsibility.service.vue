@@ -9,9 +9,18 @@
                 /*
                 * Get users by using specific conditions.
                 * */
-                getResponsibilities(condition) {
+                loadResponsibilities(ids, names, createdTime, lastModifiedTime, pagination) {
+                    // Build search condition.
+                    let conditions = {
+                        ids: ids,
+                        names: names,
+                        createdTime: createdTime,
+                        lastModifiedTime: lastModifiedTime,
+                        pagination: pagination
+                    };
+
                     return axios
-                        .post(`${baseUrl}/api/responsibility/search`, condition)
+                        .post(`${baseUrl}/api/responsibility/search`, conditions)
                         .then((loadSkillResponse) => {
                             if (!loadSkillResponse)
                                 throw 'No skill has been found';
