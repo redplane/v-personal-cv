@@ -1,5 +1,7 @@
 <template>
     <div>
+
+        <!--General information-->
         <div class="row">
             <div class="col-lg-12">
                 <div class="panel panel-default">
@@ -29,6 +31,7 @@
             </div>
         </div>
 
+        <!--Tabs panel-->
         <div class="row">
             <div class="col-lg-12">
                 <div class="form-group">
@@ -79,6 +82,31 @@
                 </div>
             </div>
         </div>
+
+        <!--Personal techniques-->
+        <div class="row"
+             v-if="tabIndex === 1 && user && user.techniques">
+            <div class="col-lg-12">
+                <table class="table table-responsive table-condensed">
+                    <thead>
+                    <tr>
+                        <th class="text-center">Category</th>
+                        <th class="text-center">Techniques</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="technique in user.techniques">
+                        <td class="text-center">{{technique.name}}</td>
+                        <td class="text-center">
+                            <div v-for="skill in technique.skills">
+                                {{skill.name}}
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -93,7 +121,7 @@
                     descriptions: [],
                     hobbies: [],
                     projects: [],
-                    skills: []
+                    techniques: []
                 },
                 tabIndex: 0
             }
@@ -146,7 +174,7 @@
 
             //#region Load projects
 
-            this.loadUserProjects();
+            self.vOnTabSelected(0);
 
             //#endregion
 
@@ -154,15 +182,13 @@
                 .then(() => {
                     self.$toastr.success('User data has been loaded successfully.');
                 });
-
-            this.loadUserSkillCategories();
         },
         methods: {
 
             /*
             * Load user skill categories by using specific conditions.
             * */
-            loadUserSkillCategories() {
+            loadUserTechniques() {
 
                 if (!this.user || !this.user.id)
                     return;
@@ -171,7 +197,7 @@
                 let self = this;
 
                 // Clear skill categories list.
-                let pSkillCategories = [];
+                let pTechniques = [];
 
                 let pLoadSkillPromise = self.$skill
                     .loadSkillCategories(null, [this.user.id])
@@ -180,7 +206,7 @@
                         //#region Load skill categories
 
                         let skillCategories = loadSkillCategoriesResult.records;
-                        pSkillCategories = skillCategories;
+                        pTechniques = skillCategories;
                         return skillCategories;
 
                         //#endregion
@@ -198,12 +224,12 @@
                             .loadSkillCategorySkillRelationships(skillCategoryIds)
                             .then((loadSkillCategorySkillRelationshipsResult) => {
                                 let skillCategorySkillRelationships = loadSkillCategorySkillRelationshipsResult.records;
-                                pSkillCategories
-                                    .map((skillCategory) => {
+                                pTechniques
+                                    .map((technique) => {
                                         // Extend object.
-                                        skillCategory['skills'] = skillCategorySkillRelationships
+                                        technique['skills'] = skillCategorySkillRelationships
                                             .filter((skillCategorySkillRelationship) => {
-                                                return skillCategorySkillRelationship.skillCategoryId === skillCategory.id;
+                                                return skillCategorySkillRelationship.skillCategoryId === technique.id;
                                             })
                                             .map((skillCategorySkillRelationship) => {
                                                 return {
@@ -212,7 +238,7 @@
                                                 }
                                             });
 
-                                        return skillCategory;
+                                        return technique;
                                     });
 
                                 return skillCategorySkillRelationships;
@@ -235,7 +261,7 @@
                                 return loadSkillsResult.records;
                             })
                             .then((skills) => {
-                                pSkillCategories
+                                pTechniques
                                     .map((pSkillCategory) => {
                                         // Go through every skill category - skill relationship.
                                         self.$lodash
@@ -262,7 +288,7 @@
 
                 return pLoadSkillPromise
                     .then(() => {
-                        self.user.skillCategories = pSkillCategories;
+                        return pTechniques;
                     });
             },
 
@@ -436,8 +462,7 @@
                     })
 
                     .then(() => {
-                        self.user.projects = pProjects;
-                        console.log(pProjects);
+                        return pProjects;
                     });
 
 
@@ -448,13 +473,29 @@
             * */
             vOnTabSelected(tabIndex) {
 
-                console.log(tabIndex);
+                // Get function context.
+                let self = this;
+
                 switch (tabIndex) {
                     case 1:
+                        // Clear user techniques.
+                        self.user.techniques = [];
+
+                        this.loadUserTechniques()
+                            .then((techniques) => {
+                                self.user.techniques = techniques;
+                            });
                         break;
 
                     default:
-                        this.loadUserProjects();
+
+                        // Clear user projects.
+                        self.user.projects = [];
+
+                        this.loadUserProjects()
+                            .then((projects) => {
+                                self.user.projects = projects;
+                            });
                 }
             }
         }
