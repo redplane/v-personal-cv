@@ -108,16 +108,8 @@
             // Get current function context.
             let self = this;
 
-            // Find skills by using specific conditions.
-            let loadSkillCondition = {
-                pagination: {
-                    page: 1,
-                    records: this.paginationConstant.dashboardMaxItem
-                }
-            };
-
             this.$skill
-                .loadSkills(loadSkillCondition)
+                .loadSkills()
                 .then((loadSkillsResult) => {
                     self.skills = loadSkillsResult.records;
                 });

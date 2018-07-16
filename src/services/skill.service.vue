@@ -150,11 +150,15 @@
                 /*
                 * Edit user using specific condition.
                 * */
-                loadSkills(ids, names, createdTime) {
+                loadSkills(ids, names, createdTime, page, records) {
                     let conditions = {
                         ids: ids,
                         names: names,
-                        createdTime: createdTime
+                        createdTime: createdTime,
+                        pagination: {
+                            page: page,
+                            records: records
+                        }
                     };
 
                     return axios

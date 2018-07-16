@@ -106,7 +106,7 @@
 
             // Load responsibilities list.
             this.$responsibility
-                .getResponsibilities({})
+                .loadResponsibilities()
                 .then((loadResponsibilitiesResult) => {
                     self.responsibilities = loadResponsibilitiesResult.records;
                 });

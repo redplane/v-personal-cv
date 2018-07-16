@@ -69,9 +69,9 @@
                                 </div>
                             </td>
                             <td class="text-center">
-                                <ul v-for="skill in project.skills">
-                                    <li>{{skill.name}}</li>
-                                </ul>
+                                <div v-for="skill in project.skills" class="text-center">
+                                    {{skill.name}}
+                                </div>
                             </td>
                         </tr>
                         </tbody>
@@ -287,16 +287,40 @@
                     })
 
                     .then((projects) => {
-                        //#region Load project responsibility relationships
 
                         let projectIds = projects.map((project) => {
                             return project.id
                         });
 
-                        return this.$project
+                        // Promises to be resolved.
+                        let promises = [];
+
+                        //#region Load project responsibility relationships
+
+                        promises[0] = self.$project
                             .loadProjectResponsibilityRelationships(projectIds)
                             .then((loadProjectResponsibilityRelationshipsResult) => {
-                                let projectResponsibilityRelationships = loadProjectResponsibilityRelationshipsResult.records;
+                                return loadProjectResponsibilityRelationshipsResult.records;
+                            });
+
+                        //#endregion
+
+                        //#region Load project skill relationships
+
+                        promises[1] = self.$project
+                            .loadProjectSkillRelationships(projectIds)
+                            .then((loadProjectSkillRelationshipsResult) => {
+                                return loadProjectSkillRelationshipsResult.records;
+                            });
+
+                        //#endregion
+
+                        return Promise
+                            .all(promises)
+                            .then((loadRecordsResults) => {
+
+                                let projectResponsibilityRelationships = loadRecordsResults[0];
+                                let projectSkillRelationships = loadRecordsResults[1];
                                 pProjects = projects.map((project) => {
 
                                     project['responsibilities'] = projectResponsibilityRelationships
@@ -305,36 +329,73 @@
                                         })
                                         .map((projectResponsibilityRelationship) => {
                                             return {
-                                                id: projectResponsibilityRelationship.responsibilityId,
-                                                projectId: projectResponsibilityRelationship.projectId,
-                                                responsibilityId: projectResponsibilityRelationship.responsibilityId
+                                                id: projectResponsibilityRelationship.responsibilityId
+                                            }
+                                        });
+
+                                    project['skills'] = projectSkillRelationships
+                                        .filter((projectSkillRelationship) => {
+                                            return projectSkillRelationship.projectId === project.id;
+                                        })
+                                        .map((projectSkillRelationship) => {
+                                            return {
+                                                id: projectSkillRelationship.skillId
                                             }
                                         });
 
                                     return project;
                                 });
-
-                                return projectResponsibilityRelationships;
                             });
-
-                        //#endregion
-
                     })
 
                     .then((projectResponsibilityRelationships) => {
 
-                        //#region Load skills
+                        // Promises to be resolved.
+                        let promises = [];
 
-                        let responsibilityIds = projectResponsibilityRelationships.map((projectResponsibilityRelationship) => {
-                            return projectResponsibilityRelationship.responsibilityId;
-                        });
+                        let responsibilityIds = [];
+                        let skillIds = [];
 
-                        return self.$responsibility
+                        //#region Load responsibilities
+
+                        // Go through every project.
+                        self.$lodash
+                            .each(pProjects, (project) => {
+
+                                responsibilityIds = project.responsibilities
+                                    .map((responsibility) => {
+                                        return responsibility.id;
+                                    });
+
+                                skillIds = project.skills
+                                    .map((skill) => {
+                                        return skill.id;
+                                    });
+                            });
+
+                        promises[0] = self.$responsibility
                             .loadResponsibilities(responsibilityIds)
                             .then((loadResponsibilitiesResult) => {
                                 return loadResponsibilitiesResult.records;
-                            })
-                            .then((responsibilities) => {
+                            });
+
+                        //#endregion
+
+                        //#region Load skills
+
+                        promises[1] = self.$skill
+                            .loadSkills(skillIds)
+                            .then((loadSkillsResult) => {
+                                return loadSkillsResult.records;
+                            });
+
+                        //#endregion
+
+                        return Promise.all(promises)
+                            .then((loadRecordResults) => {
+                                let responsibilities = loadRecordResults[0];
+                                let skills = loadRecordResults[1];
+
                                 pProjects
                                     .map((project) => {
 
@@ -352,9 +413,23 @@
 
                                                 responsibility['name'] = pResponsibility.name;
                                             });
+
+                                        self.$lodash
+                                            .each(project.skills, (skill) => {
+                                                // Find the first skill matches with the skill id.
+                                                let pSkill = self.$lodash.first(skills, (item) => {
+                                                    return item.id === responsibility.id;
+                                                });
+
+                                                if (!pSkill)
+                                                    return;
+
+
+                                                skill['name'] = pSkill.name;
+                                            });
                                     });
 
-                                return responsibilities;
+                                return pProjects;
                             });
 
                         //#endregion
@@ -362,6 +437,7 @@
 
                     .then(() => {
                         self.user.projects = pProjects;
+                        console.log(pProjects);
                     });
 
 
@@ -370,10 +446,10 @@
             /*
             * Called when tab is selected.
             * */
-            vOnTabSelected(tabIndex){
+            vOnTabSelected(tabIndex) {
 
                 console.log(tabIndex);
-                switch (tabIndex){
+                switch (tabIndex) {
                     case 1:
                         break;
 

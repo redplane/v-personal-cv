@@ -5,7 +5,6 @@
     injector
         .service('$project', ['baseUrl'], (baseUrl) => {
             return {
-
                 //#region Methods
 
                 /*
@@ -36,7 +35,7 @@
                 /*
                 * Add project by using specific information.
                 * */
-                addProject(id, userId, name, description, startedTime, finishedTime){
+                addProject(id, userId, name, description, startedTime, finishedTime) {
                     let model = {
                         id: id,
                         userId: userId,
@@ -59,7 +58,7 @@
                 /*
                 * Edit project by using specific information.
                 * */
-                editProject(id, userId, name, description, startedTime, finishedTime){
+                editProject(id, userId, name, description, startedTime, finishedTime) {
                     let model = {
                         userId: userId,
                         name: name,
@@ -81,7 +80,7 @@
                 /*
                 * Load project responsibilities by using specific conditions.
                 * */
-                loadProjectResponsibilityRelationships(projectIds, responsibilityIds, createdTime, pagination){
+                loadProjectResponsibilityRelationships(projectIds, responsibilityIds, createdTime, pagination) {
                     let condition = {
                         projectIds: projectIds,
                         responsibilityIds: responsibilityIds,
@@ -106,7 +105,7 @@
                 /*
                 * Add project responsibility relationship by using specific information.
                 * */
-                addProjectResponsibilityRelationship(projectId, responsibilityId){
+                addProjectResponsibilityRelationship(projectId, responsibilityId) {
                     let model = {
                         projectId: projectId,
                         responsibilityId: responsibilityId
@@ -121,6 +120,33 @@
                             return addProjectResponsibilityResponse.data;
                         });
 
+                },
+
+                /*
+                * Load project skill relationships.
+                * */
+                loadProjectSkillRelationships(projectIds, skillIds, page, records) {
+                    let condition = {
+                        projectIds: projectIds,
+                        skillIds: skillIds,
+                        pagination: {
+                            page: page,
+                            records: records
+                        }
+                    };
+
+                    return axios
+                        .post(`${baseUrl}/api/project-skill/search`, condition)
+                        .then((loadProjectSkillRelationshipsResponse) => {
+                            if (!loadProjectSkillRelationshipsResponse)
+                                throw 'No project skill is found';
+
+                            let loadProjectSkillRelationshipsResult = loadProjectSkillRelationshipsResponse.data;
+                            if (!loadProjectSkillRelationshipsResult)
+                                throw 'No project skill is found';
+
+                            return loadProjectSkillRelationshipsResult;
+                        });
                 }
 
                 //#endregion
