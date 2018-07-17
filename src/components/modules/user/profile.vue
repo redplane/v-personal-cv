@@ -5,24 +5,39 @@
         <div class="row">
             <div class="col-lg-12">
                 <div class="panel panel-default">
-                    <div class="panel-heading"><h3 class="panel-title">About me</h3></div>
+                    <div class="panel-heading"><h3 class="panel-title">About {{user.firstName}} {{user.lastName}}</h3>
+                    </div>
                     <div class="panel-body">
-                        <ul v-if="user && user.descriptions">
-                            <li v-for="item in user.descriptions" class="alert alert-info"> {{item.description}}</li>
-                        </ul>
+                        <div class="row">
+                            <div class="col-lg-3">
+                                <img class="img img-thumbnail img-responsive"
+                                     v-bind:src="user.photo"/>
+                            </div>
+                            <div class="col-lg-9">
+                                <ul v-if="user && user.descriptions">
+                                    <li v-for="item in user.descriptions" class="alert alert-info">
+                                        {{item.description}}
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="panel panel-info">
                     <div class="panel-heading"><h3 class="panel-title">My hobbies</h3></div>
                     <div class="panel-body">
-                        <div v-if="user && user.hobbies"
-                             v-for="hobby in user.hobbies">
-                            <div class="row">
-                                <div class="col-lg-3">
-                                    <label>{{hobby.name}}</label>
-                                </div>
-                                <div class="col-lg-9">
-                                    <div class="form-group">{{hobby.description}}</div>
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div v-if="user && user.hobbies"
+                                     v-for="hobby in user.hobbies">
+                                    <div class="row">
+                                        <div class="col-lg-3">
+                                            <label>{{hobby.name}}</label>
+                                        </div>
+                                        <div class="col-lg-9">
+                                            <div class="form-group">{{hobby.description}}</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -84,27 +99,31 @@
         </div>
 
         <!--Personal techniques-->
-        <div class="row"
-             v-if="tabIndex === 1 && user && user.techniques">
-            <div class="col-lg-12">
-                <table class="table table-responsive table-condensed">
-                    <thead>
-                    <tr>
-                        <th class="text-center">Category</th>
-                        <th class="text-center">Techniques</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr v-for="technique in user.techniques">
-                        <td class="text-center">{{technique.name}}</td>
-                        <td class="text-center">
-                            <div v-for="skill in technique.skills">
-                                {{skill.name}}
+        <div v-if="tabIndex === 1 && user && user.techniques">
+
+            <div v-for="technique in user.techniques">
+                <div class="row">
+                    <div class="col-lg-3 col-xs-4">
+                        <div class="thumbnail">
+                            <img :src="technique.photo">
+                            <div class="text-center">
+                                <span>{{technique.name}}</span>
                             </div>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+                        </div>
+                    </div>
+                    <div class="col-lg-9 col-xs-8">
+                        <div class="form-group"
+                             v-for="skill in technique.skills">
+                            <progress-bar v-model="skill.point" label :label-text="skill.name"/>
+                        </div>
+                        <div class="pull-right">
+                            <button class="btn btn-primary">
+                                <span class="glyphicon glyphicon-plus"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <hr/>
             </div>
         </div>
     </div>
@@ -113,7 +132,7 @@
 <script>
     export default {
         name: 'profile',
-        dependencies: ['$userDescription', '$hobby', '$skill', '$responsibility', '$project', '$lodash', '$toastr'],
+        dependencies: ['$user', '$userDescription', '$hobby', '$skill', '$responsibility', '$project', '$lodash', '$toastr'],
         data() {
             return {
                 user: {
@@ -132,54 +151,64 @@
             // Get params in route.
             let params = this.$route.params;
             let userId = parseInt(params.id);
+
+            // Get function context.
             let self = this;
 
+
             // List of promises that needs resolving.
-            let pLoadInitialDataPromise = [];
+            let promises = [];
 
-            //#region Load user hobbies
-
-            let loadUserHobbiesCondition = {
-                userIds: [userId]
-            };
-
-            let pLoadHobbiesPromise = this.$hobby
-                .loadUserHobbies(loadUserHobbiesCondition)
-                .then((loadUserHobbiesResult) => {
-                    self.user.hobbies = loadUserHobbiesResult.records;
-                })
-                .catch(() => {
-                    self.user.hobbies = []
+            // Find user information from cache. This is for preventing requesting to api end-point too many times.
+            let user = params.user;
+            if (user) {
+                promises[0] = new Promise((resolve) => {
+                    resolve(user);
                 });
+            } else {
+                promises[0] = self.$user
+                    .loadUsers([self.user.id], null, null, null, 1, 1)
+                    .then((loadUsersResult) => {
+                        // Get users.
+                        let users = loadUsersResult.records;
+                        return users[0];
+                    });
+            }
 
-            pLoadInitialDataPromise.push(pLoadHobbiesPromise);
+            //region Load user hobbies
+            promises[1] = self.loadUserHobbies();
 
-            //#endregion
-
-            //#region Load user descriptions
-
-            let loadUserDescriptionsCondition = {
-                userIds: [userId]
-            };
-
-            let pLoadUserDescriptionsPromise = this.$userDescription
-                .loadUserDescriptions(loadUserDescriptionsCondition)
-                .then((loadUserDescriptionsResult) => {
-                    self.user.descriptions = loadUserDescriptionsResult.records;
-                });
-
-            pLoadInitialDataPromise.push(pLoadUserDescriptionsPromise);
-
-            //#endregion
+            //Load user descriptions
+            promises[2] = self.loadUserDescriptions();
 
             //#region Load projects
-
-            self.vOnTabSelected(0);
+            promises[3] = self.loadUserProjects();
 
             //#endregion
 
-            Promise.all(pLoadInitialDataPromise)
-                .then(() => {
+            Promise.all(promises)
+                .then((loadRecordResults) => {
+
+                    // Get user.
+                    let user = loadRecordResults[0];
+                    let hobbies = loadRecordResults[1];
+                    let userDescriptions = loadRecordResults[2];
+                    let projects = loadRecordResults[3];
+
+                    let pUser = {};
+                    pUser.id = user.id;
+                    pUser.firstName = user.firstName;
+                    pUser.lastName = user.lastName;
+                    pUser.photo = user.photo;
+
+                    pUser.hobbies = hobbies;
+                    pUser.descriptions = userDescriptions;
+                    pUser.projects = projects;
+                    pUser.techniques = [];
+
+                    // Update user information.
+                    self.user = pUser;
+
                     self.$toastr.success('User data has been loaded successfully.');
                 });
         },
@@ -469,6 +498,41 @@
             },
 
             /*
+            * Load user hobbies by using specific conditions.
+            * */
+            loadUserHobbies() {
+                // Get current function context.
+                let self = this;
+
+                // Get user id.
+                return self.$hobby
+                    .loadUserHobbies(null, [self.user.id], null)
+                    .then((loadUserHobbiesResult) => {
+                        return loadUserHobbiesResult.records;
+                    })
+                    .catch(() => {
+                        self.user.hobbies = []
+                    });
+            },
+
+            /*
+            * Load user descriptions by using specific conditions.
+            * */
+            loadUserDescriptions() {
+                // Get function context.
+                let self = this;
+
+                return self.$userDescription
+                    .loadUserDescriptions(null, [self.user.id], null, null)
+                    .then((loadUserDescriptionsResult) => {
+                        return loadUserDescriptionsResult.records;
+                    })
+                    .catch(() => {
+                        return [];
+                    });
+            },
+
+            /*
             * Called when tab is selected.
             * */
             vOnTabSelected(tabIndex) {
@@ -483,7 +547,7 @@
 
                         this.loadUserTechniques()
                             .then((techniques) => {
-                                self.user.techniques = techniques;
+                                self.user['techniques'] = techniques;
                             });
                         break;
 
@@ -494,7 +558,7 @@
 
                         this.loadUserProjects()
                             .then((projects) => {
-                                self.user.projects = projects;
+                                self.user['projects'] = projects;
                             });
                 }
             }

@@ -6,7 +6,7 @@
                 <th class="text-center">Name</th>
                 <th class="text-center">Created time</th>
                 <th class="text-center">Last modified time</th>
-                <th></th>
+                <th v-if="bIsUserAdmin"></th>
             </tr>
             </thead>
             <tbody>
@@ -15,7 +15,8 @@
                 <td class="text-center">{{responsibility.name}}</td>
                 <td class="text-center">{{responsibility.createdTime}}</td>
                 <td class="text-center">{{responsibility.lastModifiedTime}}</td>
-                <td class="text-center">
+                <td class="text-center"
+                    v-if="bIsUserAdmin">
                     <button class="btn btn-info"
                             v-on:click="vOnEditResponsibilityClicked(responsibility)">
                         <i class="glyphicon glyphicon-pencil"></i>
@@ -90,13 +91,31 @@
 
     export default {
         name: 'responsibility-dashboard',
-        dependencies: ['$responsibility', '$toastr'],
+        dependencies: ['$responsibility', '$toastr', 'userRoleConstant'],
         data() {
             return {
                 responsibilities: [],
                 responsibility: {},
                 bIsResponsibilityDetailModalOpened: false,
                 bIsDeleteResponsibilityModalOpened: false
+            }
+        },
+        computed:{
+            /*
+            * Profile information.
+            * */
+            profile(){
+                return this.$store.getters.profile;
+            },
+
+            /*
+              * Check whether user is admin.
+              * */
+            bIsUserAdmin(){
+                if (!this.profile)
+                    return;
+
+                return this.profile.role === this.userRoleConstant.admin;
             }
         },
         mounted() {

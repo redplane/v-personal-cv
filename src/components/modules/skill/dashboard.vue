@@ -7,6 +7,7 @@
             <tr>
                 <th class="text-center">Name</th>
                 <th class="text-center">Created time</th>
+                <th v-if="bIsUserAdmin"></th>
             </tr>
             </thead>
             <tbody>
@@ -15,7 +16,8 @@
                 <td class="text-center">{{skill.name}}</td>
                 <td class="text-center">{{skill.createdTime}}</td>
 
-                <td class="text-center">
+                <td class="text-center"
+                    v-if="bIsUserAdmin">
                     <button class="btn btn-info"
                             v-on:click="vOnEditSkillClicked(skill)">
                         <i class="glyphicon glyphicon-pencil"></i>
@@ -33,7 +35,7 @@
                     <i class="text-danger">No information is available.</i>
                 </td>
             </tr>
-            <tr>
+            <tr v-if="bIsUserAdmin">
                 <td colspan="5">
                     <div class="pull-right">
                         <button class="btn btn-primary"
@@ -94,13 +96,31 @@
 
     export default {
         name: 'skill-dashboard',
-        dependencies: ['paginationConstant', '$skill', '$toastr'],
+        dependencies: ['paginationConstant', '$skill', '$toastr', 'userRoleConstant'],
         data() {
             return {
                 skill: null,
                 skills: [],
                 bIsSkillModalOpened: false,
                 bIsDeleteSkillModalOpened: false
+            }
+        },
+        computed:{
+            /*
+            * Profile information.
+            * */
+            profile(){
+                return this.$store.getters.profile;
+            },
+
+            /*
+            * Check whether user is admin.
+            * */
+            bIsUserAdmin(){
+                if (!this.profile)
+                    return;
+
+                return this.profile.role === this.userRoleConstant.admin;
             }
         },
         mounted() {

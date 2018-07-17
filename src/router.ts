@@ -7,10 +7,9 @@ import AdminSideBar from './components/shared/admin-side-bar.vue';
 import UserDashboard from './components/modules/user/dashboard.vue';
 import SkillDashboard from './components/modules/skill/dashboard.vue';
 import SkillCategoryDashboard from './components/modules/responsibility/dashboard.vue';
-
 import Profile from './components/modules/user/profile.vue';
+import ManagementLayout from '@/components/modules/management-layout.vue';
 
-Vue.use(Router);
 
 export default new Router({
     routes: [
@@ -19,36 +18,49 @@ export default new Router({
             component: MasterLayout,
             children: [
                 {
-                    path: '',
-                    redirect: 'user-management'
+                    path: '/',
+                    name: 'default',
+                    redirect: 'management'
                 },
                 {
-                    path: 'skill-management',
-                    components: {
-                        default: SkillDashboard,
-                        adminSideBar: AdminSideBar
-                    }
+                    path: '/user/:id',
+                    name: 'profile',
+                    component: Profile
                 },
                 {
-                    path: 'responsibility-management',
-                    components:{
-                        default: SkillCategoryDashboard,
-                        adminSideBar: AdminSideBar
-                    }
-                },
-                {
-                    path: 'user-management',
-                    components: {
-                        default: UserDashboard,
-                        adminSideBar: AdminSideBar
-                    }
+                    path: 'management',
+                    component: ManagementLayout,
+                    children: [
+                        {
+                            path: '',
+                            redirect: 'user-management'
+                        },
+                        {
+                            path: 'skill-management',
+                            components: {
+                                default: SkillDashboard,
+                                adminSideBar: AdminSideBar
+                            }
+                        },
+                        {
+                            path: 'responsibility-management',
+                            components: {
+                                default: SkillCategoryDashboard,
+                                adminSideBar: AdminSideBar
+                            }
+                        },
+                        {
+                            path: 'user-management',
+                            components: {
+                                default: UserDashboard,
+                                adminSideBar: AdminSideBar
+                            }
+                        }
+                    ]
                 }
             ]
-        },
-        {
-            path: '/user/:id',
-            name: 'profile',
-            component: Profile
         }
     ]
-})
+});
+
+Vue.use(Router);

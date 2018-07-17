@@ -9,7 +9,24 @@
                 /*
                 * Get users by using specific conditions.
                 * */
-                loadUserDescriptions(condition) {
+                loadUserDescriptions(ids, userIds, page, records) {
+
+                    // Build search condition.
+                    let condition = {
+                        ids: ids,
+                        userIds: userIds,
+                    };
+
+
+                    if (page || records) {
+                        let pagination = condition['pagination'] = {};
+                        if (page)
+                            pagination['page'] = page;
+
+                        if (records)
+                            pagination['records'] = records;
+                    }
+
                     return axios
                         .post(`${baseUrl}/api/user-description/search`, condition)
                         .then((loadUserDescriptionResponse) => {

@@ -21,17 +21,19 @@
                 <td class="text-center">
                     <router-link tag="button"
                                  class="btn btn-default"
-                                 :to="{ name: 'profile', params: { id: user.id }}">
+                                 :to="{ name: 'profile', params: { id: user.id, user: user }}">
                         <span class="glyphicon glyphicon-comment"></span>
                     </router-link>
-                    <span>&nbsp;</span>
+                    <span v-if="bIsAbleToEditUser">&nbsp;</span>
                     <button class="btn btn-info"
-                            v-on:click="vOnUserClicked(user)">
+                            v-on:click="vOnUserClicked(user)"
+                            v-if="bIsAbleToEditUser">
                         <i class="glyphicon glyphicon-pencil"></i>
                     </button>
-                    <span>&nbsp;</span>
+                    <span v-if="bIsAbleToDeleteUser">&nbsp;</span>
                     <button class="btn btn-danger"
-                            v-on:click="vOnDeleteUserClick(user)">
+                            v-on:click="vOnDeleteUserClick(user)"
+                            v-if="bIsAbleToDeleteUser">
                         <i class="glyphicon glyphicon-remove"></i>
                     </button>
                 </td>
@@ -42,7 +44,7 @@
                     <i class="text-danger">No information is available.</i>
                 </td>
             </tr>
-            <tr>
+            <tr v-if="bIsAbleToAddUser">
                 <td colspan="5">
                     <div class="pull-right">
                         <button class="btn btn-primary"
@@ -81,7 +83,7 @@
             <div slot="footer">
                 <div class="text-center">
                     <button class="btn btn-danger"
-                            v-on:click="deleteUserResponse(user)">
+                            v-on:click="deleteUser(user)">
                         <span>OK</span>
                     </button>
                     <span>&nbsp;</span>
@@ -102,7 +104,7 @@
 
     export default {
         name: 'user-dashboard',
-        dependencies: ['$user', '$toastr'],
+        dependencies: ['$user', '$toastr', 'paginationConstant', 'userRoleConstant'],
         components: {
             UserDetail
         },
@@ -115,7 +117,56 @@
                 bIsDeleteUserModalOpened: false
             }
         },
+        computed:{
+            profile(){
+                return this.$store.getters.profile;
+            },
+
+            /*
+            * Check whether user is able to delete user or not.
+            * */
+            bIsAbleToDeleteUser(){
+                // Profile is not defined.
+                if (!this.profile)
+                    return false;
+
+                if (this.profile.role !== this.userRoleConstant.admin)
+                    return false;
+
+                return true;
+            },
+
+            /*
+            * Check whether user is able to edit user or not.
+            * */
+            bIsAbleToEditUser(){
+                if (!this.profile)
+                    return false;
+
+                if (this.profile.role !== this.userRoleConstant.admin)
+                    return false;
+
+                return true;
+            },
+
+            /*
+            * Check whether user is able to add another user or not.
+            * */
+            bIsAbleToAddUser(){
+                if (!this.profile)
+                    return false;
+
+                if (this.profile.role !== this.userRoleConstant.admin)
+                    return false;
+
+                return true;
+            }
+        },
         methods: {
+
+            /*
+            * Called when user is clicked.
+            * */
             vOnUserClicked(user) {
                 this.user = user;
                 this.bIsUserModalOpened = true;
@@ -166,7 +217,7 @@
             /*
             * Event which is fired when user is deleted.
             * */
-            deleteUserResponse(user) {
+            deleteUser(user) {
                 // Get context.
                 let self = this;
                 this.$user
@@ -178,11 +229,9 @@
             }
         },
         mounted() {
-
             const self = this;
-
             // Get users list.
-            this.$user.getUser()
+            this.$user.loadUsers(null, null, null, null, 1, self.paginationConstant.dashboardMaxItem)
                 .then((loadUserResult) => {
                     self.users = loadUserResult.records;
                 })
@@ -191,8 +240,4 @@
 </script>
 
 <style scoped>
-
-    .modal-body {
-        background-color: black !important;
-    }
 </style>

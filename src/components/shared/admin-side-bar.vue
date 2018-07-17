@@ -1,18 +1,18 @@
 <template>
     <ul class="nav nav-pills nav-stacked">
-        <router-link to="/user-management"
+        <router-link to="/management/user-management"
                      tag="li"
                      active-class="active"
                      v-bind:role="'presentation'">
             <a href="javascript:void(0);">User management</a>
         </router-link>
-        <router-link to="/responsibility-management"
+        <router-link to="/management/responsibility-management"
                      tag="li"
                      active-class="active"
                      v-bind:role="'presentation'">
             <a href="javascript:void(0);">Responsibility management</a>
         </router-link>
-        <router-link to="/skill-management"
+        <router-link to="/management/skill-management"
                      tag="li"
                      active-class="active"
                      v-bind:role="'presentation'">

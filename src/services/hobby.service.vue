@@ -9,7 +9,18 @@
                 /*
                 * Get hobbies by using specific conditions.
                 * */
-                loadUserHobbies(condition) {
+                loadUserHobbies(ids, userIds, names, page, records) {
+
+                    let condition = {
+                        ids: ids,
+                        userIds: userIds,
+                        names: names,
+                        pagination:{
+                            page: page,
+                            records: records
+                        }
+                    };
+
                     return axios
                         .post(`${baseUrl}/api/hobby/search`, condition)
                         .then((loadHobbiesResponse) => {

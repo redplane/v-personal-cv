@@ -1,17 +1,43 @@
 <script>
     const injector = require('vue-inject/dist/vue-inject');
-    const axios = require('axios').default;
 
     injector
-        .service('$user', ['baseUrl'], (baseUrl) => {
+        .service('$user', ['baseUrl', '$axios'], (baseUrl, $axios) => {
             return {
+
+                /*
+                * Edit user using specific condition.
+                * */
+                loadProfile(accessToken) {
+                    return $axios
+                        .get(`${baseUrl}/api/user/personal-profile/${accessToken}`)
+                        .then((loadProfileResponse) => {
+                            if (!loadProfileResponse)
+                                throw 'Cannot get user profile';
+
+                            return loadProfileResponse.data;
+                        });
+                },
 
                 /*
                 * Get users by using specific conditions.
                 * */
-                getUser() {
-                    return axios
-                        .post(`${baseUrl}/api/user/search`, {})
+                loadUsers(ids, firstNames, lastNames, birthday, page, records) {
+
+                    // Build the search condition.
+                    let conditions = {
+                        ids: ids,
+                        firstNames: firstNames,
+                        lastNames: lastNames,
+                        birthday: birthday,
+                        pagination: {
+                            page: page,
+                            records: records
+                        }
+                    };
+
+                    return $axios
+                        .post(`${baseUrl}/api/user/search`, conditions)
                         .then((loadUserResponse) => {
                             if (!loadUserResponse)
                                 throw 'No user has been found';
@@ -28,7 +54,7 @@
                 * Add user using specific conditions.
                 * */
                 addUser(user) {
-                    return axios
+                    return $axios
                         .post(`${baseUrl}/api/user`, user)
                         .then((addUserResponse) => {
                             if (!addUserResponse)
@@ -46,7 +72,7 @@
                 * Edit user using specific condition.
                 * */
                 editUser(id, user) {
-                    return axios
+                    return $axios
                         .put(`${baseUrl}/api/user/${id}`, user)
                         .then((editUserResponse) => {
                             if (!editUserResponse)
@@ -60,12 +86,29 @@
                 * Find and delete user.
                 * */
                 deleteUser(id){
-                    return axios
+                    return $axios
                         .delete(`${baseUrl}/api/user/${id}`)
                         .then((deleteUserResponse) => {
                             if (!deleteUserResponse)
                                 throw 'Cannot delete user detail';
                             return deleteUserResponse.data;
+                        });
+                },
+
+                /*
+                * Login using specific information.
+                * */
+                login(email, password){
+                    let model = {
+                        email: email,
+                        password: password
+                    };
+                    return $axios
+                        .post(`${baseUrl}/api/user/login`, model)
+                        .then((loginResponse) => {
+                            if (!loginResponse)
+                                throw 'Failed to sign user into system';
+                            return loginResponse.data;
                         });
                 }
             }
