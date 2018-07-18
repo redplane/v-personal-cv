@@ -17,15 +17,7 @@ import './plugins/vuetify'
 import App from './App.vue';
 import router from './router';
 
-// Register DI service.
-const injector = require('vue-inject/dist/vue-inject');
-Vue.use(injector);
-
-// Register UIV.
-const uiv = require('uiv');
-Vue.use(uiv);
-
-Vue.config.productionTip = false;
+//#region Dependency injection
 
 const vueInjector = require('vue-inject/dist/vue-inject');
 vueInjector.constant('baseUrl', 'http://2zxysdpz2bbbnaiby-mock.stoplight-proxy.io');
@@ -50,6 +42,31 @@ require('./services/user-description.service');
 require('./services/hobby.service');
 require('./services/skill.service');
 require('./services/project.service');
+
+Vue.use(vueInjector);
+
+//#endregion
+
+//#region Vue bootstrap
+const uiv = require('uiv');
+Vue.use(uiv);
+//#endregion
+
+//#region Vue blockUI
+
+const BlockUI = require('vue-blockui');
+import '../node_modules/vue-blockui/dist/vue-blockui.css';
+
+Vue.use(BlockUI);
+
+//#endregion
+
+//#region Font awesome
+import '../node_modules/font-awesome/scss/font-awesome.scss';
+//#endregion
+
+Vue.config.productionTip = false;
+
 
 // Import vuex.
 import store from './store';

@@ -107,11 +107,19 @@
                  v-for="technique in user.techniques">
                 <div class="row">
                     <div class="col-lg-3 col-xs-4">
-                        <div class="thumbnail"
-                             @click="vOnEditTechniqueClicked(technique)">
-                            <img :src="technique.photo ? technique.photo : require('@/assets/skill.png')" :height="256" :width="256">
-                            <div class="text-center">
-                                <span>{{technique.name}}</span>
+
+                        <div class="panel panel-default">
+                            <div class="panel-body text-center">
+                                <img :src="technique.photo ? technique.photo : require('@/assets/skill.png')" :height="256" :width="256">
+                                <div class="text-center">
+                                    <span>{{technique.name}}</span>
+                                </div>
+                            </div>
+                            <div class="panel-footer">
+                                <div class="text-center">
+                                    <button class="btn btn-primary"
+                                            @click="vOnEditTechniqueClicked(technique)">Edit</button>
+                                </div>
                             </div>
                         </div>
                     </div>

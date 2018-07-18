@@ -16,9 +16,6 @@ export default new Vuex.Store({
         },
         deleteProfile: (state) => {
             state.profile = null;
-        },
-        addInjector: (state: any, injector: any) => {
-            state.injector = injector;
         }
     }
 })

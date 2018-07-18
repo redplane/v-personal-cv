@@ -1,5 +1,11 @@
 <template>
     <div id="app">
+
+        <!--BlockUI layer-->
+        <BlockUI :message="blockUI.message"
+                 :html="blockUI.html"
+                 v-if="blockUI && blockUI.available"></BlockUI>
+
         <navigation-bar/>
 
         <div class="container-fluid">
@@ -73,6 +79,11 @@
                 user: {
                     email: null,
                     password: null
+                },
+                blockUI:{
+                    available: true,
+                    message: '',
+                    html: '<i class="fa fa-cog fa-spin fa-3x fa-fw"></i>'
                 },
                 bIsLoginModalAvailable: false
             }
