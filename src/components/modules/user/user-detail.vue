@@ -1,9 +1,11 @@
 <template>
-    <div>
-        <h3 v-if="!user || !user.id">Add user</h3>
-        <h3 v-if="user && user.id">Edit user</h3>
-        <hr/>
-        <div v-if="user">
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <h3 class="panel-title" v-if="!user || !user.id">Add user</h3>
+            <h3 class="panel-title" v-if="user && user.id">Edit user</h3>
+        </div>
+        <div class="panel-body"
+             v-if="user">
             <!--First name-->
             <div class="row">
                 <div class="col-lg-3">

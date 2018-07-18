@@ -44,9 +44,15 @@
                 /*
                 * Add user using specific conditions.
                 * */
-                addUserDescription(userDescription) {
+                addUserDescription(userId, description) {
+
+                    let model = {
+                        userId: userId,
+                        description: description
+                    };
+
                     return axios
-                        .post(`${baseUrl}/api/user-description`, userDescription)
+                        .post(`${baseUrl}/api/user-description`, model)
                         .then((addUserDescriptionResponse) => {
                             if (!addUserDescriptionResponse)
                                 throw 'Failed to add user description';

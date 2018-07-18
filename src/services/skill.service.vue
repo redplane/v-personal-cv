@@ -36,18 +36,19 @@
                 /*
                 * Add skill category by using specific information.
                 * */
-                addSkillCategory(id, userId, photo, name) {
-
+                addSkillCategory(userId, photo, name) {
                     // Initialize model to submit api.
-                    let model = {
-                        id: id,
-                        userId: userId,
-                        photo: photo,
-                        name: name
+                    let fd = new FormData();
+                    fd.append('userId', userId);
+                    fd.append('photo', photo);
+                    fd.append('name', name);
+
+                    let headers = {
+                        'Content-Type': null
                     };
 
                     return axios
-                        .post(`${baseUrl}/api/skill-category/search`, model)
+                        .post(`${baseUrl}/api/skill-category`, fd, headers)
                         .then((loadSkillCategoriesResponse) => {
                             if (!loadSkillCategoriesResponse)
                                 throw 'No skill category is found';
@@ -61,18 +62,36 @@
                 },
 
                 /*
+                * Add skills to a specific category.
+                * */
+                addSkillsToCategory(skillCategoryId, skillIds){
+                    // Initialize model to submit api.
+                    let model = {
+                        skillCategoryId: skillCategoryId,
+                        skillIds: skillIds
+                    };
+
+                    return axios
+                        .post(`${baseUrl}/api/skill-category-skill`, model)
+                        .then((addSkillCategoriesResponse) => {
+                            if (!addSkillCategoriesResponse)
+                                throw 'Failed to add skills to skill category';
+                            return addSkillCategoriesResponse.data;
+                        });
+                },
+
+                /*
                 * Edit skill category by using specific information.
                 * */
                 editSkillCategory(id, userId, photo, name) {
                     // Initialize model to submit api.
-                    let model = {
-                        userId: userId,
-                        photo: photo,
-                        name: name
-                    };
+                    let fd = new FormData();
+                    fd.append('userId', userId);
+                    fd.append('photo', photo);
+                    fd.append('name', name);
 
                     return axios
-                        .put(`${baseUrl}/api/skill-category/${id}`, model)
+                        .put(`${baseUrl}/api/skill-category/${id}`, fd)
                         .then((editSkillCategoryResponse) => {
                             if (!editSkillCategoryResponse)
                                 throw 'Failed to edit skill category';
@@ -83,13 +102,18 @@
                 /*
                 * Add hobby.
                 * */
-                loadSkillCategorySkillRelationships(skillCategoryIds, userIds, names) {
+                loadSkillCategorySkillRelationships(skillCategoryIds, skillIds, page, records) {
                     // Build model to submit api end-point.
                     let condition = {
                         skillCategoryIds: skillCategoryIds,
-                        userIds: userIds,
-                        names: names
+                        skillIds: skillIds
                     };
+
+                    if (page || records){
+                        let pagination = condition['pagination'] = {};
+                        pagination['page'] = page;
+                        pagination['records'] = records;
+                    }
 
                     return axios
                         .post(`${baseUrl}/api/skill-category-skill/search`, condition)

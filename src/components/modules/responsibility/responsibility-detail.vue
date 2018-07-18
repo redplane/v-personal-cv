@@ -1,9 +1,10 @@
 <template>
-    <div>
-        <h3 v-if="!responsibility.id">Add responsibility</h3>
-        <h3 v-if="responsibility.id">Edit responsibility</h3>
-        <hr/>
-        <div v-if="responsibility">
+    <div class="panel panel-info">
+        <div class="panel panel-heading">
+            <h3 class="panel-title" v-if="!responsibility.id">Add responsibility</h3>
+            <h3 class="panel-title" v-if="responsibility.id">Edit responsibility</h3>
+        </div>
+        <div v-if="responsibility" class="panel panel-body">
             <!--Name-->
             <div class="row">
                 <div class="col-lg-3">

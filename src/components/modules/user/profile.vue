@@ -1,6 +1,5 @@
 <template>
     <div>
-
         <!--General information-->
         <div class="row">
             <div class="col-lg-12">
@@ -17,6 +16,10 @@
                                 <ul v-if="user && user.descriptions">
                                     <li v-for="item in user.descriptions" class="alert alert-info">
                                         {{item.description}}
+                                    </li>
+                                    <li>
+                                        <a href="javascript:void(0)" @click="vOnAddUserDescriptionClick">Add
+                                            description</a>
                                     </li>
                                 </ul>
                             </div>
@@ -99,13 +102,14 @@
         </div>
 
         <!--Personal techniques-->
-        <div v-if="tabIndex === 1 && user && user.techniques">
-
-            <div v-for="technique in user.techniques">
+        <div v-if="tabIndex === 1 && user">
+            <div v-if="user.techniques"
+                 v-for="technique in user.techniques">
                 <div class="row">
                     <div class="col-lg-3 col-xs-4">
-                        <div class="thumbnail">
-                            <img :src="technique.photo">
+                        <div class="thumbnail"
+                             @click="vOnEditTechniqueClicked(technique)">
+                            <img :src="technique.photo ? technique.photo : require('@/assets/skill.png')" :height="256" :width="256">
                             <div class="text-center">
                                 <span>{{technique.name}}</span>
                             </div>
@@ -117,7 +121,8 @@
                             <progress-bar v-model="skill.point" label :label-text="skill.name"/>
                         </div>
                         <div class="pull-right">
-                            <button class="btn btn-primary">
+                            <button class="btn btn-primary"
+                                    v-on:click="vOnAddSkillClicked(technique)">
                                 <span class="glyphicon glyphicon-plus"></span>
                             </button>
                         </div>
@@ -125,13 +130,57 @@
                 </div>
                 <hr/>
             </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <button class="btn btn-primary btn-block"
+                            @click="vOnAddTechniqueClicked()">Add technique category
+                    </button>
+                </div>
+            </div>
         </div>
+
+        <!--Add/edit user description-->
+        <modal :header="false"
+               :footer="false"
+               v-model="bUserDescriptionModalOpened"
+               v-if="bUserDescriptionModalOpened">
+            <user-description-detail :user-description-property="selectedUserDescription"
+                                     v-on:click-confirm="vOnUserDescriptionConfirm($event)"
+                                     v-on:click-cancel="vOnUserDescriptionCancel()"/>
+        </modal>
+
+        <!--Add/edit skill modal-->
+        <modal :header="false"
+               :footer="false"
+               v-model="bIsAddEditSkillModalOpened"
+               v-if="bIsAddEditSkillModalOpened">
+            <user-skill-detail :skill-category-property="selectedSkillCategory"
+                               v-on:cancel="bIsAddEditSkillModalOpened = false"
+                               v-on:skill-selected="vOnSkillsSelected">
+            </user-skill-detail>
+        </modal>
+
+        <!--Add/edit category modal-->
+        <modal :header="false"
+               :footer="false"
+               size="md"
+               v-model="bIsAddEditTechniqueModalOpened"
+               v-if="bIsAddEditTechniqueModalOpened">
+            <technique-detail :skill-category-property="selectedTechnique"
+                              v-on:click-ok="addEditTechnique"
+                              v-on:click-cancel="bIsAddEditTechniqueModalOpened = false"></technique-detail>
+        </modal>
     </div>
 </template>
 
 <script>
+    import UserDescriptionDetail from "./user-description-detail";
+    import UserSkillDetail from "./user-skill-detail";
+    import TechniqueDetail from './technique-detail';
+
     export default {
         name: 'profile',
+        components: {TechniqueDetail, UserSkillDetail, UserDescriptionDetail},
         dependencies: ['$user', '$userDescription', '$hobby', '$skill', '$responsibility', '$project', '$lodash', '$toastr'],
         data() {
             return {
@@ -142,6 +191,13 @@
                     projects: [],
                     techniques: []
                 },
+                bUserDescriptionModalOpened: false,
+                bIsAddEditSkillModalOpened: false,
+                bIsAddEditTechniqueModalOpened: false,
+                selectedUserDescription: null,
+                selectedTechnique: null,
+
+                selectedSkillCategory: null,
                 tabIndex: 0
             }
         },
@@ -561,6 +617,110 @@
                                 self.user['projects'] = projects;
                             });
                 }
+            },
+
+            /*
+            * Called when add user description is clicked.
+            * */
+            vOnAddUserDescriptionClick() {
+                this.selectedUserDescription = {
+                    userId: this.user.id,
+                    description: ''
+                };
+
+                this.bUserDescriptionModalOpened = true;
+            },
+
+            /*
+            * Called when add/edit user description is confirmed adding/editing.
+            * */
+            vOnUserDescriptionConfirm(model) {
+                let self = this;
+                self.$userDescription
+                    .addUserDescription(model.userId, model.description)
+                    .then((userDescription) => {
+                        self.bUserDescriptionModalOpened = false;
+
+                        // Add description to list.
+                        self.user.descriptions.push(userDescription);
+
+                        self.$toastr.success('Added user description successfully.');
+                    });
+            },
+
+            /*
+            * Called when add/edit user description is cancelled.
+            * */
+            vOnUserDescriptionCancel() {
+                this.bUserDescriptionModalOpened = false;
+            },
+
+            /*
+            * Called when add skill button is clicked.
+            * */
+            vOnAddSkillClicked(skillCategory) {
+                let self = this;
+                self.selectedSkillCategory = skillCategory;
+                self.bIsAddEditSkillModalOpened = true;
+            },
+
+            /*
+            * Called when skill are selected to be added.
+            * */
+            vOnSkillsSelected(skillCategoryId, skillIds) {
+                let self = this;
+                self.$skill
+                    .addSkillsToCategory(skillCategoryId, skillIds)
+                    .then((skillCategories) => {
+                        self.$toastr.success(`${skillCategories.length} have/has been added to system successfully.`);
+
+                        // Close modal dialog.
+                        self.bIsAddEditSkillModalOpened = false;
+                    });
+            },
+
+            /*
+            * Called when add technique is clicked.
+            * */
+            vOnAddTechniqueClicked() {
+                let self = this;
+                self.bIsAddEditTechniqueModalOpened = true;
+            },
+
+            /*
+            * Called when technique is clicked to be edited.
+            * */
+            vOnEditTechniqueClicked(technique){
+                let self = this;
+                self.selectedTechnique = technique;
+                self.bIsAddEditTechniqueModalOpened = true;
+            },
+
+            /*
+            * Add skill category.
+            * */
+            addEditTechnique(technique) {
+                let pAddEditTechniquePromise = null;
+                let self = this;
+
+                if (!technique.id)
+                    pAddEditTechniquePromise = self.$skill.addSkillCategory(self.user.id, null, technique.description)
+                        .then((skillCategory) => {
+                            self.$toastr.success('A skill category has been added.');
+
+                            // Add skill to list.
+                            self.user.techniques.push(skillCategory);
+                        });
+                else
+                    pAddEditTechniquePromise = self.$skill.editSkillCategory(technique.id,technique.userId, technique.photo, technique.name)
+                        .then(() => {
+                            self.$toastr.success('Skill has been edited successfully.');
+                        });
+
+                pAddEditTechniquePromise
+                    .then(() => {
+                        self.bIsAddEditTechniqueModalOpened = false;
+                    });
             }
         }
     }
