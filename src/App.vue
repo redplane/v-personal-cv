@@ -67,6 +67,7 @@
 
     import NavigationBar from './components/shared/navigation-bar'
     import {EventBus} from '@/event-bus'
+    import { mapState, mapMutations } from 'vuex'
     import store from '@/store'
 
     export default {
@@ -74,16 +75,18 @@
         components: {
             NavigationBar
         },
+        computed:{
+            ...mapState(
+                [
+                    'blockUI'
+                ]
+            )
+        },
         data() {
             return {
                 user: {
                     email: null,
                     password: null
-                },
-                blockUI:{
-                    available: true,
-                    message: '',
-                    html: '<i class="fa fa-cog fa-spin fa-3x fa-fw"></i>'
                 },
                 bIsLoginModalAvailable: false
             }
@@ -125,6 +128,12 @@
         },
         methods: {
 
+            // Map mutations.
+            ...mapMutations([
+                'addLoadingScreen',
+                'deleteLoadingScreen'
+            ]),
+
             /*
             * Called when sign in confirm button is clicked.
             * */
@@ -134,7 +143,10 @@
                 let accessToken = null;
                 let self = this;
 
-                this.$user
+                // Block app UI.
+                self.addLoadingScreen();
+
+                self.$user
                     .login(this.user.email, this.user.password)
                     .then((loginResult) => {
                         // Add to access token to local storage.
@@ -153,7 +165,10 @@
 
                         // Close login modal.
                         self.bIsLoginModalAvailable = false;
-                    });
+                    })
+                    .finally(() => {
+                        self.deleteLoadingScreen();
+                    })
 
             },
 

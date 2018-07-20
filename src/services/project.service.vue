@@ -78,6 +78,20 @@
                 },
 
                 /*
+                * Delete user project
+                * */
+                deleteProject(id){
+                    return axios
+                        .delete(`${baseUrl}/api/project/${id}`)
+                        .then((deleteProjectResponse) => {
+                            if (!deleteProjectResponse)
+                                throw 'Failed to delete project';
+
+                            return true;
+                        });
+                },
+
+                /*
                 * Load project responsibilities by using specific conditions.
                 * */
                 loadProjectResponsibilityRelationships(projectIds, responsibilityIds, createdTime, pagination) {

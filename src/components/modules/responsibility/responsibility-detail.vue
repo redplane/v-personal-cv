@@ -13,8 +13,7 @@
                 <div class="col-lg-9">
                     <div class="form-group">
                         <input class="form-control"
-                               v-model="responsibility.name"
-                               :readonly="bIsReadOnly"/>
+                               v-model="responsibility.name"/>
                     </div>
                 </div>
             </div>
@@ -29,7 +28,7 @@
                     <div class="form-group">
                         <input class="form-control"
                                v-model="responsibility.createdTime"
-                               v-bind:readonly="bIsReadOnly"/>
+                               v-bind:readonly="bIsInEditMode"/>
                     </div>
                 </div>
             </div>
@@ -44,7 +43,7 @@
                     <div class="form-group">
                         <input class="form-control"
                                v-model="responsibility.lastModifiedTime"
-                               v-bind:readonly="bIsReadOnly"/>
+                               v-bind:readonly="bIsInEditMode"/>
                     </div>
                 </div>
             </div>
@@ -72,9 +71,20 @@
             readonlyProperty: false,
             responsibilityProperty: {}
         },
+        computed: {
+            /*
+            * Check whether component is in edit-mode or not.
+            * */
+            bIsInEditMode(){
+                // In create mode.
+                if (this.responsibility.id)
+                    return true;
+
+                return false;
+            }
+        },
         data() {
             return {
-                bIsReadOnly: false,
                 responsibility: {},
                 visibility: false
             }

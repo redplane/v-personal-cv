@@ -1,0 +1,9 @@
+.modal.replace-body {
+  .modal-body {
+    padding: 0 !important;
+
+    .panel {
+      margin: 0 !important;
+    }
+  }
+}

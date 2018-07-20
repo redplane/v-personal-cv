@@ -11,6 +11,9 @@ import '@babel/polyfill';
 // Import bootstrap code.
 import '../node_modules/bootstrap3/dist/js/bootstrap.js';
 
+// Import app style.
+import '@/app.scss';
+
 // Import bootstrap lib.
 import Vue from 'vue';
 import './plugins/vuetify'
@@ -32,6 +35,7 @@ const userRoleConstant = require('./constants/user-role.constant');
 vueInjector.constant('userRoleConstant', userRoleConstant.default);
 
 require('./services/lodash.service');
+require('./services/promise-manager.service');
 require('./services/local-storage.service');
 require('./services/axios.service');
 require('./services/user.service');

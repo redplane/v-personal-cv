@@ -1,5 +1,4 @@
 <template>
-
     <div>
         <table class="table table-condensed table-responsive">
             <thead>
@@ -12,7 +11,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr v-if="users && users.length"
+            <tr v-if="users"
                 v-for="user in users">
                 <td></td>
                 <td class="text-center">{{user.firstName}} {{user.lastName}}</td>
@@ -38,7 +37,7 @@
                     </button>
                 </td>
             </tr>
-            <tr v-if="!users || !users.length">
+            <tr v-else>
                 <td colspan="5"
                     class="text-center">
                     <i class="text-danger">No information is available.</i>
@@ -62,7 +61,8 @@
                :footer="false"
                size="lg"
                v-model="bIsUserModalOpened"
-               v-if="bIsUserModalOpened">
+               v-if="bIsUserModalOpened"
+               class="replace-body">
             <div slot="default">
                 <user-detail :user-property="user"
                              v-on:confirm="addEditUser($event)"
@@ -101,6 +101,7 @@
 <script>
 
     import UserDetail from './user-detail.vue';
+    import { mapMutations } from 'vuex';
 
     export default {
         name: 'user-dashboard',
@@ -110,14 +111,33 @@
         },
         data() {
             return {
+
+                loadUsersResult: {
+                    records: [],
+                    total: 0
+                },
+
                 self: this,
-                users: [],
                 user: {},
                 bIsUserModalOpened: false,
                 bIsDeleteUserModalOpened: false
             }
         },
         computed:{
+
+            /*
+            * Loaded users list.
+            * */
+            users(){
+                if (!this.loadUsersResult || !this.loadUsersResult.records || this.loadUsersResult.total < 1)
+                    return [];
+
+                return this.loadUsersResult.records
+            },
+
+            /*
+            * User profile (who is using website)
+            * */
             profile(){
                 return this.$store.getters.profile;
             },
@@ -164,6 +184,12 @@
         },
         methods: {
 
+            // Map mutations.
+            ...mapMutations([
+                'addLoadingScreen',
+                'deleteLoadingScreen'
+            ]),
+
             /*
             * Called when user is clicked.
             * */
@@ -191,15 +217,18 @@
                 let promise = null;
                 let self = this;
 
+                // Block app ui.
+                self.addLoadingScreen();
+
                 if (!user.id) {
-                    promise = this
+                    promise = self
                         .$user
                         .addUser(user)
                         .then(() => {
                             self.$toastr.success('User has been added');
                         });
                 } else {
-                    promise = this
+                    promise = self
                         .$user
                         .editUser(user.id, user)
                         .then(() => {
@@ -212,6 +241,9 @@
                         // Close the modal dialog.
                         this.bIsUserModalOpened = false;
                     })
+                    .finally(() => {
+                        self.deleteLoadingScreen();
+                    });
             },
 
             /*
@@ -220,20 +252,36 @@
             deleteUser(user) {
                 // Get context.
                 let self = this;
+
+                // Block screen.
+                self.addLoadingScreen();
+
                 this.$user
                     .deleteUser(user.id)
                     .then(() => {
                         self.$toastr.success('User has been deleted from the system');
                         self.bIsDeleteUserModalOpened = false;
+                    })
+                    .finally(() => {
+                        self.deleteLoadingScreen();
                     });
             }
         },
         mounted() {
             const self = this;
+            self.addLoadingScreen();
             // Get users list.
-            this.$user.loadUsers(null, null, null, null, 1, self.paginationConstant.dashboardMaxItem)
-                .then((loadUserResult) => {
-                    self.users = loadUserResult.records;
+            this.$user
+                .loadUsers(null, null, null, null, 1, self.paginationConstant.dashboardMaxItem)
+                .catch(() => {
+                    return {
+                        records: [],
+                        total: 0
+                    }
+                })
+                .then((loadUsersResult) => {
+                    self.loadUsersResult = loadUsersResult;
+                    this.deleteLoadingScreen();
                 })
         }
     }

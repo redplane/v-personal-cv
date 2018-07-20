@@ -3,7 +3,7 @@
     const axios = require('axios').default;
 
     injector
-        .service('$skill', ['baseUrl'], (baseUrl) => {
+        .service('$skill', ['baseUrl', '$promiseManager'], (baseUrl, $promiseManager) => {
             return {
 
                 //#region Methods
@@ -64,7 +64,7 @@
                 /*
                 * Add skills to a specific category.
                 * */
-                addSkillsToCategory(skillCategoryId, skillIds){
+                addSkillsToCategory(skillCategoryId, skillIds) {
                     // Initialize model to submit api.
                     let model = {
                         skillCategoryId: skillCategoryId,
@@ -100,6 +100,73 @@
                 },
 
                 /*
+                * Edit skill by searching for its id.
+                * */
+                editSkill(id, name) {
+
+                    // Initialize model to submit to end-point.
+                    let model = {
+                        name: name
+                    };
+
+                    // Initialize cancellation token.
+                    const CancelToken = axios.CancelToken;
+                    const source = CancelToken.source();
+                    const options = {
+                        cancelToken: source.token
+                    };
+
+                    let promise = axios
+                        .put(`${baseUrl}/api/skill/${id}`, model, options);
+
+                    // Register promise to cache.
+                    $promiseManager
+                        .addPromise(promise, source);
+
+                    return promise
+                        .then((editSkillCategoryResponse) => {
+
+                            // Unregister the promise.
+                            $promiseManager.deletePromise(promise);
+
+                            if (!editSkillCategoryResponse)
+                                throw 'Failed to edit skill category';
+                            return editSkillCategoryResponse.data;
+                        });
+                },
+
+                /*
+                * Delete a skill by using specific id.
+                * */
+                deleteSkill(id){
+
+                    // Initialize cancellation token.
+                    const CancelToken = axios.CancelToken;
+                    const source = CancelToken.source();
+                    const options = {
+                        cancelToken: source.token
+                    };
+
+                    let promise = axios
+                        .delete(`${baseUrl}/api/skill/${id}`, null, options);
+
+                    // Register promise to cache.
+                    $promiseManager
+                        .addPromise(promise, source);
+
+                    return promise
+                        .then((editSkillCategoryResponse) => {
+
+                            // Unregister the promise.
+                            $promiseManager.deletePromise(promise);
+
+                            if (!editSkillCategoryResponse)
+                                throw 'Failed to delete skill category';
+                            return editSkillCategoryResponse.data;
+                        });
+                },
+
+                /*
                 * Add hobby.
                 * */
                 loadSkillCategorySkillRelationships(skillCategoryIds, skillIds, page, records) {
@@ -109,7 +176,7 @@
                         skillIds: skillIds
                     };
 
-                    if (page || records){
+                    if (page || records) {
                         let pagination = condition['pagination'] = {};
                         pagination['page'] = page;
                         pagination['records'] = records;
@@ -132,7 +199,7 @@
                 /*
                 * Add skill category - skill relationship.
                 * */
-                addSkillCategorySkillRelationship(id, userId, photo, name){
+                addSkillCategorySkillRelationship(id, userId, photo, name) {
 
                     // Initialize model to submit to server.
                     let model = {

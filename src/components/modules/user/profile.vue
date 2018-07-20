@@ -9,8 +9,18 @@
                     <div class="panel-body">
                         <div class="row">
                             <div class="col-lg-3">
-                                <img class="img img-thumbnail img-responsive"
-                                     v-bind:src="user.photo"/>
+                                <div class="panel-default">
+                                    <div class="panel-body text-center">
+                                        <img class="img img-thumbnail"
+                                             v-bind:src="user.photo"/>
+                                    </div>
+                                    <div class="panel-footer text-center">
+                                        <button class="btn btn-info">
+                                            <span class="fa fa-camera"></span>
+                                        </button>
+                                    </div>
+                                </div>
+
                             </div>
                             <div class="col-lg-9">
                                 <ul v-if="user && user.descriptions">
@@ -75,6 +85,7 @@
                             <th class="text-center">Finished time</th>
                             <th class="text-center">Responsibilities</th>
                             <th class="text-center">Skills</th>
+                            <th></th>
                         </tr>
                         </thead>
                         <tbody>
@@ -90,10 +101,20 @@
                                 </div>
                             </td>
                             <td class="text-center">
-                                <div v-for="skill in project.skills" class="text-center">
+                                <div v-for="skill in project.skills"
+                                     class="text-center">
                                     {{skill.name}}
                                 </div>
                             </td>
+                            <td>
+                                <button class="btn btn-danger"
+                                        @click="deleteProject(project.id)">
+                                    <span class="fa fa-trash"></span>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+
                         </tr>
                         </tbody>
                     </table>
@@ -117,8 +138,14 @@
                             </div>
                             <div class="panel-footer">
                                 <div class="text-center">
+                                    <button class="btn btn-info">
+                                        <span class="fa fa-camera"></span>
+                                    </button>
+                                    <span>&nbsp;</span>
                                     <button class="btn btn-primary"
-                                            @click="vOnEditTechniqueClicked(technique)">Edit</button>
+                                            @click="vOnEditTechniqueClicked(technique)">
+                                        <span class="fa fa-edit"></span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -151,7 +178,8 @@
         <modal :header="false"
                :footer="false"
                v-model="bUserDescriptionModalOpened"
-               v-if="bUserDescriptionModalOpened">
+               v-if="bUserDescriptionModalOpened"
+               class="replace-body">
             <user-description-detail :user-description-property="selectedUserDescription"
                                      v-on:click-confirm="vOnUserDescriptionConfirm($event)"
                                      v-on:click-cancel="vOnUserDescriptionCancel()"/>
@@ -161,7 +189,8 @@
         <modal :header="false"
                :footer="false"
                v-model="bIsAddEditSkillModalOpened"
-               v-if="bIsAddEditSkillModalOpened">
+               v-if="bIsAddEditSkillModalOpened"
+               class="replace-body">
             <user-skill-detail :skill-category-property="selectedSkillCategory"
                                v-on:cancel="bIsAddEditSkillModalOpened = false"
                                v-on:skill-selected="vOnSkillsSelected">
@@ -173,7 +202,8 @@
                :footer="false"
                size="md"
                v-model="bIsAddEditTechniqueModalOpened"
-               v-if="bIsAddEditTechniqueModalOpened">
+               v-if="bIsAddEditTechniqueModalOpened"
+               class="replace-body">
             <technique-detail :skill-category-property="selectedTechnique"
                               v-on:click-ok="addEditTechnique"
                               v-on:click-cancel="bIsAddEditTechniqueModalOpened = false"></technique-detail>
@@ -185,6 +215,7 @@
     import UserDescriptionDetail from "./user-description-detail";
     import UserSkillDetail from "./user-skill-detail";
     import TechniqueDetail from './technique-detail';
+    import {mapMutations} from 'vuex';
 
     export default {
         name: 'profile',
@@ -219,6 +250,8 @@
             // Get function context.
             let self = this;
 
+            // Block UI.
+            self.addLoadingScreen();
 
             // List of promises that needs resolving.
             let promises = [];
@@ -274,9 +307,18 @@
                     self.user = pUser;
 
                     self.$toastr.success('User data has been loaded successfully.');
+
+                    // Unlock the app UI.
+                    self.deleteLoadingScreen();
                 });
         },
         methods: {
+
+            // Map mutations.
+            ...mapMutations([
+                'addLoadingScreen',
+                'deleteLoadingScreen'
+            ]),
 
             /*
             * Load user skill categories by using specific conditions.
@@ -288,6 +330,9 @@
 
                 // Get class context.
                 let self = this;
+
+                // Block app ui.
+                self.addLoadingScreen();
 
                 // Clear skill categories list.
                 let pTechniques = [];
@@ -381,6 +426,7 @@
 
                 return pLoadSkillPromise
                     .then(() => {
+                        self.deleteLoadingScreen();
                         return pTechniques;
                     });
             },
@@ -395,6 +441,9 @@
 
                 // Projects data.
                 let pProjects = [];
+
+                // Block app UI.
+                self.addLoadingScreen();
 
                 return this.$project
                     .loadProjects(null, [this.user.id])
@@ -555,6 +604,7 @@
                     })
 
                     .then(() => {
+                        self.deleteLoadingScreen();
                         return pProjects;
                     });
 
@@ -593,6 +643,26 @@
                     })
                     .catch(() => {
                         return [];
+                    });
+            },
+
+            /*
+            * Delete user project.
+            * */
+            deleteProject(id){
+                let self = this;
+
+                // Freeze the ui.
+                self.addLoadingScreen();
+
+                self.$project
+                    .deleteProject(id)
+                    .then(() => {
+                        self.$toastr.success('Project has been deleted successfully');
+                        return self.loadUserProjects();
+                    })
+                    .catch(() => {
+                        self.deleteLoadingScreen();
                     });
             },
 
@@ -644,6 +714,10 @@
             * */
             vOnUserDescriptionConfirm(model) {
                 let self = this;
+
+                // Block UI.
+                self.addLoadingScreen();
+
                 self.$userDescription
                     .addUserDescription(model.userId, model.description)
                     .then((userDescription) => {
@@ -653,6 +727,7 @@
                         self.user.descriptions.push(userDescription);
 
                         self.$toastr.success('Added user description successfully.');
+                        self.deleteLoadingScreen();
                     });
             },
 
@@ -677,6 +752,9 @@
             * */
             vOnSkillsSelected(skillCategoryId, skillIds) {
                 let self = this;
+                // Block UI.
+                self.addLoadingScreen();
+
                 self.$skill
                     .addSkillsToCategory(skillCategoryId, skillIds)
                     .then((skillCategories) => {
@@ -684,6 +762,9 @@
 
                         // Close modal dialog.
                         self.bIsAddEditSkillModalOpened = false;
+
+                        // Unblock screen.
+                        self.deleteLoadingScreen();
                     });
             },
 
@@ -711,6 +792,9 @@
                 let pAddEditTechniquePromise = null;
                 let self = this;
 
+                // Freeze ui.
+                self.addLoadingScreen();
+
                 if (!technique.id)
                     pAddEditTechniquePromise = self.$skill.addSkillCategory(self.user.id, null, technique.description)
                         .then((skillCategory) => {
@@ -728,6 +812,7 @@
                 pAddEditTechniquePromise
                     .then(() => {
                         self.bIsAddEditTechniqueModalOpened = false;
+                        self.deleteLoadingScreen();
                     });
             }
         }

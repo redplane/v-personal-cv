@@ -52,7 +52,8 @@
                :footer="false"
                v-model="bIsResponsibilityDetailModalOpened"
                v-if="bIsResponsibilityDetailModalOpened"
-               size="md">
+               size="md"
+               class="replace-body">
             <div slot="default">
                 <responsibility-detail :responsibility-property="responsibility"
                                        v-on:confirm="addEditResponsibility($event)"
@@ -72,12 +73,13 @@
             </div>
             <div slot="footer">
                 <div class="text-center">
-                    <button class="text-danger"
+                    <button class="btn btn-danger"
                             v-on:click="deleteResponsibility(responsibility.id)">
                         <span>OK</span>
                     </button>
                     <span>&nbsp;</span>
-                    <button class="text-default">Cancel</button>
+                    <button class="btn btn-default"
+                            @click="bIsDeleteResponsibilityModalOpened = false">Cancel</button>
                 </div>
             </div>
         </modal>
@@ -88,13 +90,17 @@
 
     // Import responsibility detail component.
     import ResponsibilityDetail from './responsibility-detail';
+    import { mapMutations } from 'vuex';
 
     export default {
         name: 'responsibility-dashboard',
         dependencies: ['$responsibility', '$toastr', 'userRoleConstant'],
         data() {
             return {
-                responsibilities: [],
+                loadResponsibilitiesResult: {
+                    records: [],
+                    total: 0
+                },
                 responsibility: {},
                 bIsResponsibilityDetailModalOpened: false,
                 bIsDeleteResponsibilityModalOpened: false
@@ -116,6 +122,16 @@
                     return;
 
                 return this.profile.role === this.userRoleConstant.admin;
+            },
+
+            /*
+            * List of responsibilities that loaded from api end-point.
+            * */
+            responsibilities(){
+                if (!this.loadResponsibilitiesResult || !this.loadResponsibilitiesResult.records || this.loadResponsibilitiesResult.total < 1)
+                    return [];
+
+                return this.loadResponsibilitiesResult.records;
             }
         },
         mounted() {
@@ -123,15 +139,30 @@
             // Get context.
             let self = this;
 
-            // Load responsibilities list.
-            this.$responsibility
-                .loadResponsibilities()
+            // Load responsibilities.
+            this.addLoadingScreen();
+
+            self.loadResponsibilities()
+                .catch(() => {
+                    return {
+                        records: [],
+                        total: 0
+                    }
+                })
                 .then((loadResponsibilitiesResult) => {
-                    self.responsibilities = loadResponsibilitiesResult.records;
-                });
+                    self.loadResponsibilitiesResult = loadResponsibilitiesResult;
+                    self.deleteLoadingScreen();
+                })
 
         },
         methods: {
+
+            // Map mutations.
+            ...mapMutations([
+                'addLoadingScreen',
+                'deleteLoadingScreen'
+            ]),
+
             /*
             * Called when edit responsibility is selected to be edited.
             * */
@@ -194,11 +225,28 @@
                 // Get context.
                 let self = this;
 
+                // Block app UI.
+                self.addLoadingScreen();
+
                 this.$responsibility
                     .deleteResponsibility(id)
                     .then(() => {
-                        self.$$toastr.success('Responsibility has been delete from the system successfully.');
+                        self.$toastr.success('Responsibility has been delete from the system successfully.');
+
+                        // Close modal dialog.
+                        self.bIsDeleteResponsibilityModalOpened = false;
+                    })
+                    .finally(() => {
+                        self.deleteLoadingScreen();
                     });
+            },
+
+            /*
+            * Load responsibilities using global search condition.
+            * */
+            loadResponsibilities(){
+                return this.$responsibility
+                    .loadResponsibilities();
             }
         },
         components: {

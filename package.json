@@ -20,7 +20,6 @@
     "vue-class-component": "^6.0.0",
     "vue-inject": "^2.1.0",
     "vue-property-decorator": "^6.0.0",
-    "vue-resource": "^1.5.1",
     "vue-router": "^3.0.1",
     "vuetify": "^1.0.19",
     "vuex": "^3.0.1"
