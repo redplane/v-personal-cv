@@ -1,60 +1,83 @@
 <template>
     <div>
-        <table class="table table-condensed table-responsive">
-            <thead>
-            <tr>
-                <th></th>
-                <th class="text-center">Full name</th>
-                <th class="text-center">Birthday</th>
-                <th class="text-center">Role</th>
-                <th class="text-center"></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr v-if="users"
-                v-for="user in users">
-                <td></td>
-                <td class="text-center">{{user.firstName}} {{user.lastName}}</td>
-                <td class="text-center">{{user.birthday}}</td>
-                <td class="text-center">{{user.role}}</td>
-                <td class="text-center">
-                    <router-link tag="button"
-                                 class="btn btn-default"
-                                 :to="{ name: 'profile', params: { id: user.id, user: user }}">
-                        <span class="glyphicon glyphicon-comment"></span>
-                    </router-link>
-                    <span v-if="bIsAbleToEditUser">&nbsp;</span>
-                    <button class="btn btn-info"
-                            v-on:click="vOnUserClicked(user)"
-                            v-if="bIsAbleToEditUser">
-                        <i class="glyphicon glyphicon-pencil"></i>
-                    </button>
-                    <span v-if="bIsAbleToDeleteUser">&nbsp;</span>
-                    <button class="btn btn-danger"
-                            v-on:click="vOnDeleteUserClick(user)"
-                            v-if="bIsAbleToDeleteUser">
-                        <i class="glyphicon glyphicon-remove"></i>
-                    </button>
-                </td>
-            </tr>
-            <tr v-else>
-                <td colspan="5"
-                    class="text-center">
-                    <i class="text-danger">No information is available.</i>
-                </td>
-            </tr>
-            <tr v-if="bIsAbleToAddUser">
-                <td colspan="5">
-                    <div class="pull-right">
-                        <button class="btn btn-primary"
-                                v-on:click="vOnAddUserClicked()">
-                            <i class="glyphicon glyphicon-plus"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+
+        <!--User search result-->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="form-group">
+                    <table class="table table-condensed table-responsive">
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th class="text-center">Full name</th>
+                            <th class="text-center">Birthday</th>
+                            <th class="text-center">Role</th>
+                            <th class="text-center"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-if="users"
+                            v-for="user in users">
+                            <td></td>
+                            <td class="text-center">{{user.firstName}} {{user.lastName}}</td>
+                            <td class="text-center">{{user.birthday}}</td>
+                            <td class="text-center">{{user.role}}</td>
+                            <td class="text-center">
+                                <router-link tag="button"
+                                             class="btn btn-default"
+                                             :to="{ name: 'profile', params: { id: user.id, user: user }}">
+                                    <span class="glyphicon glyphicon-comment"></span>
+                                </router-link>
+                                <span v-if="bIsAbleToEditUser">&nbsp;</span>
+                                <button class="btn btn-info"
+                                        v-on:click="vOnUserClicked(user)"
+                                        v-if="bIsAbleToEditUser">
+                                    <i class="glyphicon glyphicon-pencil"></i>
+                                </button>
+                                <span v-if="bIsAbleToDeleteUser">&nbsp;</span>
+                                <button class="btn btn-danger"
+                                        v-on:click="vOnDeleteUserClick(user)"
+                                        v-if="bIsAbleToDeleteUser">
+                                    <i class="glyphicon glyphicon-remove"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr v-else>
+                            <td colspan="5"
+                                class="text-center">
+                                <i class="text-danger">No information is available.</i>
+                            </td>
+                        </tr>
+                        <tr v-if="bIsAbleToAddUser">
+                            <td colspan="5">
+                                <div class="pull-right">
+                                    <button class="btn btn-primary"
+                                            v-on:click="vOnAddUserClicked()">
+                                        <i class="glyphicon glyphicon-plus"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!--Pagination-->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="form-group">
+                    <pagination v-model="loadUsersCondition.pagination.page"
+                                :total-page="loadUsersResult.total"
+                                align="center"
+                                :boundary-links="true"
+                                :direction-links="true"
+                                @change="vOnLoadUserPageChange($event)">
+                    </pagination>
+                </div>
+            </div>
+        </div>
 
         <!--Add/edit user-->
         <modal :header="false"
@@ -101,7 +124,7 @@
 <script>
 
     import UserDetail from '../user/user-detail.vue';
-    import { mapMutations } from 'vuex';
+    import {mapMutations} from 'vuex';
 
     export default {
         name: 'user-dashboard',
@@ -112,6 +135,19 @@
         data() {
             return {
 
+                /*
+                * User search condition.
+                * */
+                loadUsersCondition: {
+                    pagination: {
+                        page: 1,
+                        records: this.paginationConstant.dashboardMaxItem
+                    }
+                },
+
+                /*
+                * User search result.
+                * */
                 loadUsersResult: {
                     records: [],
                     total: 0
@@ -123,12 +159,12 @@
                 bIsDeleteUserModalOpened: false
             }
         },
-        computed:{
+        computed: {
 
             /*
             * Loaded users list.
             * */
-            users(){
+            users() {
                 if (!this.loadUsersResult || !this.loadUsersResult.records || this.loadUsersResult.total < 1)
                     return [];
 
@@ -138,14 +174,14 @@
             /*
             * User profile (who is using website)
             * */
-            profile(){
+            profile() {
                 return this.$store.getters.profile;
             },
 
             /*
             * Check whether user is able to delete user or not.
             * */
-            bIsAbleToDeleteUser(){
+            bIsAbleToDeleteUser() {
                 // Profile is not defined.
                 if (!this.profile)
                     return false;
@@ -159,7 +195,7 @@
             /*
             * Check whether user is able to edit user or not.
             * */
-            bIsAbleToEditUser(){
+            bIsAbleToEditUser() {
                 if (!this.profile)
                     return false;
 
@@ -172,7 +208,7 @@
             /*
             * Check whether user is able to add another user or not.
             * */
-            bIsAbleToAddUser(){
+            bIsAbleToAddUser() {
                 if (!this.profile)
                     return false;
 
@@ -198,14 +234,39 @@
                 this.bIsUserModalOpened = true;
             },
 
+            /*
+            * Called when add user button is clicked.
+            * */
             vOnAddUserClicked() {
                 this.user = {};
                 this.bIsUserModalOpened = true;
             },
 
+            /*
+            * Called when delete user is clicked.
+            * */
             vOnDeleteUserClick(user) {
                 this.user = user;
                 this.bIsDeleteUserModalOpened = true;
+            },
+
+            /*
+            * Called when user is searched.
+            * */
+            vOnLoadUserPageChange() {
+                let self = this;
+
+                // Add loading screen.
+                self.addLoadingScreen();
+
+                // Load users using existing conditions.
+                self.loadUsers()
+                    .then((loadUsersResult) => {
+                        self.loadUsersResult = loadUsersResult;
+                    })
+                    .finally(() => {
+                        self.deleteLoadingScreen();
+                    });
             },
 
             /*
@@ -265,24 +326,42 @@
                     .finally(() => {
                         self.deleteLoadingScreen();
                     });
+            },
+
+            /*
+            * Load users base on specific conditions.
+            * */
+            loadUsers() {
+
+                // Get current context.
+                let self = this;
+
+                // Get users list.
+                return self.$user
+                    .loadUsers(self.loadUsersCondition)
+                    .catch(() => {
+                        return {
+                            records: [],
+                            total: 0
+                        }
+                    });
             }
         },
         mounted() {
             const self = this;
             self.addLoadingScreen();
+
+            // Display loading screen.
+            self.addLoadingScreen();
+
             // Get users list.
-            this.$user
-                .loadUsers(null, null, null, null, 1, self.paginationConstant.dashboardMaxItem)
-                .catch(() => {
-                    return {
-                        records: [],
-                        total: 0
-                    }
-                })
+            self.loadUsers()
                 .then((loadUsersResult) => {
                     self.loadUsersResult = loadUsersResult;
-                    this.deleteLoadingScreen();
                 })
+                .finally(() => {
+                    self.deleteLoadingScreen();
+                });
         }
     }
 </script>

@@ -22,20 +22,7 @@
                 /*
                 * Get users by using specific conditions.
                 * */
-                loadUsers(ids, firstNames, lastNames, birthday, page, records) {
-
-                    // Build the search condition.
-                    let conditions = {
-                        ids: ids,
-                        firstNames: firstNames,
-                        lastNames: lastNames,
-                        birthday: birthday,
-                        pagination: {
-                            page: page,
-                            records: records
-                        }
-                    };
-
+                loadUsers(conditions) {
                     return $axios
                         .post(`${baseUrl}/api/user/search`, conditions)
                         .then((loadUserResponse) => {

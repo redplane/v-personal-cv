@@ -1,51 +1,73 @@
 <template>
     <div>
-        <table class="table table-condensed table-responsive">
-            <thead>
-            <tr>
-                <th class="text-center">Name</th>
-                <th class="text-center">Created time</th>
-                <th class="text-center">Last modified time</th>
-                <th v-if="bIsUserAdmin"></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr v-if="responsibilities && responsibilities.length"
-                v-for="responsibility in responsibilities">
-                <td class="text-center">{{responsibility.name}}</td>
-                <td class="text-center">{{responsibility.createdTime}}</td>
-                <td class="text-center">{{responsibility.lastModifiedTime}}</td>
-                <td class="text-center"
-                    v-if="bIsUserAdmin">
-                    <button class="btn btn-info"
-                            v-on:click="vOnEditResponsibilityClicked(responsibility)">
-                        <i class="glyphicon glyphicon-pencil"></i>
-                    </button>
-                    <span>&nbsp;</span>
-                    <button class="btn btn-danger"
-                            v-on:click="vOnDeleteResponsibilityClick(responsibility)">
-                        <i class="glyphicon glyphicon-remove"></i>
-                    </button>
-                </td>
-            </tr>
-            <tr v-if="!responsibilities || !responsibilities.length">
-                <td colspan="4"
-                    class="text-center">
-                    <i class="text-danger">No information is available.</i>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="4">
-                    <div class="pull-right">
-                        <button class="btn btn-primary"
-                                v-on:click="vOnAddResponsibilityClicked()">
-                            <i class="glyphicon glyphicon-plus"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+
+        <!--Responsibilities list-->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="form-group">
+                    <table class="table table-condensed table-responsive">
+                        <thead>
+                        <tr>
+                            <th class="text-center">Name</th>
+                            <th class="text-center">Created time</th>
+                            <th class="text-center">Last modified time</th>
+                            <th v-if="bIsUserAdmin"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-if="responsibilities && responsibilities.length"
+                            v-for="responsibility in responsibilities">
+                            <td class="text-center">{{responsibility.name}}</td>
+                            <td class="text-center">{{responsibility.createdTime}}</td>
+                            <td class="text-center">{{responsibility.lastModifiedTime}}</td>
+                            <td class="text-center"
+                                v-if="bIsUserAdmin">
+                                <button class="btn btn-info"
+                                        v-on:click="vOnEditResponsibilityClicked(responsibility)">
+                                    <i class="glyphicon glyphicon-pencil"></i>
+                                </button>
+                                <span>&nbsp;</span>
+                                <button class="btn btn-danger"
+                                        v-on:click="vOnDeleteResponsibilityClick(responsibility)">
+                                    <i class="glyphicon glyphicon-remove"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr v-if="!responsibilities || !responsibilities.length">
+                            <td colspan="4"
+                                class="text-center">
+                                <i class="text-danger">No information is available.</i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">
+                                <div class="pull-right">
+                                    <button class="btn btn-primary"
+                                            v-on:click="vOnAddResponsibilityClicked()">
+                                        <i class="glyphicon glyphicon-plus"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="form-group">
+                    <pagination v-model="loadResponsibilitiesCondition.pagination.page"
+                                :total-page="loadResponsibilitiesResult.total"
+                                align="center"
+                                :boundary-links="true"
+                                :direction-links="true"
+                                @change="vOnLoadResponsibilityPageChange($event)">
+                    </pagination>
+                </div>
+            </div>
+        </div>
 
         <!--Edit/add responsibility modal-->
         <modal :header="false"
@@ -94,13 +116,28 @@
 
     export default {
         name: 'responsibility-dashboard',
-        dependencies: ['$responsibility', '$toastr', 'userRoleConstant'],
+        dependencies: ['$responsibility', '$toastr', 'userRoleConstant', 'paginationConstant'],
         data() {
             return {
+
+                /*
+                * Load responsibilities result.
+                * */
                 loadResponsibilitiesResult: {
                     records: [],
                     total: 0
                 },
+
+                /*
+                * Load responsibilities condition.
+                * */
+                loadResponsibilitiesCondition:{
+                    pagination:{
+                        page: 1,
+                        records: this.paginationConstant.dashboardMaxItem
+                    }
+                },
+
                 responsibility: {},
                 bIsResponsibilityDetailModalOpened: false,
                 bIsDeleteResponsibilityModalOpened: false
@@ -156,7 +193,6 @@
 
         },
         methods: {
-
             // Map mutations.
             ...mapMutations([
                 'addLoadingScreen',
@@ -247,6 +283,24 @@
             loadResponsibilities(){
                 return this.$responsibility
                     .loadResponsibilities();
+            },
+
+            /*
+            * Called when responsibilities result is loaded.
+            * */
+            vOnLoadResponsibilityPageChange(){
+                let self = this;
+
+                // Add loading screen.
+                self.addLoadingScreen();
+
+                self.loadResponsibilities()
+                    .then((loadResponsibilitiesResult) => {
+                        self.loadResponsibilitiesResult = loadResponsibilitiesResult;
+                    })
+                    .finally(() => {
+                        self.deleteLoadingScreen();
+                    });
             }
         },
         components: {

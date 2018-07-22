@@ -1,35 +1,39 @@
 <template>
     <div>
-        <h3 v-if="!skill.id">Add skill</h3>
-        <h3 v-if="skill.id">Edit skill</h3>
-        <hr/>
-        <div v-if="skill">
-
-            <!--Name-->
-            <div class="row">
-                <div class="col-lg-3">
-                    <label>Name</label>
-                </div>
-                <div class="col-lg-9">
-                    <div class="form-group">
-                        <input class="form-control"
-                               v-model="skill.name"
-                               :readonly="bIsReadOnly"/>
+        <div class="panel panel-info">
+            <h3 class="panel-title">
+                <span v-if="!skill.id">Add skill</span>
+                <span v-if="skill.id">Edit skill</span>
+            </h3>
+        </div>
+        <div class="panel-body">
+            <div v-if="skill">
+                <!--Name-->
+                <div class="row">
+                    <div class="col-lg-3">
+                        <label>Name</label>
+                    </div>
+                    <div class="col-lg-9">
+                        <div class="form-group">
+                            <input class="form-control"
+                                   v-model="skill.name"
+                                   :readonly="bIsReadOnly"/>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!--Created time-->
-            <div class="row"
-                 v-if="skill && skill.id">
-                <div class="col-lg-3">
-                    <label>Created time</label>
-                </div>
-                <div class="col-lg-9">
-                    <div class="form-group">
-                        <input class="form-control"
-                               v-model="skill.createdTime"
-                               v-bind:readonly="bIsReadOnly"/>
+                <!--Created time-->
+                <div class="row"
+                     v-if="skill && skill.id">
+                    <div class="col-lg-3">
+                        <label>Created time</label>
+                    </div>
+                    <div class="col-lg-9">
+                        <div class="form-group">
+                            <input class="form-control"
+                                   v-model="skill.createdTime"
+                                   v-bind:readonly="bIsReadOnly"/>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -53,6 +53,7 @@
             </div>
         </div>
 
+        <!--Skill search condition-->
         <div class="row">
             <div class="col-lg-12">
                 <div class="form-group">
@@ -111,7 +112,7 @@
 <script>
 
     // Import skill detail component.
-    import SkillDetail from '../management/skill-management';
+    import SkillDetail from '../skill/skill-detail';
     import {mapMutations} from 'vuex';
 
     export default {
@@ -229,27 +230,29 @@
                 // Get function context.
                 let self = this;
 
+                // Add loading screen.
+                self.addLoadingScreen();
+
                 if (!skill.id) {
                     pAddEditSkillPromise = this.$skill
                         .addSkill(skill.name)
                         .then(() => {
                             self.$toastr.success('Skill has been added to system.');
-                        })
-                        .catch(() => {
                         });
                 } else {
                     pAddEditSkillPromise = this.$skill
                         .editSkill(skill.id, skill.name)
                         .then(() => {
                             self.$toastr.success('Skill has been edited.')
-                        })
-                        .catch(() => {
                         });
                 }
 
                 pAddEditSkillPromise
                     .then(() => {
                         self.bIsSkillModalOpened = false;
+                    })
+                    .finally(() => {
+                        self.deleteLoadingScreen();
                     })
             },
 
@@ -287,10 +290,13 @@
             * */
             loadSkills() {
 
+                // Get current class context.
+                let self = this;
+
                 let loadSkillCondition = this.loadSkillCondition;
                 let pagination = loadSkillCondition.pagination;
 
-                return this.$skill
+                return self.$skill
                     .loadSkills(null, null, null, pagination.page, pagination.records)
                     .catch(() => {
                         return {
