@@ -9,7 +9,8 @@ import SkillDashboard from './components/modules/skill/dashboard.vue';
 import SkillCategoryDashboard from './components/modules/responsibility/dashboard.vue';
 import Profile from './components/modules/user/profile.vue';
 import ManagementLayout from '@/components/modules/management-layout.vue';
-
+import UserProjectDashboard from '@/components/modules/project/dashboard.vue';
+import UserSkill from '@/components/modules/technique/dashboard.vue';
 
 export default new Router({
     routes: [
@@ -25,7 +26,21 @@ export default new Router({
                 {
                     path: '/user/:id',
                     name: 'profile',
-                    component: Profile
+                    component: Profile,
+                    children: [
+                        {
+                            path: 'projects',
+                            name: 'user-projects',
+                            component: UserProjectDashboard,
+                            props: true
+                        },
+                        {
+                            path: 'skill',
+                            name: 'user-skills',
+                            component: UserSkill,
+                            props: true
+                        }
+                    ]
                 },
                 {
                     path: 'management',

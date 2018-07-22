@@ -231,7 +231,7 @@
 
                 if (!skill.id) {
                     pAddEditSkillPromise = this.$skill
-                        .addSkill(skill)
+                        .addSkill(skill.name)
                         .then(() => {
                             self.$toastr.success('Skill has been added to system.');
                         })

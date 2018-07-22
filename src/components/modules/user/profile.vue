@@ -63,116 +63,86 @@
         <div class="row">
             <div class="col-lg-12">
                 <div class="form-group">
-                    <tabs v-model="tabIndex"
-                          @change="vOnTabSelected($event)">
-                        <tab title="Project I have done"></tab>
-                        <tab title="Techniques I have used"></tab>
-                    </tabs>
+                    <ul class="nav nav-tabs nav-justified">
+                        <router-link tag="li"
+                                     role="presentation"
+                                     active-class="active"
+                                     :to="{name: 'user-projects', param: {userIdProperty: user.id}}">
+                            <a href>Project I have done</a>
+                        </router-link>
+                        <router-link tag="li"
+                                     role="presentation"
+                                     active-class="active"
+                                     :to="{name: 'user-skills', param: {userIdProperty: user.id}}">
+                            <a href>Technique I have used</a>
+                        </router-link>
+                    </ul>
+                    <!--<tabs v-model="tabIndex"-->
+                          <!--@change="vOnTabSelected($event)">-->
+                        <!--<tab title="Project I have done"></tab>-->
+                        <!--<tab title="Techniques I have used"></tab>-->
+                    <!--</tabs>-->
                 </div>
             </div>
         </div>
 
         <!--Projects-->
-        <div class="row"
-             v-if="tabIndex === 0 && user && user.projects">
-            <div class="col-lg-12">
-                <div class="form-group">
-                    <table class="table table-responsive table-condensed">
-                        <thead>
-                        <tr>
-                            <th class="text-center">Name</th>
-                            <th class="text-center">Started time</th>
-                            <th class="text-center">Finished time</th>
-                            <th class="text-center">Responsibilities</th>
-                            <th class="text-center">Skills</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr v-for="project in user.projects">
-                            <td class="text-center">
-                                <b class="text-success">{{project.name}}</b>
-                            </td>
-                            <td class="text-center">{{project.startedTime}}</td>
-                            <td class="text-center">{{project.finishedTime}}</td>
-                            <td>
-                                <div v-for="responsibility in project.responsibilities" class="text-center">
-                                    {{responsibility.name}}
-                                </div>
-                            </td>
-                            <td class="text-center">
-                                <div v-for="skill in project.skills"
-                                     class="text-center">
-                                    {{skill.name}}
-                                </div>
-                            </td>
-                            <td>
-                                <button class="btn btn-danger"
-                                        @click="deleteProject(project.id)">
-                                    <span class="fa fa-trash"></span>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div class="row">
+            <router-view :user-id-property="user.id"/>
         </div>
+
 
         <!--Personal techniques-->
-        <div v-if="tabIndex === 1 && user">
-            <div v-if="user.techniques"
-                 v-for="technique in user.techniques">
-                <div class="row">
-                    <div class="col-lg-3 col-xs-4">
+        <!--<div v-if="tabIndex === 1 && user">-->
+            <!--<div v-if="user.techniques"-->
+                 <!--v-for="technique in user.techniques">-->
+                <!--<div class="row">-->
+                    <!--<div class="col-lg-3 col-xs-4">-->
 
-                        <div class="panel panel-default">
-                            <div class="panel-body text-center">
-                                <img :src="technique.photo ? technique.photo : require('@/assets/skill.png')" :height="256" :width="256">
-                                <div class="text-center">
-                                    <span>{{technique.name}}</span>
-                                </div>
-                            </div>
-                            <div class="panel-footer">
-                                <div class="text-center">
-                                    <button class="btn btn-info">
-                                        <span class="fa fa-camera"></span>
-                                    </button>
-                                    <span>&nbsp;</span>
-                                    <button class="btn btn-primary"
-                                            @click="vOnEditTechniqueClicked(technique)">
-                                        <span class="fa fa-edit"></span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-9 col-xs-8">
-                        <div class="form-group"
-                             v-for="skill in technique.skills">
-                            <progress-bar v-model="skill.point" label :label-text="skill.name"/>
-                        </div>
-                        <div class="pull-right">
-                            <button class="btn btn-primary"
-                                    v-on:click="vOnAddSkillClicked(technique)">
-                                <span class="glyphicon glyphicon-plus"></span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <hr/>
-            </div>
-            <div class="row">
-                <div class="col-lg-12">
-                    <button class="btn btn-primary btn-block"
-                            @click="vOnAddTechniqueClicked()">Add technique category
-                    </button>
-                </div>
-            </div>
-        </div>
+                        <!--<div class="panel panel-default">-->
+                            <!--<div class="panel-body text-center">-->
+                                <!--<img :src="technique.photo ? technique.photo : require('@/assets/skill.png')" :height="256" :width="256">-->
+                                <!--<div class="text-center">-->
+                                    <!--<span>{{technique.name}}</span>-->
+                                <!--</div>-->
+                            <!--</div>-->
+                            <!--<div class="panel-footer">-->
+                                <!--<div class="text-center">-->
+                                    <!--<button class="btn btn-info">-->
+                                        <!--<span class="fa fa-camera"></span>-->
+                                    <!--</button>-->
+                                    <!--<span>&nbsp;</span>-->
+                                    <!--<button class="btn btn-primary"-->
+                                            <!--@click="vOnEditTechniqueClicked(technique)">-->
+                                        <!--<span class="fa fa-edit"></span>-->
+                                    <!--</button>-->
+                                <!--</div>-->
+                            <!--</div>-->
+                        <!--</div>-->
+                    <!--</div>-->
+                    <!--<div class="col-lg-9 col-xs-8">-->
+                        <!--<div class="form-group"-->
+                             <!--v-for="skill in technique.skills">-->
+                            <!--<progress-bar v-model="skill.point" label :label-text="skill.name"/>-->
+                        <!--</div>-->
+                        <!--<div class="pull-right">-->
+                            <!--<button class="btn btn-primary"-->
+                                    <!--v-on:click="vOnAddSkillClicked(technique)">-->
+                                <!--<span class="glyphicon glyphicon-plus"></span>-->
+                            <!--</button>-->
+                        <!--</div>-->
+                    <!--</div>-->
+                <!--</div>-->
+                <!--<hr/>-->
+            <!--</div>-->
+            <!--<div class="row">-->
+                <!--<div class="col-lg-12">-->
+                    <!--<button class="btn btn-primary btn-block"-->
+                            <!--@click="vOnAddTechniqueClicked()">Add technique category-->
+                    <!--</button>-->
+                <!--</div>-->
+            <!--</div>-->
+        <!--</div>-->
 
         <!--Add/edit user description-->
         <modal :header="false"
@@ -278,9 +248,6 @@
             //Load user descriptions
             promises[2] = self.loadUserDescriptions();
 
-            //#region Load projects
-            promises[3] = self.loadUserProjects();
-
             //#endregion
 
             Promise.all(promises)
@@ -290,7 +257,6 @@
                     let user = loadRecordResults[0];
                     let hobbies = loadRecordResults[1];
                     let userDescriptions = loadRecordResults[2];
-                    let projects = loadRecordResults[3];
 
                     let pUser = {};
                     pUser.id = user.id;
@@ -300,7 +266,6 @@
 
                     pUser.hobbies = hobbies;
                     pUser.descriptions = userDescriptions;
-                    pUser.projects = projects;
                     pUser.techniques = [];
 
                     // Update user information.
@@ -319,297 +284,6 @@
                 'addLoadingScreen',
                 'deleteLoadingScreen'
             ]),
-
-            /*
-            * Load user skill categories by using specific conditions.
-            * */
-            loadUserTechniques() {
-
-                if (!this.user || !this.user.id)
-                    return;
-
-                // Get class context.
-                let self = this;
-
-                // Block app ui.
-                self.addLoadingScreen();
-
-                // Clear skill categories list.
-                let pTechniques = [];
-
-                let pLoadSkillPromise = self.$skill
-                    .loadSkillCategories(null, [this.user.id])
-                    .then((loadSkillCategoriesResult) => {
-
-                        //#region Load skill categories
-
-                        let skillCategories = loadSkillCategoriesResult.records;
-                        pTechniques = skillCategories;
-                        return skillCategories;
-
-                        //#endregion
-                    })
-
-                    .then((skillCategories) => {
-
-                        //#region Load skill category - skill relationships
-
-                        let skillCategoryIds = skillCategories.map((skillCategory) => {
-                            return skillCategory.id;
-                        });
-
-                        return self.$skill
-                            .loadSkillCategorySkillRelationships(skillCategoryIds)
-                            .then((loadSkillCategorySkillRelationshipsResult) => {
-                                let skillCategorySkillRelationships = loadSkillCategorySkillRelationshipsResult.records;
-                                pTechniques
-                                    .map((technique) => {
-                                        // Extend object.
-                                        technique['skills'] = skillCategorySkillRelationships
-                                            .filter((skillCategorySkillRelationship) => {
-                                                return skillCategorySkillRelationship.skillCategoryId === technique.id;
-                                            })
-                                            .map((skillCategorySkillRelationship) => {
-                                                return {
-                                                    id: skillCategorySkillRelationship.skillId,
-                                                    point: skillCategorySkillRelationship.point
-                                                }
-                                            });
-
-                                        return technique;
-                                    });
-
-                                return skillCategorySkillRelationships;
-                            });
-
-                        //#endregion
-                    })
-
-                    .then((skillCategorySkillRelationships) => {
-
-                        //#region Load skills
-
-                        let skillIds = skillCategorySkillRelationships.map((skillCategorySkillRelationship) => {
-                            return skillCategorySkillRelationship.skillId
-                        });
-
-                        return self.$skill
-                            .loadSkills(skillIds)
-                            .then((loadSkillsResult) => {
-                                return loadSkillsResult.records;
-                            })
-                            .then((skills) => {
-                                pTechniques
-                                    .map((pSkillCategory) => {
-                                        // Go through every skill category - skill relationship.
-                                        self.$lodash
-                                            .each(pSkillCategory.skills, (skill) => {
-                                                // Find the first skill matches with the skill id.
-                                                let pSkill = self.$lodash.first(skills, (item) => {
-                                                    return item.id === skill.id;
-                                                });
-
-                                                if (!pSkill)
-                                                    return;
-
-                                                skill['name'] = pSkill.name;
-                                            });
-                                    });
-
-                                return skills;
-                            });
-
-                        //#endregion
-                    });
-
-                //#endregion
-
-                return pLoadSkillPromise
-                    .then(() => {
-                        self.deleteLoadingScreen();
-                        return pTechniques;
-                    });
-            },
-
-            /*
-            * Load user projects by using specific conditions.
-            * */
-            loadUserProjects() {
-
-                // Get context.
-                let self = this;
-
-                // Projects data.
-                let pProjects = [];
-
-                // Block app UI.
-                self.addLoadingScreen();
-
-                return this.$project
-                    .loadProjects(null, [this.user.id])
-
-                    .then((loadProjectsResult) => {
-                        let projects = loadProjectsResult.records;
-                        pProjects = projects;
-                        return projects;
-                    })
-
-                    .then((projects) => {
-
-                        let projectIds = projects.map((project) => {
-                            return project.id
-                        });
-
-                        // Promises to be resolved.
-                        let promises = [];
-
-                        //#region Load project responsibility relationships
-
-                        promises[0] = self.$project
-                            .loadProjectResponsibilityRelationships(projectIds)
-                            .then((loadProjectResponsibilityRelationshipsResult) => {
-                                return loadProjectResponsibilityRelationshipsResult.records;
-                            });
-
-                        //#endregion
-
-                        //#region Load project skill relationships
-
-                        promises[1] = self.$project
-                            .loadProjectSkillRelationships(projectIds)
-                            .then((loadProjectSkillRelationshipsResult) => {
-                                return loadProjectSkillRelationshipsResult.records;
-                            });
-
-                        //#endregion
-
-                        return Promise
-                            .all(promises)
-                            .then((loadRecordsResults) => {
-
-                                let projectResponsibilityRelationships = loadRecordsResults[0];
-                                let projectSkillRelationships = loadRecordsResults[1];
-                                pProjects = projects.map((project) => {
-
-                                    project['responsibilities'] = projectResponsibilityRelationships
-                                        .filter((projectResponsibilityRelationship) => {
-                                            return projectResponsibilityRelationship.projectId === project.id;
-                                        })
-                                        .map((projectResponsibilityRelationship) => {
-                                            return {
-                                                id: projectResponsibilityRelationship.responsibilityId
-                                            }
-                                        });
-
-                                    project['skills'] = projectSkillRelationships
-                                        .filter((projectSkillRelationship) => {
-                                            return projectSkillRelationship.projectId === project.id;
-                                        })
-                                        .map((projectSkillRelationship) => {
-                                            return {
-                                                id: projectSkillRelationship.skillId
-                                            }
-                                        });
-
-                                    return project;
-                                });
-                            });
-                    })
-
-                    .then((projectResponsibilityRelationships) => {
-
-                        // Promises to be resolved.
-                        let promises = [];
-
-                        let responsibilityIds = [];
-                        let skillIds = [];
-
-                        //#region Load responsibilities
-
-                        // Go through every project.
-                        self.$lodash
-                            .each(pProjects, (project) => {
-
-                                responsibilityIds = project.responsibilities
-                                    .map((responsibility) => {
-                                        return responsibility.id;
-                                    });
-
-                                skillIds = project.skills
-                                    .map((skill) => {
-                                        return skill.id;
-                                    });
-                            });
-
-                        promises[0] = self.$responsibility
-                            .loadResponsibilities(responsibilityIds)
-                            .then((loadResponsibilitiesResult) => {
-                                return loadResponsibilitiesResult.records;
-                            });
-
-                        //#endregion
-
-                        //#region Load skills
-
-                        promises[1] = self.$skill
-                            .loadSkills(skillIds)
-                            .then((loadSkillsResult) => {
-                                return loadSkillsResult.records;
-                            });
-
-                        //#endregion
-
-                        return Promise.all(promises)
-                            .then((loadRecordResults) => {
-                                let responsibilities = loadRecordResults[0];
-                                let skills = loadRecordResults[1];
-
-                                pProjects
-                                    .map((project) => {
-
-                                        // Go through every skill category - skill relationship.
-                                        self.$lodash
-                                            .each(project.responsibilities, (responsibility) => {
-                                                // Find the first skill matches with the skill id.
-                                                let pResponsibility = self.$lodash.first(responsibilities, (item) => {
-                                                    return item.id === responsibility.id;
-                                                });
-
-                                                if (!pResponsibility)
-                                                    return;
-
-
-                                                responsibility['name'] = pResponsibility.name;
-                                            });
-
-                                        self.$lodash
-                                            .each(project.skills, (skill) => {
-                                                // Find the first skill matches with the skill id.
-                                                let pSkill = self.$lodash.first(skills, (item) => {
-                                                    return item.id === responsibility.id;
-                                                });
-
-                                                if (!pSkill)
-                                                    return;
-
-
-                                                skill['name'] = pSkill.name;
-                                            });
-                                    });
-
-                                return pProjects;
-                            });
-
-                        //#endregion
-                    })
-
-                    .then(() => {
-                        self.deleteLoadingScreen();
-                        return pProjects;
-                    });
-
-
-            },
 
             /*
             * Load user hobbies by using specific conditions.
@@ -647,54 +321,34 @@
             },
 
             /*
-            * Delete user project.
-            * */
-            deleteProject(id){
-                let self = this;
-
-                // Freeze the ui.
-                self.addLoadingScreen();
-
-                self.$project
-                    .deleteProject(id)
-                    .then(() => {
-                        self.$toastr.success('Project has been deleted successfully');
-                        return self.loadUserProjects();
-                    })
-                    .catch(() => {
-                        self.deleteLoadingScreen();
-                    });
-            },
-
-            /*
             * Called when tab is selected.
             * */
             vOnTabSelected(tabIndex) {
 
-                // Get function context.
-                let self = this;
-
-                switch (tabIndex) {
-                    case 1:
-                        // Clear user techniques.
-                        self.user.techniques = [];
-
-                        this.loadUserTechniques()
-                            .then((techniques) => {
-                                self.user['techniques'] = techniques;
-                            });
-                        break;
-
-                    default:
-
-                        // Clear user projects.
-                        self.user.projects = [];
-
-                        this.loadUserProjects()
-                            .then((projects) => {
-                                self.user['projects'] = projects;
-                            });
-                }
+                // // Get function context.
+                // let self = this;
+                //
+                // switch (tabIndex) {
+                //     case 1:
+                //         // Clear user techniques.
+                //         self.user.techniques = [];
+                //
+                //         this.loadUserTechniques()
+                //             .then((techniques) => {
+                //                 self.user['techniques'] = techniques;
+                //             });
+                //         break;
+                //
+                //     default:
+                //
+                //         // Clear user projects.
+                //         self.user.projects = [];
+                //
+                //         this.loadUserProjects()
+                //             .then((projects) => {
+                //                 self.user['projects'] = projects;
+                //             });
+                // }
             },
 
             /*
@@ -736,84 +390,6 @@
             * */
             vOnUserDescriptionCancel() {
                 this.bUserDescriptionModalOpened = false;
-            },
-
-            /*
-            * Called when add skill button is clicked.
-            * */
-            vOnAddSkillClicked(skillCategory) {
-                let self = this;
-                self.selectedSkillCategory = skillCategory;
-                self.bIsAddEditSkillModalOpened = true;
-            },
-
-            /*
-            * Called when skill are selected to be added.
-            * */
-            vOnSkillsSelected(skillCategoryId, skillIds) {
-                let self = this;
-                // Block UI.
-                self.addLoadingScreen();
-
-                self.$skill
-                    .addSkillsToCategory(skillCategoryId, skillIds)
-                    .then((skillCategories) => {
-                        self.$toastr.success(`${skillCategories.length} have/has been added to system successfully.`);
-
-                        // Close modal dialog.
-                        self.bIsAddEditSkillModalOpened = false;
-
-                        // Unblock screen.
-                        self.deleteLoadingScreen();
-                    });
-            },
-
-            /*
-            * Called when add technique is clicked.
-            * */
-            vOnAddTechniqueClicked() {
-                let self = this;
-                self.bIsAddEditTechniqueModalOpened = true;
-            },
-
-            /*
-            * Called when technique is clicked to be edited.
-            * */
-            vOnEditTechniqueClicked(technique){
-                let self = this;
-                self.selectedTechnique = technique;
-                self.bIsAddEditTechniqueModalOpened = true;
-            },
-
-            /*
-            * Add skill category.
-            * */
-            addEditTechnique(technique) {
-                let pAddEditTechniquePromise = null;
-                let self = this;
-
-                // Freeze ui.
-                self.addLoadingScreen();
-
-                if (!technique.id)
-                    pAddEditTechniquePromise = self.$skill.addSkillCategory(self.user.id, null, technique.description)
-                        .then((skillCategory) => {
-                            self.$toastr.success('A skill category has been added.');
-
-                            // Add skill to list.
-                            self.user.techniques.push(skillCategory);
-                        });
-                else
-                    pAddEditTechniquePromise = self.$skill.editSkillCategory(technique.id,technique.userId, technique.photo, technique.name)
-                        .then(() => {
-                            self.$toastr.success('Skill has been edited successfully.');
-                        });
-
-                pAddEditTechniquePromise
-                    .then(() => {
-                        self.bIsAddEditTechniqueModalOpened = false;
-                        self.deleteLoadingScreen();
-                    });
             }
         }
     }

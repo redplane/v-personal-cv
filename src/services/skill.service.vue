@@ -5,19 +5,12 @@
     injector
         .service('$skill', ['baseUrl', '$promiseManager'], (baseUrl, $promiseManager) => {
             return {
-
                 //#region Methods
 
                 /*
                 * Get hobbies by using specific conditions.
                 * */
-                loadSkillCategories(ids, userIds) {
-
-                    // Construct search model.
-                    let condition = {
-                        ids: ids,
-                        userIds: userIds
-                    };
+                loadSkillCategories(condition) {
 
                     return axios
                         .post(`${baseUrl}/api/skill-category/search`, condition)
@@ -92,6 +85,23 @@
 
                     return axios
                         .put(`${baseUrl}/api/skill-category/${id}`, fd)
+                        .then((editSkillCategoryResponse) => {
+                            if (!editSkillCategoryResponse)
+                                throw 'Failed to edit skill category';
+                            return editSkillCategoryResponse.data;
+                        });
+                },
+
+                addSkill(name){
+                    // Initialize model to submit to end-point.
+                    let model = {
+                        name: name
+                    };
+
+                    let promise = axios
+                        .post(`${baseUrl}/api/skill`, model);
+
+                    return promise
                         .then((editSkillCategoryResponse) => {
                             if (!editSkillCategoryResponse)
                                 throw 'Failed to edit skill category';

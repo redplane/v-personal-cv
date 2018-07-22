@@ -1,97 +1,45 @@
-<template>
-
-    <div class="panel panel-info">
-        <div class="panel-heading">
-            <h3 class="panel-title">Project detail</h3>
-        </div>
-        <div class="panel-body">
-            <div class="row">
-                <div class="col-lg-3">
-                    <label>Name</label>
-                </div>
-                <div class="col-lg-9">
-                    <div class="form-group">
-                        <input class="form-control"/>
+<div class="col-lg-12">
+    <div class="form-group">
+        <table class="table table-responsive table-condensed">
+            <thead>
+            <tr>
+                <th class="text-center">Name</th>
+                <th class="text-center">Started time</th>
+                <th class="text-center">Finished time</th>
+                <th class="text-center">Responsibilities</th>
+                <th class="text-center">Skills</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="project in user.projects">
+                <td class="text-center">
+                    <b class="text-success">{{project.name}}</b>
+                </td>
+                <td class="text-center">{{project.startedTime}}</td>
+                <td class="text-center">{{project.finishedTime}}</td>
+                <td>
+                    <div v-for="responsibility in project.responsibilities" class="text-center">
+                        {{responsibility.name}}
                     </div>
-                </div>
-            </div>
-
-            <!--Time (from)-->
-            <div class="row">
-                <div class="col-lg-3">
-                    <label>From</label>
-                </div>
-                <div class="col-lg-9">
-                    <div class="form-group">
-                        <div class="form-control"></div>
+                </td>
+                <td class="text-center">
+                    <div v-for="skill in project.skills"
+                         class="text-center">
+                        {{skill.name}}
                     </div>
-                </div>
-            </div>
+                </td>
+                <td>
+                    <button class="btn btn-danger"
+                            @click="deleteProject(project.id)">
+                        <span class="fa fa-trash"></span>
+                    </button>
+                </td>
+            </tr>
+            <tr>
 
-            <!--Time (to)-->
-            <div class="row">
-                <div class="col-lg-3">
-                    <label>To</label>
-                </div>
-                <div class="col-lg-9">
-                    <div class="form-group">
-                        <div class="form-control"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!--Responsibilities-->
-            <div class="row">
-                <div class="col-lg-3">
-                    <label>Responsibilities</label>
-                </div>
-                <div class="col-lg-9">
-                    <div class="form-group">
-                        <div class="form-control">
-                            <ul>
-                                <li></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!--Skills-->
-            <div class="row">
-                <div class="col-lg-3">
-                    <label>Skills</label>
-                </div>
-                <div class="col-lg-9">
-                    <div class="form-group">
-                        <div class="form-control">
-                            <ul>
-                                <li></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+            </tr>
+            </tbody>
+        </table>
     </div>
-</template>
-
-<script>
-    export default {
-        name: 'project-detail',
-        props: {
-            projectProperty: null
-        },
-        data() {
-            return {
-                project: {}
-            }
-        },
-        mounted(){
-
-        }
-    }
-</script>
-
-<style scoped>
-
-</style>
+</div>
