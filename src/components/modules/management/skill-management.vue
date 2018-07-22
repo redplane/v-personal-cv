@@ -111,7 +111,7 @@
 <script>
 
     // Import skill detail component.
-    import SkillDetail from './skill-detail.vue';
+    import SkillDetail from '../management/skill-management';
     import {mapMutations} from 'vuex';
 
     export default {
@@ -309,7 +309,6 @@
 
                 // Block UI.
                 self.addLoadingScreen();
-
 
                 self.loadSkills()
                     .then((loadSkillResult) => {

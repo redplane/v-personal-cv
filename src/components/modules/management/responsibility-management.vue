@@ -89,7 +89,7 @@
 <script>
 
     // Import responsibility detail component.
-    import ResponsibilityDetail from './responsibility-detail';
+    import ResponsibilityDetail from '../responsibility/responsibility-detail';
     import { mapMutations } from 'vuex';
 
     export default {

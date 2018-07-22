@@ -100,7 +100,7 @@
 
 <script>
 
-    import UserDetail from './user-detail.vue';
+    import UserDetail from '../user/user-detail.vue';
     import { mapMutations } from 'vuex';
 
     export default {

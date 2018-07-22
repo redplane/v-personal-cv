@@ -81,8 +81,6 @@
             // Get current class context.
             let self = this;
 
-            console.log('1');
-
             // Block app UI.
             self.addLoadingScreen();
 

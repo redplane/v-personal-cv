@@ -4,9 +4,10 @@ import Router from 'vue-router';
 import MasterLayout from './components/shared/layout/master-layout.vue';
 import AdminSideBar from './components/shared/admin-side-bar.vue';
 
-import UserDashboard from './components/modules/user/dashboard.vue';
-import SkillDashboard from './components/modules/skill/dashboard.vue';
-import SkillCategoryDashboard from './components/modules/responsibility/dashboard.vue';
+import UserManagement from './components/modules/management/user-management.vue';
+import SkillManagement from './components/modules/management/skill-management.vue';
+import ResponsibilityManagement from './components/modules/management/responsibility-management.vue';
+
 import Profile from './components/modules/user/profile.vue';
 import ManagementLayout from '@/components/modules/management-layout.vue';
 import UserProjectDashboard from '@/components/modules/project/dashboard.vue';
@@ -53,21 +54,21 @@ export default new Router({
                         {
                             path: 'skill-management',
                             components: {
-                                default: SkillDashboard,
+                                default: SkillManagement,
                                 adminSideBar: AdminSideBar
                             }
                         },
                         {
                             path: 'responsibility-management',
                             components: {
-                                default: SkillCategoryDashboard,
+                                default: ResponsibilityManagement,
                                 adminSideBar: AdminSideBar
                             }
                         },
                         {
                             path: 'user-management',
                             components: {
-                                default: UserDashboard,
+                                default: UserManagement,
                                 adminSideBar: AdminSideBar
                             }
                         }
