@@ -91,58 +91,12 @@
             <router-view :user-id-property="user.id"/>
         </div>
 
-
-        <!--Personal techniques-->
-        <!--<div v-if="tabIndex === 1 && user">-->
-            <!--<div v-if="user.techniques"-->
-                 <!--v-for="technique in user.techniques">-->
-                <!--<div class="row">-->
-                    <!--<div class="col-lg-3 col-xs-4">-->
-
-                        <!--<div class="panel panel-default">-->
-                            <!--<div class="panel-body text-center">-->
-                                <!--<img :src="technique.photo ? technique.photo : require('@/assets/skill.png')" :height="256" :width="256">-->
-                                <!--<div class="text-center">-->
-                                    <!--<span>{{technique.name}}</span>-->
-                                <!--</div>-->
-                            <!--</div>-->
-                            <!--<div class="panel-footer">-->
-                                <!--<div class="text-center">-->
-                                    <!--<button class="btn btn-info">-->
-                                        <!--<span class="fa fa-camera"></span>-->
-                                    <!--</button>-->
-                                    <!--<span>&nbsp;</span>-->
-                                    <!--<button class="btn btn-primary"-->
-                                            <!--@click="vOnEditTechniqueClicked(technique)">-->
-                                        <!--<span class="fa fa-edit"></span>-->
-                                    <!--</button>-->
-                                <!--</div>-->
-                            <!--</div>-->
-                        <!--</div>-->
-                    <!--</div>-->
-                    <!--<div class="col-lg-9 col-xs-8">-->
-                        <!--<div class="form-group"-->
-                             <!--v-for="skill in technique.skills">-->
-                            <!--<progress-bar v-model="skill.point" label :label-text="skill.name"/>-->
-                        <!--</div>-->
-                        <!--<div class="pull-right">-->
-                            <!--<button class="btn btn-primary"-->
-                                    <!--v-on:click="vOnAddSkillClicked(technique)">-->
-                                <!--<span class="glyphicon glyphicon-plus"></span>-->
-                            <!--</button>-->
-                        <!--</div>-->
-                    <!--</div>-->
-                <!--</div>-->
-                <!--<hr/>-->
-            <!--</div>-->
-            <!--<div class="row">-->
-                <!--<div class="col-lg-12">-->
-                    <!--<button class="btn btn-primary btn-block"-->
-                            <!--@click="vOnAddTechniqueClicked()">Add technique category-->
-                    <!--</button>-->
-                <!--</div>-->
-            <!--</div>-->
-        <!--</div>-->
+        <croppa v-model="croppedProfilePhoto"
+                :width="400"
+                :height="400"
+                :prevent-white-space="true"
+                :show-remove-button="false">
+        </croppa>
 
         <!--Add/edit user description-->
         <modal :header="false"
@@ -163,6 +117,8 @@
     import UserDescriptionDetail from "./user-description-detail";
     import UserSkillDetail from "../../shared/skill-selector";
     import TechniqueDetail from '../skill-category/skill-category-detail';
+    import Croppa from 'vue-croppa';
+
     import {mapMutations} from 'vuex';
 
     export default {
@@ -181,6 +137,8 @@
                 bUserDescriptionModalOpened: false,
                 selectedUserDescription: null,
                 selectedTechnique: null,
+
+                croppedProfilePhoto: {},
 
                 selectedSkillCategory: null,
                 tabIndex: 0
