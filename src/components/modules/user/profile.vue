@@ -155,36 +155,14 @@
                                      v-on:click-cancel="vOnUserDescriptionCancel()"/>
         </modal>
 
-        <!--Add/edit skill modal-->
-        <modal :header="false"
-               :footer="false"
-               v-model="bIsAddEditSkillModalOpened"
-               v-if="bIsAddEditSkillModalOpened"
-               class="replace-body">
-            <user-skill-detail :skill-category-property="selectedSkillCategory"
-                               v-on:cancel="bIsAddEditSkillModalOpened = false"
-                               v-on:skill-selected="vOnSkillsSelected">
-            </user-skill-detail>
-        </modal>
 
-        <!--Add/edit category modal-->
-        <modal :header="false"
-               :footer="false"
-               size="md"
-               v-model="bIsAddEditTechniqueModalOpened"
-               v-if="bIsAddEditTechniqueModalOpened"
-               class="replace-body">
-            <technique-detail :skill-category-property="selectedTechnique"
-                              v-on:click-ok="addEditTechnique"
-                              v-on:click-cancel="bIsAddEditTechniqueModalOpened = false"></technique-detail>
-        </modal>
     </div>
 </template>
 
 <script>
     import UserDescriptionDetail from "./user-description-detail";
-    import UserSkillDetail from "./user-skill-detail";
-    import TechniqueDetail from './technique-detail';
+    import UserSkillDetail from "../../shared/skill-selector";
+    import TechniqueDetail from '../skill-category/skill-category-detail';
     import {mapMutations} from 'vuex';
 
     export default {
@@ -201,8 +179,6 @@
                     techniques: []
                 },
                 bUserDescriptionModalOpened: false,
-                bIsAddEditSkillModalOpened: false,
-                bIsAddEditTechniqueModalOpened: false,
                 selectedUserDescription: null,
                 selectedTechnique: null,
 
@@ -233,8 +209,18 @@
                     resolve(user);
                 });
             } else {
+
+                // Build search condition.
+                let condition = {
+                    userIds: [self.user.id],
+                    pagination:{
+                        page: 1,
+                        records: 1
+                    }
+                };
+
                 promises[0] = self.$user
-                    .loadUsers([self.user.id], null, null, null, 1, 1)
+                    .loadUsers(condition)
                     .then((loadUsersResult) => {
                         // Get users.
                         let users = loadUsersResult.records;

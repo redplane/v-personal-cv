@@ -53,7 +53,7 @@
             </div>
         </div>
 
-        <!--Skill search condition-->
+        <!--Skill search pagination-->
         <div class="row">
             <div class="col-lg-12">
                 <div class="form-group">
@@ -73,7 +73,8 @@
                :footer="false"
                size="md"
                v-model="bIsSkillModalOpened"
-               v-if="bIsSkillModalOpened">
+               v-if="bIsSkillModalOpened"
+               class="replace-body">
             <div slot="default">
                 <skill-detail :skill-property="skill"
                               v-on:confirm="addEditSkill($event)"
@@ -82,10 +83,12 @@
             </div>
         </modal>
 
+        <!--Skill delete confirmation-->
         <modal :header="false"
                size="md"
                v-model="bIsDeleteSkillModalOpened"
-               v-if="bIsDeleteSkillModalOpened">
+               v-if="bIsDeleteSkillModalOpened"
+               class="replace-body">
             <div slot="default">
                 <div class="text-center">
                     <i class="text-danger">Are you sure to delete <b class="text-danger">{{skill.name}}</b> from system

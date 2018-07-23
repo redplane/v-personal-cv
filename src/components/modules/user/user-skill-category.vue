@@ -49,15 +49,43 @@
                 </button>
             </div>
         </div>
+
+        <!--Add/edit skill modal-->
+        <modal :header="false"
+               :footer="false"
+               v-model="bIsAddEditSkillModalOpened"
+               v-if="bIsAddEditSkillModalOpened"
+               class="replace-body">
+            <skill-selector :skill-category-property="selectedSkillCategory"
+                          v-on:cancel="bIsAddEditSkillModalOpened = false"
+                          v-on:select-skill="vOnSkillsSelected">
+            </skill-selector>
+        </modal>
+
+        <!--Add/edit category modal-->
+        <modal :header="false"
+               :footer="false"
+               size="md"
+               v-model="bIsAddEditTechniqueModalOpened"
+               v-if="bIsAddEditTechniqueModalOpened"
+               class="replace-body">
+            <skill-category-detail :skill-category-property="selectedTechnique"
+                                   v-on:click-ok="addEditTechnique"
+                                   v-on:click-cancel="bIsAddEditTechniqueModalOpened = false">
+            </skill-category-detail>
+        </modal>
     </div>
 </template>
 
 <script>
     import {mapMutations} from 'vuex';
+    import SkillCategoryDetail from "../skill-category/skill-category-detail";
+    import SkillSelector from "../../shared/skill-selector";
 
     export default {
         name: 'user-technique-dashboard',
-        dependencies: ['paginationConstant', '$user', '$skill'],
+        components: {SkillSelector, SkillCategoryDetail},
+        dependencies: ['paginationConstant', '$user', '$toastr', '$skill'],
         props: {
             userIdProperty: null
         },
@@ -75,6 +103,9 @@
 
                 // Id of current user.
                 userId: null,
+
+                bIsAddEditSkillModalOpened: false,
+                bIsAddEditTechniqueModalOpened: false,
 
                 // User skill search condition.
                 loadUserSkillCondition: {
@@ -151,13 +182,10 @@
                 // Freeze ui.
                 self.addLoadingScreen();
 
-                if (!technique.id)
-                    pAddEditTechniquePromise = self.$skill.addSkillCategory(self.user.id, null, technique.description)
+                if ( !technique.id)
+                    pAddEditTechniquePromise = self.$skill.addSkillCategory(self.userId, null, technique.description)
                         .then((skillCategory) => {
                             self.$toastr.success('A skill category has been added.');
-
-                            // Add skill to list.
-                            self.user.techniques.push(skillCategory);
                         });
                 else
                     pAddEditTechniquePromise = self.$skill.editSkillCategory(technique.id, technique.userId, technique.photo, technique.name)
@@ -177,6 +205,9 @@
             * */
             vOnAddTechniqueClicked() {
                 let self = this;
+                // Clear model information.
+                self.selectedTechnique = {};
+
                 self.bIsAddEditTechniqueModalOpened = true;
             },
 

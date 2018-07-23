@@ -18,7 +18,11 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr v-for="skill in loadSkillResult.records">
+                        <tr v-if="bIsLoadingSkills">
+                            <td colspan="3" class="text-center">Data is being fetched ....</td>
+                        </tr>
+                        <tr v-else
+                            v-for="skill in loadSkillResult.records">
                             <td>
                                 <input type="checkbox"
                                        v-model="selectedSkillMap[skill.id]"
@@ -49,6 +53,7 @@
             <div class="panel-footer">
                 <div class="text-center">
                     <button class="btn btn-primary"
+                            :class="{'hidden': bIsLoadingSkills}"
                             @click="vOnModalConfirm()">
                         <span>OK</span>
                     </button>
@@ -65,7 +70,7 @@
 
 <script>
     export default {
-        name: 'user-skill-detail',
+        name: 'skill-selector',
         dependencies: ['paginationConstant', '$skill', '$lodash'],
         props: {
             skillCategoryProperty: null
@@ -86,7 +91,10 @@
                     total: 0
                 },
 
-                selectedSkillMap: {}
+                selectedSkillMap: {},
+
+                // Check whether skills are being loaded or not.
+                bIsLoadingSkills: false,
             }
         },
         mounted() {
@@ -102,20 +110,20 @@
                 // Get context.
                 let self = this;
 
-                // Get load skill condition.
-                let pagination = self.loadSkillCondition.pagination;
-
                 return self.$skill
-                    .loadSkills(null, null, null, pagination.page, pagination.records);
+                    .loadSkills(self.loadSkillCondition);
             },
 
             /*
             * Called when page is changed.
             * */
-            vOnPageChanged(index){
+            vOnPageChanged(index) {
 
                 let self = this;
                 let promises = [];
+
+                // Set loading flag to be true.
+                self.bIsLoadingSkills = true;
 
                 // Load skill category.
                 promises[0] = new Promise(resolve => {
@@ -151,27 +159,30 @@
 
                                 self.selectedSkillMap = pRelationshipMap;
                             })
+                    })
+                    .finally(() => {
+                        self.bIsLoadingSkills = false;
                     });
             },
 
             /*
             * Called when cancel button is clicked.
             * */
-            vOnModalCancel(){
+            vOnModalCancel() {
                 this.$emit('cancel');
             },
 
             /*
             * Called when ok button is clicked.
             * */
-            vOnModalConfirm(){
+            vOnModalConfirm() {
                 // Get context.
                 let self = this;
 
                 // Get selected skill ids.
                 let map = self.selectedSkillMap;
                 let ids = Object.keys(map).map((id) => parseInt(id));
-                this.$emit('skill-selected', self.skillCategory.id, ids);
+                this.$emit('select-skill', self.skillCategory.id, ids);
             }
         }
     }

@@ -11,7 +11,7 @@ import ResponsibilityManagement from './components/modules/management/responsibi
 import Profile from './components/modules/user/profile.vue';
 import ManagementLayout from '@/components/modules/management-layout.vue';
 import UserProjectDashboard from '@/components/modules/project/dashboard.vue';
-import UserSkill from '@/components/modules/technique/dashboard.vue';
+import UserSkill from '@/components/modules/user/user-skill-category.vue';
 
 export default new Router({
     routes: [

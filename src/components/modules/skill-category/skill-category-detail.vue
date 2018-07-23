@@ -36,7 +36,7 @@
 
 <script>
     export default {
-        name: 'technique-detail',
+        name: 'skill-category-detail',
         props:{
             skillCategoryProperty: null
         },

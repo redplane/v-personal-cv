@@ -251,19 +251,10 @@
                 /*
                 * Edit user using specific condition.
                 * */
-                loadSkills(ids, names, createdTime, page, records) {
-                    let conditions = {
-                        ids: ids,
-                        names: names,
-                        createdTime: createdTime,
-                        pagination: {
-                            page: page,
-                            records: records
-                        }
-                    };
+                loadSkills(condition) {
 
                     return axios
-                        .post(`${baseUrl}/api/skill/search`, conditions)
+                        .post(`${baseUrl}/api/skill/search`, condition)
                         .then((loadSkillsResponse) => {
                             if (!loadSkillsResponse)
                                 throw 'No skill is found';

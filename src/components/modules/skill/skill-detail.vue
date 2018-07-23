@@ -1,10 +1,12 @@
 <template>
     <div>
         <div class="panel panel-info">
-            <h3 class="panel-title">
-                <span v-if="!skill.id">Add skill</span>
-                <span v-if="skill.id">Edit skill</span>
-            </h3>
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <span v-if="skill && skill.id">Edit skill</span>
+                    <span v-else>Add skill</span>
+                </h3>
+            </div>
         </div>
         <div class="panel-body">
             <div v-if="skill">
