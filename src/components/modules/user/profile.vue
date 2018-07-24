@@ -60,6 +60,7 @@
             </div>
         </div>
 
+        <user-hobby></user-hobby>
         <!--Tabs panel-->
         <div class="row">
             <div class="col-lg-12">
@@ -123,15 +124,14 @@
 
 <script>
     import UserDescriptionDetail from "./user-description-detail";
-    import UserSkillDetail from "../../shared/skill-selector";
-    import TechniqueDetail from '../skill-category/skill-category-detail';
     import ImageCropper from '../../shared/image-cropper';
+    import UserHobby from './user-hobby';
 
     import {mapMutations, mapGetters} from 'vuex';
 
     export default {
         name: 'profile',
-        components: {ImageCropper, TechniqueDetail, UserSkillDetail, UserDescriptionDetail},
+        components: {ImageCropper, UserHobby, UserDescriptionDetail},
         dependencies: ['userRoleConstant', '$user', '$userDescription', '$hobby', '$skill', '$responsibility', '$project', '$lodash', '$toastr'],
         data() {
             return {
