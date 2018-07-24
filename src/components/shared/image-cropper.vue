@@ -1,41 +1,37 @@
 <template>
     <div>
-        <div class="panel panel-body">
+        <div class="panel panel-info">
             <div class="panel-heading">
-                <h3 class="panel-title">Image selector</h3>
+                <h3 class="panel-title"><b class="fa fa-camera"></b> Image selector</h3>
             </div>
-            <div class="panel-body">
-                <croppa v-model="myCroppa"
-                        :width="400"
-                        :height="400"
-                        :canvas-color="'default'"
-                        :placeholder="'Choose an image'"
-                        :placeholder-font-size="0"
-                        :placeholder-color="'default'"
-                        :accept="'image/*'"
-                        :file-size-limit="0"
-                        :quality="2"
-                        :zoom-speed="3"
-                        :disabled="false"
-                        :disable-drag-and-drop="false"
-                        :disable-click-to-choose="false"
-                        :disable-drag-to-move="false"
-                        :disable-scroll-to-zoom="false"
-                        :disable-rotation="false"
-                        :prevent-white-space="false"
-                        :reverse-scroll-to-zoom="false"
-                        :show-remove-button="true"
-                        :remove-button-color="'red'"
-                        :remove-button-size="0"
-                        :initial-image="'path/to/initial-image.png'"
-                        @init="handleCroppaInit"
-                        @file-choose="handleCroppaFileChoose"
-                        @file-size-exceed="handleCroppaFileSizeExceed"
-                        @file-type-mismatch="handleCroppaFileTypeMismatch"
-                        @new-image-drawn="handleNewImage"
-                        @image-remove="handleImageRemove"
-                        @move="handleCroppaMove"
-                        @zoom="handleCroppaZoom"></croppa>
+            <div class="panel-body text-center">
+                <div class="form-group">
+                    <croppa v-model="imageCropper"
+                            :width="512"
+                            :height="512"
+                            :disable-rotation="true"
+                            :prevent-white-space="true"
+                            :show-remove-button="false"
+                            @new-image-drawn="vOnNewImageDrawn()"></croppa>
+                </div>
+
+                <div class="form-group"
+                     v-if="bImageDrawn">
+                    <button class="btn btn-default"
+                            @click="vOnRemoveImageClick()">
+                        <span class="fa fa-trash"></span>
+                    </button>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <div class="text-center">
+                    <button class="btn btn-primary"
+                            :disabled="!bImageDrawn"
+                            @click="vOnImageCropped()">OK</button>
+                    <span>&nbsp;</span>
+                    <button class="btn btn-default"
+                            @click="vOnCancelClicked()">Cancel</button>
+                </div>
             </div>
         </div>
     </div>
@@ -44,6 +40,55 @@
 <script>
     export default {
         name: 'image-cropper',
+        data(){
+            return {
+
+                // Image cropper instance.
+                imageCropper: {},
+
+                // Whether any image is drawn or not.
+                bImageDrawn: false
+            }
+        },
+        methods:{
+
+            /*
+            * Called when remove image button is clicked.
+            * */
+            vOnRemoveImageClick(){
+                this.imageCropper.remove();
+                this.bImageDrawn = false;
+            },
+
+            /*
+            * Called when new image is drawn on canvas.
+            * */
+            vOnNewImageDrawn(){
+                this.bImageDrawn = true;
+            },
+
+            /*
+            * Called when cancel button is clicked.
+            * */
+            vOnCancelClicked(){
+                this.$emit('cancel');
+            },
+
+            /*
+            * Called when image has been selected & ok button is clicked.
+            * */
+            vOnImageCropped(){
+                // Get current context.
+                let self = this;
+
+                // Generate image from cropper instance.
+                self.imageCropper
+                    .generateBlob((blob) => {
+                        self.$emit('image-cropped', blob);
+                    }, 'image/png',0);
+                this.$emit('')
+            }
+        }
     }
 </script>
 

@@ -97,7 +97,31 @@
                                 throw 'Failed to sign user into system';
                             return loginResponse.data;
                         });
-                }
+                },
+
+                /*
+                * Upload user profile image.
+                * */
+                uploadProfileImage(id, blob){
+
+                    let formData = new FormData();
+                    formData.append('photo', blob);
+
+                    let options = {
+                        headers: {
+                            'Content-Type': null
+                        }
+                    };
+
+                    let fullUrl = `${baseUrl}/api/user/profile-image/${id}`;
+                    return $axios
+                        .post(fullUrl, formData, options)
+                        .then((uploadUserProfileImageResponse) => {
+                            if (!uploadUserProfileImageResponse)
+                                throw 'Cannot upload user profile image';
+                            return uploadUserProfileImageResponse.data;
+                        });
+                },
             }
         });
 </script>

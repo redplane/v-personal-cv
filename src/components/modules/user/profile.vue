@@ -15,7 +15,8 @@
                                              v-bind:src="user.photo"/>
                                     </div>
                                     <div class="panel-footer text-center">
-                                        <button class="btn btn-info">
+                                        <button class="btn btn-info"
+                                                @click="vOnProfileEditClick()">
                                             <span class="fa fa-camera"></span>
                                         </button>
                                     </div>
@@ -78,9 +79,9 @@
                         </router-link>
                     </ul>
                     <!--<tabs v-model="tabIndex"-->
-                          <!--@change="vOnTabSelected($event)">-->
-                        <!--<tab title="Project I have done"></tab>-->
-                        <!--<tab title="Techniques I have used"></tab>-->
+                    <!--@change="vOnTabSelected($event)">-->
+                    <!--<tab title="Project I have done"></tab>-->
+                    <!--<tab title="Techniques I have used"></tab>-->
                     <!--</tabs>-->
                 </div>
             </div>
@@ -91,12 +92,17 @@
             <router-view :user-id-property="user.id"/>
         </div>
 
-        <croppa v-model="croppedProfilePhoto"
-                :width="400"
-                :height="400"
-                :prevent-white-space="true"
-                :show-remove-button="false">
-        </croppa>
+        <!--User profile selector-->
+        <modal :header="false"
+               :footer="false"
+               v-model="bUserProfileEditorVisible"
+               v-if="bUserProfileEditorVisible"
+               class="replace-body">
+            <div slot="default">
+                <image-cropper v-on:cancel="vOnImageCropperCancel"
+                               v-on:image-cropped="vOnProfileImageCropped"></image-cropper>
+            </div>
+        </modal>
 
         <!--Add/edit user description-->
         <modal :header="false"
@@ -104,9 +110,11 @@
                v-model="bUserDescriptionModalOpened"
                v-if="bUserDescriptionModalOpened"
                class="replace-body">
-            <user-description-detail :user-description-property="selectedUserDescription"
-                                     v-on:click-confirm="vOnUserDescriptionConfirm($event)"
-                                     v-on:click-cancel="vOnUserDescriptionCancel()"/>
+            <div slot="default">
+                <user-description-detail :user-description-property="selectedUserDescription"
+                                         v-on:click-confirm="vOnUserDescriptionConfirm($event)"
+                                         v-on:click-cancel="vOnUserDescriptionCancel()"/>
+            </div>
         </modal>
 
 
@@ -117,14 +125,14 @@
     import UserDescriptionDetail from "./user-description-detail";
     import UserSkillDetail from "../../shared/skill-selector";
     import TechniqueDetail from '../skill-category/skill-category-detail';
-    import Croppa from 'vue-croppa';
+    import ImageCropper from '../../shared/image-cropper';
 
-    import {mapMutations} from 'vuex';
+    import {mapMutations, mapGetters} from 'vuex';
 
     export default {
         name: 'profile',
-        components: {TechniqueDetail, UserSkillDetail, UserDescriptionDetail},
-        dependencies: ['$user', '$userDescription', '$hobby', '$skill', '$responsibility', '$project', '$lodash', '$toastr'],
+        components: {ImageCropper, TechniqueDetail, UserSkillDetail, UserDescriptionDetail},
+        dependencies: ['userRoleConstant', '$user', '$userDescription', '$hobby', '$skill', '$responsibility', '$project', '$lodash', '$toastr'],
         data() {
             return {
                 user: {
@@ -138,13 +146,21 @@
                 selectedUserDescription: null,
                 selectedTechnique: null,
 
+                // Whether user profile editor modal is visible or not.
+                bUserProfileEditorVisible: false,
+
                 croppedProfilePhoto: {},
 
                 selectedSkillCategory: null,
                 tabIndex: 0
             }
         },
-        computed: {},
+        computed: {
+
+            ...mapGetters([
+                'profile'
+            ])
+        },
         mounted() {
 
             // Get params in route.
@@ -171,7 +187,7 @@
                 // Build search condition.
                 let condition = {
                     userIds: [self.user.id],
-                    pagination:{
+                    pagination: {
                         page: 1,
                         records: 1
                     }
@@ -265,37 +281,6 @@
             },
 
             /*
-            * Called when tab is selected.
-            * */
-            vOnTabSelected(tabIndex) {
-
-                // // Get function context.
-                // let self = this;
-                //
-                // switch (tabIndex) {
-                //     case 1:
-                //         // Clear user techniques.
-                //         self.user.techniques = [];
-                //
-                //         this.loadUserTechniques()
-                //             .then((techniques) => {
-                //                 self.user['techniques'] = techniques;
-                //             });
-                //         break;
-                //
-                //     default:
-                //
-                //         // Clear user projects.
-                //         self.user.projects = [];
-                //
-                //         this.loadUserProjects()
-                //             .then((projects) => {
-                //                 self.user['projects'] = projects;
-                //             });
-                // }
-            },
-
-            /*
             * Called when add user description is clicked.
             * */
             vOnAddUserDescriptionClick() {
@@ -334,6 +319,52 @@
             * */
             vOnUserDescriptionCancel() {
                 this.bUserDescriptionModalOpened = false;
+            },
+
+            /*
+            * Called when profile editor button is clicked.
+            * */
+            vOnProfileEditClick(){
+                this.bUserProfileEditorVisible = true;
+            },
+
+            /*
+            * Called when image cropper modal cancel button is clicked.
+            * */
+            vOnImageCropperCancel(){
+                this.bUserProfileEditorVisible = false;
+            },
+
+            /*
+            * Called when profile image is cropped.
+            * */
+            vOnProfileImageCropped(blob){
+
+                // Get current context.
+                let self = this;
+
+                // Get targeted user.
+                let user = this.user;
+
+                // Add loading screen.
+                self.addLoadingScreen();
+
+                // Initialize upload profile promise.
+                let pUploadProfileImagePromise = null;
+
+                pUploadProfileImagePromise = self.$user
+                    .uploadProfileImage(user.id, blob);
+
+                pUploadProfileImagePromise
+                    .then(() => {
+                        self.$toastr.success('User profile image is uploaded.');
+
+                        // Close the modal.
+                        self.bUserProfileEditorVisible = false;
+                    })
+                    .finally(() => {
+                        self.deleteLoadingScreen();
+                    });
             }
         }
     }
