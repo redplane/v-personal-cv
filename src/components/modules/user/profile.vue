@@ -15,7 +15,8 @@
                                              v-bind:src="user.photo"/>
                                     </div>
                                     <div class="panel-footer text-center">
-                                        <button class="btn btn-info">
+                                        <button class="btn btn-info"
+                                                @click="vOnProfileEditClick()">
                                             <span class="fa fa-camera"></span>
                                         </button>
                                     </div>
@@ -78,9 +79,9 @@
                         </router-link>
                     </ul>
                     <!--<tabs v-model="tabIndex"-->
-                          <!--@change="vOnTabSelected($event)">-->
-                        <!--<tab title="Project I have done"></tab>-->
-                        <!--<tab title="Techniques I have used"></tab>-->
+                    <!--@change="vOnTabSelected($event)">-->
+                    <!--<tab title="Project I have done"></tab>-->
+                    <!--<tab title="Techniques I have used"></tab>-->
                     <!--</tabs>-->
                 </div>
             </div>
@@ -91,58 +92,17 @@
             <router-view :user-id-property="user.id"/>
         </div>
 
-
-        <!--Personal techniques-->
-        <!--<div v-if="tabIndex === 1 && user">-->
-            <!--<div v-if="user.techniques"-->
-                 <!--v-for="technique in user.techniques">-->
-                <!--<div class="row">-->
-                    <!--<div class="col-lg-3 col-xs-4">-->
-
-                        <!--<div class="panel panel-default">-->
-                            <!--<div class="panel-body text-center">-->
-                                <!--<img :src="technique.photo ? technique.photo : require('@/assets/skill.png')" :height="256" :width="256">-->
-                                <!--<div class="text-center">-->
-                                    <!--<span>{{technique.name}}</span>-->
-                                <!--</div>-->
-                            <!--</div>-->
-                            <!--<div class="panel-footer">-->
-                                <!--<div class="text-center">-->
-                                    <!--<button class="btn btn-info">-->
-                                        <!--<span class="fa fa-camera"></span>-->
-                                    <!--</button>-->
-                                    <!--<span>&nbsp;</span>-->
-                                    <!--<button class="btn btn-primary"-->
-                                            <!--@click="vOnEditTechniqueClicked(technique)">-->
-                                        <!--<span class="fa fa-edit"></span>-->
-                                    <!--</button>-->
-                                <!--</div>-->
-                            <!--</div>-->
-                        <!--</div>-->
-                    <!--</div>-->
-                    <!--<div class="col-lg-9 col-xs-8">-->
-                        <!--<div class="form-group"-->
-                             <!--v-for="skill in technique.skills">-->
-                            <!--<progress-bar v-model="skill.point" label :label-text="skill.name"/>-->
-                        <!--</div>-->
-                        <!--<div class="pull-right">-->
-                            <!--<button class="btn btn-primary"-->
-                                    <!--v-on:click="vOnAddSkillClicked(technique)">-->
-                                <!--<span class="glyphicon glyphicon-plus"></span>-->
-                            <!--</button>-->
-                        <!--</div>-->
-                    <!--</div>-->
-                <!--</div>-->
-                <!--<hr/>-->
-            <!--</div>-->
-            <!--<div class="row">-->
-                <!--<div class="col-lg-12">-->
-                    <!--<button class="btn btn-primary btn-block"-->
-                            <!--@click="vOnAddTechniqueClicked()">Add technique category-->
-                    <!--</button>-->
-                <!--</div>-->
-            <!--</div>-->
-        <!--</div>-->
+        <!--User profile selector-->
+        <modal :header="false"
+               :footer="false"
+               v-model="bUserProfileEditorVisible"
+               v-if="bUserProfileEditorVisible"
+               class="replace-body">
+            <div slot="default">
+                <image-cropper v-on:cancel="vOnImageCropperCancel"
+                               v-on:image-cropped="vOnProfileImageCropped"></image-cropper>
+            </div>
+        </modal>
 
         <!--Add/edit user description-->
         <modal :header="false"
@@ -150,9 +110,11 @@
                v-model="bUserDescriptionModalOpened"
                v-if="bUserDescriptionModalOpened"
                class="replace-body">
-            <user-description-detail :user-description-property="selectedUserDescription"
-                                     v-on:click-confirm="vOnUserDescriptionConfirm($event)"
-                                     v-on:click-cancel="vOnUserDescriptionCancel()"/>
+            <div slot="default">
+                <user-description-detail :user-description-property="selectedUserDescription"
+                                         v-on:click-confirm="vOnUserDescriptionConfirm($event)"
+                                         v-on:click-cancel="vOnUserDescriptionCancel()"/>
+            </div>
         </modal>
 
 
@@ -163,12 +125,14 @@
     import UserDescriptionDetail from "./user-description-detail";
     import UserSkillDetail from "../../shared/skill-selector";
     import TechniqueDetail from '../skill-category/skill-category-detail';
-    import {mapMutations} from 'vuex';
+    import ImageCropper from '../../shared/image-cropper';
+
+    import {mapMutations, mapGetters} from 'vuex';
 
     export default {
         name: 'profile',
-        components: {TechniqueDetail, UserSkillDetail, UserDescriptionDetail},
-        dependencies: ['$user', '$userDescription', '$hobby', '$skill', '$responsibility', '$project', '$lodash', '$toastr'],
+        components: {ImageCropper, TechniqueDetail, UserSkillDetail, UserDescriptionDetail},
+        dependencies: ['userRoleConstant', '$user', '$userDescription', '$hobby', '$skill', '$responsibility', '$project', '$lodash', '$toastr'],
         data() {
             return {
                 user: {
@@ -182,11 +146,21 @@
                 selectedUserDescription: null,
                 selectedTechnique: null,
 
+                // Whether user profile editor modal is visible or not.
+                bUserProfileEditorVisible: false,
+
+                croppedProfilePhoto: {},
+
                 selectedSkillCategory: null,
                 tabIndex: 0
             }
         },
-        computed: {},
+        computed: {
+
+            ...mapGetters([
+                'profile'
+            ])
+        },
         mounted() {
 
             // Get params in route.
@@ -213,7 +187,7 @@
                 // Build search condition.
                 let condition = {
                     userIds: [self.user.id],
-                    pagination:{
+                    pagination: {
                         page: 1,
                         records: 1
                     }
@@ -307,37 +281,6 @@
             },
 
             /*
-            * Called when tab is selected.
-            * */
-            vOnTabSelected(tabIndex) {
-
-                // // Get function context.
-                // let self = this;
-                //
-                // switch (tabIndex) {
-                //     case 1:
-                //         // Clear user techniques.
-                //         self.user.techniques = [];
-                //
-                //         this.loadUserTechniques()
-                //             .then((techniques) => {
-                //                 self.user['techniques'] = techniques;
-                //             });
-                //         break;
-                //
-                //     default:
-                //
-                //         // Clear user projects.
-                //         self.user.projects = [];
-                //
-                //         this.loadUserProjects()
-                //             .then((projects) => {
-                //                 self.user['projects'] = projects;
-                //             });
-                // }
-            },
-
-            /*
             * Called when add user description is clicked.
             * */
             vOnAddUserDescriptionClick() {
@@ -376,6 +319,52 @@
             * */
             vOnUserDescriptionCancel() {
                 this.bUserDescriptionModalOpened = false;
+            },
+
+            /*
+            * Called when profile editor button is clicked.
+            * */
+            vOnProfileEditClick(){
+                this.bUserProfileEditorVisible = true;
+            },
+
+            /*
+            * Called when image cropper modal cancel button is clicked.
+            * */
+            vOnImageCropperCancel(){
+                this.bUserProfileEditorVisible = false;
+            },
+
+            /*
+            * Called when profile image is cropped.
+            * */
+            vOnProfileImageCropped(blob){
+
+                // Get current context.
+                let self = this;
+
+                // Get targeted user.
+                let user = this.user;
+
+                // Add loading screen.
+                self.addLoadingScreen();
+
+                // Initialize upload profile promise.
+                let pUploadProfileImagePromise = null;
+
+                pUploadProfileImagePromise = self.$user
+                    .uploadProfileImage(user.id, blob);
+
+                pUploadProfileImagePromise
+                    .then(() => {
+                        self.$toastr.success('User profile image is uploaded.');
+
+                        // Close the modal.
+                        self.bUserProfileEditorVisible = false;
+                    })
+                    .finally(() => {
+                        self.deleteLoadingScreen();
+                    });
             }
         }
     }

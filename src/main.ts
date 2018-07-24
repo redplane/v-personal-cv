@@ -69,6 +69,12 @@ Vue.use(BlockUI);
 import '../node_modules/font-awesome/scss/font-awesome.scss';
 //#endregion
 
+//#region Croppa
+
+const Croppa = require('vue-croppa');
+Vue.use(Croppa);
+
+//#endregion
 Vue.config.productionTip = false;
 
 
