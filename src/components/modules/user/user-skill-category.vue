@@ -31,7 +31,10 @@
                 <div class="col-lg-9 col-xs-8">
                     <div class="form-group"
                          v-for="skill in technique.skills">
-                        <progress-bar v-model="skill.point" label :label-text="skill.name"/>
+                        <progress-bar v-model="skill.point"
+                                      label
+                                      :label-text="skill.name"
+                                      @click="vOnUserEditSkillClicked(technique, skill)"></progress-bar>
                     </div>
                     <div class="pull-right">
                         <button class="btn btn-primary"
@@ -58,9 +61,20 @@
                v-if="bIsAddEditSkillModalOpened"
                class="replace-body">
             <skill-selector :skill-category-property="selectedSkillCategory"
-                          v-on:cancel="bIsAddEditSkillModalOpened = false"
-                          v-on:select-skill="vOnSkillsSelected">
+                            v-on:cancel="bIsAddEditSkillModalOpened = false"
+                            v-on:select-skill="vOnSkillsSelected">
             </skill-selector>
+        </modal>
+
+        <!--User skill detail modal-->
+        <modal :header="false"
+               :footer="false"
+               v-model="bIsUserSkillModalAvailable"
+               v-if="bIsUserSkillModalAvailable"
+               class="replace-body">
+            <user-skill-detail :skill-property="oSelectedUserSkill"
+                               v-on:confirm="vOnSkillEdited"
+                               v-on:cancel="vOnUserSkillEditCancelled"></user-skill-detail>
         </modal>
 
         <!--Add/edit skill category modal-->
@@ -95,10 +109,11 @@
     import SkillCategoryDetail from "../skill-category/skill-category-detail";
     import SkillSelector from "../../shared/skill-selector";
     import ImageCropper from '../../shared/image-cropper';
+    import UserSkillDetail from './user-skill-detail';
 
     export default {
         name: 'user-technique-dashboard',
-        components: {SkillSelector, SkillCategoryDetail, ImageCropper},
+        components: {UserSkillDetail, SkillSelector, SkillCategoryDetail, ImageCropper},
         dependencies: ['paginationConstant', '$user', '$toastr', '$skill'],
         props: {
             userIdProperty: null
@@ -117,6 +132,12 @@
 
                 // Id of current user.
                 userId: null,
+
+                // Skill which is currently selected.
+                oSelectedUserSkill: null,
+
+                // Whether skill modal is available or not.
+                bIsUserSkillModalAvailable: false,
 
                 bIsAddEditSkillModalOpened: false,
                 bIsAddEditTechniqueModalOpened: false,
@@ -189,18 +210,6 @@
                 self.bIsAddEditTechniqueModalOpened = true;
             },
 
-
-            /*
-            * Called when add technique is clicked.
-            * */
-            vOnAddTechniqueClicked() {
-                let self = this;
-                // Clear model information.
-                self.oSelectedSkillCategory = {};
-
-                self.bIsAddEditTechniqueModalOpened = true;
-            },
-
             /*
             * Load user skill categories by using specific conditions.
             * */
@@ -221,6 +230,8 @@
 
             },
 
+            //#region Skill
+
             /*
             * Called when add skill button is clicked.
             * */
@@ -228,6 +239,22 @@
                 let self = this;
                 self.selectedSkillCategory = skillCategory;
                 self.bIsAddEditSkillModalOpened = true;
+            },
+
+            /*
+            * Called when skill is selected to be edited.
+            * */
+            vOnUserEditSkillClicked(skillCategory, userSkill) {
+                // Skill is not valid.
+                if (!userSkill || !userSkill.id || !skillCategory || !skillCategory.id)
+                    return;
+
+                // Get current context.
+                let self = this;
+
+                self.oSelectedUserSkill = Object.assign({}, userSkill);
+                self.oSelectedUserSkill['skillCategoryId'] = skillCategory.id;
+                self.bIsUserSkillModalAvailable = true;
             },
 
             /*
@@ -252,6 +279,47 @@
             },
 
             /*
+            * Called when skill is edited.
+            * */
+            vOnSkillEdited(skill){
+
+                // Get current context.
+                let self = this;
+
+                if (!skill || !skill.id || !skill.skillCategoryId)
+                    return;
+
+                // Block screen access.
+                self.addLoadingScreen();
+
+                self.$skill
+                    .editSkillCategorySkillRelationship(skill.skillCategoryId, skill.id, skill.point)
+                    .then(() => {
+                        // Display toast notification.
+                        self.$toastr.success('Skill is edited successfully.');
+
+                        // Hide modal dialog.
+                        self.bIsUserSkillModalAvailable = false;
+                    })
+                    .finally(() => {
+                        self.deleteLoadingScreen();
+                    });
+
+            },
+
+            /*
+            * Called when user skill edit modal is cancelled.
+            * */
+            vOnUserSkillEditCancelled(){
+                let self = this;
+                self.bIsUserSkillModalAvailable = false;
+            },
+
+            //#endregion
+
+            //#region Skill category
+
+            /*
             * Add skill category.
             * */
             addEditSkillCategory(technique) {
@@ -261,7 +329,7 @@
                 // Freeze ui.
                 self.addLoadingScreen();
 
-                if ( !technique.id)
+                if (!technique.id)
                     pAddEditTechniquePromise = self.$skill.addSkillCategory(self.userId, null, technique.description)
                         .then((skillCategory) => {
                             self.$toastr.success('A skill category has been added.');
@@ -279,12 +347,21 @@
                     });
             },
 
-            //#region Skill category
+            /*
+            * Called when add technique is clicked.
+            * */
+            vOnAddTechniqueClicked() {
+                let self = this;
+                // Clear model information.
+                self.oSelectedSkillCategory = {};
+
+                self.bIsAddEditTechniqueModalOpened = true;
+            },
 
             /*
             * Called when skill category image cropper is clicked.
             * */
-            vOnSkillCategoryImageCropperClick(skillCategory){
+            vOnSkillCategoryImageCropperClick(skillCategory) {
                 let self = this;
                 self.oSelectedSkillCategory = skillCategory;
                 self.bIsSkillCategoryPhotoModalVisible = true;
@@ -293,7 +370,7 @@
             /*
             * Called when skill category photo image is cropped.
             * */
-            vOnSkillCategoryPhotoCropped(blob){
+            vOnSkillCategoryPhotoCropped(blob) {
 
                 // Get current context.
                 let self = this;
@@ -327,7 +404,7 @@
             /*
             * Called when skill category photo modal cancel button is clicked.
             * */
-            vOnSkillCategoryPhotoCancel(){
+            vOnSkillCategoryPhotoCancel() {
                 let self = this;
                 self.bIsSkillCategoryPhotoModalVisible = false;
             }

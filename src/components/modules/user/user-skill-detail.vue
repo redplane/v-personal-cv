@@ -3,8 +3,7 @@
         <div class="panel panel-info">
             <div class="panel-heading">
                 <h3 class="panel-title">
-                    <span v-if="skill && skill.id">Edit skill</span>
-                    <span v-else>Add skill</span>
+                    <span v-if="skill && skill.id">Edit user skill</span>
                 </h3>
             </div>
         </div>
@@ -18,7 +17,24 @@
                     <div class="col-lg-9">
                         <div class="form-group">
                             <input class="form-control"
-                                   v-model="skill.name"/>
+                                   v-model="skill.name"
+                                   :disabled="true"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!--Point-->
+                <div class="row">
+                    <div class="col-lg-3">
+                        <label>Point</label>
+                    </div>
+                    <div class="col-lg-9">
+                        <div class="form-group">
+                            <input class="form-control"
+                                   type="number"
+                                   min="1"
+                                   max="100"
+                                   v-model="skill.point"/>
                         </div>
                     </div>
                 </div>
@@ -57,7 +73,7 @@
     import Vue from 'vue';
 
     export default {
-        name: 'skill-detail',
+        name: 'user-skill-detail',
         props: {
             skillProperty: {}
         },
