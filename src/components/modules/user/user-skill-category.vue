@@ -294,7 +294,34 @@
             * Called when skill category photo image is cropped.
             * */
             vOnSkillCategoryPhotoCropped(blob){
-                // TODO: Implement here.
+
+                // Get current context.
+                let self = this;
+
+                // Get skill category.
+                let skillCategory = self.oSelectedSkillCategory;
+                if (!skillCategory || !skillCategory.id)
+                    return;
+
+                if (!blob)
+                    return;
+
+                // Add loading screen.
+                self.addLoadingScreen();
+
+                // Upload image to skill category.
+                self.$skill
+                    .uploadSkillCategoryPhoto(skillCategory.id, blob)
+                    .then(() => {
+                        // Display toast notification.
+                        self.$toastr.success('Skill category photo has been uploaded to server successfully.');
+
+                        // Hide the modal.
+                        self.bIsSkillCategoryPhotoModalVisible = false;
+                    })
+                    .finally(() => {
+                        self.deleteLoadingScreen();
+                    });
             },
 
             /*

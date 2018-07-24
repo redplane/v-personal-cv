@@ -92,6 +92,9 @@
                         });
                 },
 
+                /*
+                * Add skill to the system.
+                * */
                 addSkill(name){
                     // Initialize model to submit to end-point.
                     let model = {
@@ -252,13 +255,30 @@
                 * Edit user using specific condition.
                 * */
                 loadSkills(condition) {
-
                     return axios
                         .post(`${baseUrl}/api/skill/search`, condition)
                         .then((loadSkillsResponse) => {
                             if (!loadSkillsResponse)
                                 throw 'No skill is found';
                             return loadSkillsResponse.data;
+                        });
+                },
+
+                /*
+                * Load upload skill category photo.
+                * */
+                uploadSkillCategoryPhoto(skillCategoryId, file){
+
+                    // Initialize form data.
+                    let formData = new FormData();
+                    formData.append('photo', file);
+
+                    return axios
+                        .put(`${baseUrl}/api/skill-category/photo/${skillCategoryId}`, formData)
+                        .then((uploadSkillCategoryPhotoResponse) => {
+                            if (!uploadSkillCategoryPhotoResponse)
+                                throw 'Failed to upload skill category photo';
+                            return uploadSkillCategoryPhotoResponse.data;
                         });
                 }
 
