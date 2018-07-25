@@ -12,6 +12,7 @@ import Profile from './components/modules/user/profile.vue';
 import ManagementLayout from '@/components/modules/management-layout.vue';
 import UserProjectDashboard from '@/components/modules/project/dashboard.vue';
 import UserSkill from '@/components/modules/user/user-skill-category.vue';
+import UserHobby from '@/components/modules/user/user-hobby.vue';
 
 export default new Router({
     routes: [
@@ -39,6 +40,12 @@ export default new Router({
                             path: 'skill',
                             name: 'user-skills',
                             component: UserSkill,
+                            props: true
+                        },
+                        {
+                            path: 'hobby',
+                            name: 'user-hobbies',
+                            component: UserHobby,
                             props: true
                         }
                     ]

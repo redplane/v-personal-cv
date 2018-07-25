@@ -37,35 +37,20 @@
                         </div>
                     </div>
                 </div>
-                <div class="panel panel-info">
-                    <div class="panel-heading"><h3 class="panel-title">My hobbies</h3></div>
-                    <div class="panel-body">
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <div v-if="user && user.hobbies"
-                                     v-for="hobby in user.hobbies">
-                                    <div class="row">
-                                        <div class="col-lg-3">
-                                            <label>{{hobby.name}}</label>
-                                        </div>
-                                        <div class="col-lg-9">
-                                            <div class="form-group">{{hobby.description}}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
 
-        <user-hobby></user-hobby>
         <!--Tabs panel-->
         <div class="row">
             <div class="col-lg-12">
                 <div class="form-group">
                     <ul class="nav nav-tabs nav-justified">
+                        <router-link tag="li"
+                                     role="presentation"
+                                     active-class="active"
+                                     :to="{name: 'user-hobbies', param: {userIdProperty: user.id}}">
+                            <a href>What I like</a>
+                        </router-link>
                         <router-link tag="li"
                                      role="presentation"
                                      active-class="active"
@@ -117,8 +102,6 @@
                                          v-on:click-cancel="vOnUserDescriptionCancel()"/>
             </div>
         </modal>
-
-
     </div>
 </template>
 
@@ -156,7 +139,6 @@
             }
         },
         computed: {
-
             ...mapGetters([
                 'profile'
             ])
@@ -202,21 +184,16 @@
                     });
             }
 
-            //region Load user hobbies
-            promises[1] = self.loadUserHobbies();
-
             //Load user descriptions
-            promises[2] = self.loadUserDescriptions();
+            promises[1] = self.loadUserDescriptions();
 
             //#endregion
 
             Promise.all(promises)
                 .then((loadRecordResults) => {
-
                     // Get user.
                     let user = loadRecordResults[0];
-                    let hobbies = loadRecordResults[1];
-                    let userDescriptions = loadRecordResults[2];
+                    let userDescriptions = loadRecordResults[1];
 
                     let pUser = {};
                     pUser.id = user.id;
@@ -224,7 +201,6 @@
                     pUser.lastName = user.lastName;
                     pUser.photo = user.photo;
 
-                    pUser.hobbies = hobbies;
                     pUser.descriptions = userDescriptions;
                     pUser.techniques = [];
 

@@ -9,20 +9,9 @@
                 /*
                 * Get hobbies by using specific conditions.
                 * */
-                loadUserHobbies(ids, userIds, names, page, records) {
-
-                    let condition = {
-                        ids: ids,
-                        userIds: userIds,
-                        names: names,
-                        pagination:{
-                            page: page,
-                            records: records
-                        }
-                    };
-
+                loadUserHobbies(conditions) {
                     return axios
-                        .post(`${baseUrl}/api/hobby/search`, condition)
+                        .post(`${baseUrl}/api/hobby/search`, conditions)
                         .then((loadHobbiesResponse) => {
                             if (!loadHobbiesResponse)
                                 throw 'No hobby is found';

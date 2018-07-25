@@ -122,6 +122,7 @@
                             return uploadUserProfileImageResponse.data;
                         });
                 },
+
             }
         });
 </script>
