@@ -19,6 +19,7 @@
                 </div>
             </div>
 
+            <!--Last name-->
             <div class="row">
                 <div class="col-lg-3">
                     <label>Last name</label>
@@ -31,6 +32,7 @@
                 </div>
             </div>
 
+            <!--Birthday-->
             <div class="row">
                 <div class="col-lg-3">
                     <label>Birthday</label>
@@ -43,6 +45,7 @@
                 </div>
             </div>
 
+            <!--Role-->
             <div class="row">
                 <div class="col-lg-3">
                     <label>Role</label>

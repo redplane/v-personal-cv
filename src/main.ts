@@ -75,6 +75,15 @@ const Croppa = require('vue-croppa');
 Vue.use(Croppa);
 
 //#endregion
+
+//#region Vue editor
+
+const VueTrumbowyg = require('vue-trumbowyg/dist/vue-trumbowyg.js');
+import 'trumbowyg/dist/ui/trumbowyg.css';
+Vue.use(VueTrumbowyg);
+
+//#endregion
+
 Vue.config.productionTip = false;
 
 
