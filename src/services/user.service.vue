@@ -85,13 +85,9 @@
                 /*
                 * Login using specific information.
                 * */
-                login(email, password){
-                    let model = {
-                        email: email,
-                        password: password
-                    };
+                login(loginModel){
                     return $axios
-                        .post(`${baseUrl}/api/user/login`, model)
+                        .post(`${baseUrl}/api/user/login`, loginModel)
                         .then((loginResponse) => {
                             if (!loginResponse)
                                 throw 'Failed to sign user into system';

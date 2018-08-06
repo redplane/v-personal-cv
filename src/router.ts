@@ -8,6 +8,7 @@ import UserManagement from './components/modules/management/user-management.vue'
 import SkillManagement from './components/modules/management/skill-management.vue';
 import ResponsibilityManagement from './components/modules/management/responsibility-management.vue';
 
+import ProfileMasterLayout from './components/modules/user/master-layout.vue';
 import Profile from './components/modules/user/profile.vue';
 import ManagementLayout from '@/components/modules/management-layout.vue';
 import UserProjectDashboard from '@/components/modules/project/dashboard.vue';
@@ -26,27 +27,36 @@ export default new Router({
                     redirect: 'management'
                 },
                 {
-                    path: '/user/:id',
+                    path: '/user',
                     name: 'profile',
-                    component: Profile,
+                    component: ProfileMasterLayout,
                     children: [
                         {
-                            path: 'projects',
-                            name: 'user-projects',
+                            path: 'project/:userId',
+                            name: 'user-project',
                             component: UserProjectDashboard,
                             props: true
                         },
                         {
-                            path: 'skill',
-                            name: 'user-skills',
+                            path: 'skill/:userId',
+                            name: 'user-skill',
                             component: UserSkill,
                             props: true
                         },
                         {
-                            path: 'hobby',
-                            name: 'user-hobbies',
+                            path: 'hobby/:userId',
+                            name: 'user-hobby',
                             component: UserHobby,
                             props: true
+                        },
+                        {
+                            path: 'about-me/:userId',
+                            name: 'about-me',
+                            component: Profile
+                        },
+                        {
+                            path: ':id',
+                            redirect: 'about-me/:id'
                         }
                     ]
                 },

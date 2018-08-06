@@ -289,7 +289,6 @@
                     return self.loadUserHobbies();
                 })
                 .then((loadUserHobbiesResult) => {
-                    console.log(loadUserHobbiesResult);
                     self.loadUserHobbiesResult = loadUserHobbiesResult;
                 })
                 .finally(() => {

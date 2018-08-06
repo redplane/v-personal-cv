@@ -4,7 +4,8 @@
         <div class="row">
             <div class="col-lg-12">
                 <div class="panel panel-default">
-                    <div class="panel-heading"><h3 class="panel-title">About {{user.firstName}} {{user.lastName}}</h3>
+                    <div class="panel-heading"><h3 class="panel-title">About {{user.firstName}}
+                        {{user.lastName}}</h3>
                     </div>
                     <div class="panel-body">
                         <div class="row">
@@ -38,44 +39,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!--Tabs panel-->
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="form-group">
-                    <ul class="nav nav-tabs nav-justified">
-                        <router-link tag="li"
-                                     role="presentation"
-                                     active-class="active"
-                                     :to="{name: 'user-hobbies', param: {userIdProperty: user.id}}">
-                            <a href>What I like</a>
-                        </router-link>
-                        <router-link tag="li"
-                                     role="presentation"
-                                     active-class="active"
-                                     :to="{name: 'user-projects', param: {userIdProperty: user.id}}">
-                            <a href>Project I have done</a>
-                        </router-link>
-                        <router-link tag="li"
-                                     role="presentation"
-                                     active-class="active"
-                                     :to="{name: 'user-skills', param: {userIdProperty: user.id}}">
-                            <a href>Technique I have used</a>
-                        </router-link>
-                    </ul>
-                    <!--<tabs v-model="tabIndex"-->
-                    <!--@change="vOnTabSelected($event)">-->
-                    <!--<tab title="Project I have done"></tab>-->
-                    <!--<tab title="Techniques I have used"></tab>-->
-                    <!--</tabs>-->
-                </div>
-            </div>
-        </div>
-
-        <!--Projects-->
-        <div class="row">
-            <router-view :user-id-property="user.id"/>
         </div>
 
         <!--User profile selector-->
@@ -300,21 +263,21 @@
             /*
             * Called when profile editor button is clicked.
             * */
-            vOnProfileEditClick(){
+            vOnProfileEditClick() {
                 this.bUserProfileEditorVisible = true;
             },
 
             /*
             * Called when image cropper modal cancel button is clicked.
             * */
-            vOnImageCropperCancel(){
+            vOnImageCropperCancel() {
                 this.bUserProfileEditorVisible = false;
             },
 
             /*
             * Called when profile image is cropped.
             * */
-            vOnProfileImageCropped(blob){
+            vOnProfileImageCropped(blob) {
 
                 // Get current context.
                 let self = this;

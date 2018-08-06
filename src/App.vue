@@ -15,47 +15,16 @@
         </div>
 
         <!--Login modal dialog-->
-        <modal size="md"
+        <modal :header="false"
+               :footer="false"
+               size="md"
                v-model="bIsLoginModalAvailable"
-               v-if="bIsLoginModalAvailable">
-            <div slot="header">
-                <h3 class="panel-title">Login</h3>
-            </div>
+               v-if="bIsLoginModalAvailable"
+               class="replace-body">
             <div slot="default">
-                <div class="row">
-                    <div class="col-lg-3">
-                        <label>User</label>
-                    </div>
-                    <div class="col-lg-9">
-                        <div class="form-group">
-                            <input class="form-control" v-model="user.email"/>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-lg-3">
-                        <label>Password</label>
-                    </div>
-                    <div class="col-lg-9">
-                        <div class="form-group">
-                            <input class="form-control" type="password" v-model="user.password"/>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div slot="footer">
-                <div class="text-center">
-                    <button class="btn btn-primary"
-                            v-on:click="vOnSignIn()">
-                        <span>Login</span>
-                    </button>
-                    <span>&nbsp;</span>
-                    <button class="btn btn-default"
-                            v-on:click="vOnCancelSignIn()">
-                        <span>Cancel</span>
-                    </button>
-                </div>
+                <login-box v-on:click-login="vOnSignIn($event)"
+                           v-on:click-cancel="vOnCancelSignIn()">
+                </login-box>
             </div>
         </modal>
     </div>
@@ -66,6 +35,8 @@
     // Import toastr style.
 
     import NavigationBar from './components/shared/navigation-bar'
+    import LoginBox from './components/shared/login-box';
+
     import {EventBus} from '@/event-bus'
     import { mapState, mapMutations } from 'vuex'
     import store from '@/store'
@@ -73,7 +44,8 @@
     export default {
         dependencies: ['lsAppAccessToken', '$user', '$toastr', '$localStorage'],
         components: {
-            NavigationBar
+            NavigationBar,
+            LoginBox
         },
         computed:{
             ...mapState(
@@ -84,10 +56,6 @@
         },
         data() {
             return {
-                user: {
-                    email: null,
-                    password: null
-                },
                 bIsLoginModalAvailable: false
             }
         },
@@ -106,9 +74,6 @@
                 if (profile)
                     return;
 
-                // Clear information.
-                self.user.email = null;
-                self.user.password = null;
 
                 self.bIsLoginModalAvailable = true;
             });
@@ -122,7 +87,6 @@
 
                 // Clear profile from vuex.
                 store.commit('deleteProfile');
-                console.log('Sign out button is clicked');
             })
 
         },
@@ -137,7 +101,7 @@
             /*
             * Called when sign in confirm button is clicked.
             * */
-            vOnSignIn() {
+            vOnSignIn(loginModel) {
 
                 // Declare access token.
                 let accessToken = null;
@@ -147,7 +111,7 @@
                 self.addLoadingScreen();
 
                 self.$user
-                    .login(this.user.email, this.user.password)
+                    .login(loginModel)
                     .then((loginResult) => {
                         // Add to access token to local storage.
                         accessToken = loginResult.accessToken;

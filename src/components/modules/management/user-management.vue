@@ -25,7 +25,7 @@
                             <td class="text-center">
                                 <router-link tag="button"
                                              class="btn btn-default"
-                                             :to="{ name: 'profile', params: { id: user.id, user: user }}">
+                                             :to="{ name: 'about-me', params: { userId: user.id, user: user }}">
                                     <span class="glyphicon glyphicon-comment"></span>
                                 </router-link>
                                 <span v-if="bIsAbleToEditUser">&nbsp;</span>
