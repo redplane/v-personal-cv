@@ -10,27 +10,9 @@
                 /*
                 * Get projects by using specific conditions.
                 * */
-                loadProjects(ids, userIds, names, startedTimeFrom, startedTimeTo, finishedTimeFrom, finishTimeTo, includeResponsibilities, includeSkills) {
-
-                    // Construct search model.
-                    let condition = {
-                        ids: ids,
-                        userIds: userIds,
-                        startedTime:{
-                            from: startedTimeFrom,
-                            to: startedTimeTo
-                        },
-                        finishTime: {
-                            from: finishedTimeFrom,
-                            to: finishTimeTo
-                        },
-                        includeResponsibilities: includeResponsibilities,
-                        includeSkills: includeSkills
-                    };
-
-
+                loadProjects(conditions) {
                     return axios
-                        .post(`${baseUrl}/api/project/search`, condition)
+                        .post(`${baseUrl}/api/project/search`, conditions)
                         .then((loadProjectResponse) => {
                             if (!loadProjectResponse)
                                 throw 'No project is found';

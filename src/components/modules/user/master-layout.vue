@@ -29,7 +29,6 @@
             </ul>
         </div>
         <div class="col-lg-9">
-
             <router-view :user-id-property="user.id"/>
         </div>
     </div>

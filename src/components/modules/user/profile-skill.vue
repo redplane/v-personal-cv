@@ -1,5 +1,6 @@
 <template>
     <div>
+
         <div v-if="techniques"
              v-for="technique in techniques">
             <div class="row">
@@ -46,13 +47,27 @@
             </div>
             <hr/>
         </div>
+
+        <!--Pagination-->
         <div class="row">
-            <div class="col-lg-12">
-                <button class="btn btn-primary btn-block"
-                        @click="vOnAddTechniqueClicked()">Add technique category
-                </button>
+            <div class="form-group">
+                <div class="text-center">
+                    <div class="form-group">
+                        <pagination v-model="loadUserSkillCondition.pagination.page"
+                                    :total-page="totalUserSkillPage"
+                                    :boundary-links="true"
+                                    size="sm"
+                                    @change="vOnPaginationChange()">
+                        </pagination>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <button class="scroll-to-top btn btn-primary"
+                @click="vOnAddTechniqueClicked()">
+            <span class="fa fa-folder"></span>
+        </button>
 
         <!--Add/edit skill modal-->
         <modal :header="false"
@@ -114,17 +129,25 @@
     export default {
         name: 'user-technique-dashboard',
         components: {UserSkillDetail, SkillSelector, SkillCategoryDetail, ImageCropper},
-        dependencies: ['paginationConstant', '$user', '$toastr', '$skill'],
+        dependencies: ['paginationConstant', '$ui', '$user', '$toastr', '$skill'],
         props: {
             userIdProperty: null
         },
         computed: {
             techniques() {
                 let self = this;
-                if (!self.loadSkillResult)
+                if (!self.loadUserSkillResult)
                     return [];
 
-                return self.loadSkillResult.records;
+                return self.loadUserSkillResult.records;
+            },
+
+            /*
+            * Total page that will be displayed on screen.
+            * */
+            totalUserSkillPage() {
+                let self = this;
+                return self.$ui.loadPageCalculation(self.loadUserSkillResult.total, self.loadUserSkillCondition.pagination.records)
             }
         },
         data() {
@@ -159,7 +182,7 @@
                 },
 
                 // User technique search result.
-                loadSkillResult: {
+                loadUserSkillResult: {
                     records: [],
                     total: 0
                 }
@@ -181,12 +204,13 @@
             loadUserPromise
                 .then((userId) => {
                     self.userId = userId;
-
+                    self.loadUserSkillCondition.userIds = [userId];
+                    
                     return self
-                        .loadUserSkills()
+                        ._loadUserSkills()
                 })
-                .then((loadSkillResult) => {
-                    self.loadSkillResult = loadSkillResult;
+                .then((loadUserSkillResult) => {
+                    self.loadUserSkillResult = loadUserSkillResult;
                 })
                 .finally(() => {
                     self.deleteLoadingScreen();
@@ -213,14 +237,14 @@
             /*
             * Load user skill categories by using specific conditions.
             * */
-            loadUserSkills() {
+            _loadUserSkills() {
                 // Get current context.
                 let self = this;
                 if (!self.userId || !self.userId)
                     return;
 
                 return self.$skill
-                    .loadSkillCategories(null, null, null, null, 1, 1)
+                    .loadSkillCategories(self.loadUserSkillCondition)
                     .catch(() => {
                         return {
                             records: [],
@@ -228,6 +252,24 @@
                         }
                     });
 
+            },
+
+            /*
+            * Called when pagination changed.
+            * */
+            vOnPaginationChange(){
+                let self = this;
+
+                // Add loading screen.
+                self.addLoadingScreen();
+                return self
+                    ._loadUserSkills()
+                    .then((loadUserSkillResult) => {
+                        self.loadUserSkillResult = loadUserSkillResult;
+                    })
+                    .finally(() => {
+                        self.deleteLoadingScreen();
+                    })
             },
 
             //#region Skill
@@ -281,7 +323,7 @@
             /*
             * Called when skill is edited.
             * */
-            vOnSkillEdited(skill){
+            vOnSkillEdited(skill) {
 
                 // Get current context.
                 let self = this;
@@ -310,7 +352,7 @@
             /*
             * Called when user skill edit modal is cancelled.
             * */
-            vOnUserSkillEditCancelled(){
+            vOnUserSkillEditCancelled() {
                 let self = this;
                 self.bIsUserSkillModalAvailable = false;
             },
@@ -417,4 +459,13 @@
 
 <style scoped>
 
+    .scroll-to-top {
+        position: fixed; /* Fixed/sticky position */
+        bottom: 20px; /* Place the button at the bottom of the page */
+        right: 30px; /* Place the button 30px from the right */
+        z-index: 99; /* Make sure it does not overlap */
+        border: none; /* Remove borders */
+        outline: none; /* Remove outline */
+        cursor: pointer; /* Add a mouse pointer on hover */
+    }
 </style>

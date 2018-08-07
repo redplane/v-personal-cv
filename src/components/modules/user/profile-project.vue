@@ -38,10 +38,22 @@
                             </button>
                         </td>
                     </tr>
-                    <tr>
-                    </tr>
                     </tbody>
                 </table>
+            </div>
+            <div class="form-group">
+                <div class="text-center">
+                    <!--Pagination-->
+                    <div class="text-center">
+                        <div class="form-group">
+                            <pagination v-model="loadProjectCondition.pagination.page"
+                                        :total-page="totalPage"
+                                        :boundary-links="true"
+                                        size="sm">
+                            </pagination>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -53,16 +65,27 @@
 
     export default {
         name: 'user-project-dashboard',
-        dependencies: ['$project', '$lodash', '$toastr'],
+        dependencies: ['paginationConstant', '$project', '$lodash', '$ui', '$toastr'],
         props: {
             userIdProperty: null
         },
         data() {
             return {
                 userId: null,
+
                 loadProjectResult: {
                     records: [],
                     total: 0
+                },
+
+                loadProjectCondition: {
+                    userIds: [],
+                    includeResponsibilities: true,
+                    includeSkills: true,
+                    pagination: {
+                        page: 1,
+                        records: this.paginationConstant.dashboardMaxItem
+                    }
                 }
             }
         },
@@ -74,6 +97,14 @@
                     return [];
 
                 return self.loadProjectResult.records;
+            },
+
+            /*
+            * Total page that will be displayed on screen.
+            * */
+            totalPage() {
+                let self = this;
+                return self.$ui.loadPageCalculation(self.loadProjectResult.total, self.loadProjectCondition.pagination.records)
             }
         },
         mounted() {
@@ -92,6 +123,7 @@
             pLoadDataPromise
                 .then((userId) => {
                     self.userId = userId;
+                    self.loadProjectCondition.userIds = [userId];
                 })
                 .then(() => {
                     return self.loadProjects();
@@ -124,12 +156,10 @@
                 let self = this;
 
                 return self.$project
-                    .loadProjects(null, [self.userId], null, null, null, null, null, true, true)
+                    .loadProjects(self.loadProjectCondition)
                     .then((loadProjectResult) => {
                         return loadProjectResult;
                     });
-
-
             },
 
             /*

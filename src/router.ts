@@ -11,9 +11,9 @@ import ResponsibilityManagement from './components/modules/management/responsibi
 import ProfileMasterLayout from './components/modules/user/master-layout.vue';
 import Profile from './components/modules/user/profile.vue';
 import ManagementLayout from '@/components/modules/management-layout.vue';
-import UserProjectDashboard from '@/components/modules/project/dashboard.vue';
-import UserSkill from '@/components/modules/user/user-skill-category.vue';
-import UserHobby from '@/components/modules/user/user-hobby.vue';
+import UserProject from '@/components/modules/user/profile-project.vue';
+import UserSkill from '@/components/modules/user/profile-skill.vue';
+import UserHobby from '@/components/modules/user/profile-hobby.vue';
 
 export default new Router({
     routes: [
@@ -34,7 +34,7 @@ export default new Router({
                         {
                             path: 'project/:userId',
                             name: 'user-project',
-                            component: UserProjectDashboard,
+                            component: UserProject,
                             props: true
                         },
                         {

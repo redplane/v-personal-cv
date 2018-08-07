@@ -71,7 +71,7 @@
 <script>
     import UserDescriptionDetail from "./user-description-detail";
     import ImageCropper from '../../shared/image-cropper';
-    import UserHobby from './user-hobby';
+    import UserHobby from './profile-hobby';
 
     import {mapMutations, mapGetters} from 'vuex';
 

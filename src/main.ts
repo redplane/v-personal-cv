@@ -46,6 +46,7 @@ require('./services/user-description.service');
 require('./services/hobby.service');
 require('./services/skill.service');
 require('./services/project.service');
+require('./services/ui.service');
 
 Vue.use(vueInjector);
 
@@ -80,6 +81,7 @@ Vue.use(Croppa);
 
 const VueTrumbowyg = require('vue-trumbowyg/dist/vue-trumbowyg.js');
 import 'trumbowyg/dist/ui/trumbowyg.css';
+
 Vue.use(VueTrumbowyg);
 
 //#endregion

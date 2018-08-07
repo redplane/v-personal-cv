@@ -18,32 +18,51 @@
             </div>
 
             <div class="panel-body">
-                <table class="table table-condensed table-striped">
-                    <thead>
-                    <tr>
-                        <th class="text-center">Name</th>
-                        <th class="text-center">Description</th>
-                        <th class="text-center"></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr v-for="hobby in hobbies">
-                        <td class="text-center">{{hobby.name}}</td>
-                        <td class="text-center">{{hobby.description}}</td>
-                        <td class="text-center">
-                            <button class="btn btn-info"
-                                    @click="vOnEditHobbyClicked(hobby)">
-                                <span class="fa fa-edit"></span>
-                            </button>
-                            <span>&nbsp;</span>
-                            <button class="btn btn-danger"
-                                    @click="vOnDeleteHobbyClicked(hobby)">
-                                <span class="fa fa-trash"></span>
-                            </button>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+
+                <!--User descriptions-->
+                <div class="form-group">
+                    <table class="table table-condensed table-striped">
+                        <thead>
+                        <tr>
+                            <th class="text-center">Name</th>
+                            <th class="text-center">Description</th>
+                            <th class="text-center"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="hobby in hobbies">
+                            <td class="text-center">{{hobby.name}}</td>
+                            <td class="text-center">{{hobby.description}}</td>
+                            <td class="text-center">
+                                <button class="btn btn-info"
+                                        @click="vOnEditHobbyClicked(hobby)">
+                                    <span class="fa fa-edit"></span>
+                                </button>
+                                <span>&nbsp;</span>
+                                <button class="btn btn-danger"
+                                        @click="vOnDeleteHobbyClicked(hobby)">
+                                    <span class="fa fa-trash"></span>
+                                </button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!--Pagination-->
+                <div class="form-group">
+                    <div class="text-center">
+                        <div class="form-group">
+                            <pagination v-model="loadUserHobbiesCondition.pagination.page"
+                                        :total-page="totalPage"
+                                        :boundary-links="true"
+                                        size="sm"
+                                        @change="vOnPaginationChange()">
+                            </pagination>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -95,8 +114,8 @@
     import UserHobbyDetail from './user-hobby-detail';
 
     export default {
-        name: 'user-hobby',
-        dependencies: ['paginationConstant', '$user', '$hobby', '$toastr'],
+        name: 'profile-hobby',
+        dependencies: ['paginationConstant', '$user', '$ui', '$hobby', '$toastr'],
         components: {UserHobbyDetail},
         props: {
             userIdProperty: null
@@ -111,6 +130,11 @@
                     return [];
 
                 return self.loadUserHobbiesResult.records;
+            },
+            totalPage() {
+                let self = this;
+                let iPage = self.$ui.loadPageCalculation(self.loadUserHobbiesResult.total, self.loadUserHobbiesCondition.pagination.records);
+                return iPage;
             }
         },
         data() {
@@ -162,7 +186,7 @@
             /*
             * Load user hobbies using defined condition.
             * */
-            loadUserHobbies() {
+            _loadUserHobbies() {
                 let self = this;
                 return self.$hobby
                     .loadUserHobbies(self.loadUserHobbiesCondition);
@@ -189,10 +213,30 @@
             /*
             * On hobby is selected to be deleted.
             * */
-            vOnDeleteHobbyClicked(userHobby){
+            vOnDeleteHobbyClicked(userHobby) {
                 let self = this;
                 self.oSelectedUserHobby = userHobby;
                 self.bIsDeleteUserHobbyModalAvailable = true;
+            },
+
+            /*
+            * Called when pagination changed.
+            * */
+            vOnPaginationChange() {
+
+                // Get current context.
+                let self = this;
+
+                // Add loading screen.
+                self.addLoadingScreen();
+
+                self._loadUserHobbies()
+                    .then((loadUserHobbiesResult) => {
+                        self.loadUserHobbiesResult = loadUserHobbiesResult;
+                    })
+                    .finally(() => {
+                        self.deleteLoadingScreen();
+                    });
             },
 
             /*
@@ -243,7 +287,7 @@
             /*
             * Called when delete hobby is confirmed.
             * */
-            deleteUserHobby(userHobby){
+            deleteUserHobby(userHobby) {
                 // No hobby is selected
                 if (!userHobby || !userHobby.id)
                     return;
@@ -286,7 +330,7 @@
                     self.userId = userId;
                     self.loadUserHobbiesCondition.userIds = [userId];
 
-                    return self.loadUserHobbies();
+                    return self._loadUserHobbies();
                 })
                 .then((loadUserHobbiesResult) => {
                     self.loadUserHobbiesResult = loadUserHobbiesResult;
