@@ -66,6 +66,12 @@ Vue.use(BlockUI);
 
 //#endregion
 
+//#region Vue moment
+
+Vue.use(require('vue-moment'));
+
+//#endregion
+
 //#region Font awesome
 import '../node_modules/font-awesome/scss/font-awesome.scss';
 //#endregion

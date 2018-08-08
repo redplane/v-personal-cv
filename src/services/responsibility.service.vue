@@ -9,16 +9,7 @@
                 /*
                 * Get users by using specific conditions.
                 * */
-                loadResponsibilities(ids, names, createdTime, lastModifiedTime, pagination) {
-                    // Build search condition.
-                    let conditions = {
-                        ids: ids,
-                        names: names,
-                        createdTime: createdTime,
-                        lastModifiedTime: lastModifiedTime,
-                        pagination: pagination
-                    };
-
+                loadResponsibilities(conditions) {
                     return axios
                         .post(`${baseUrl}/api/responsibility/search`, conditions)
                         .then((loadSkillResponse) => {

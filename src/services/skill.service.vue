@@ -95,7 +95,7 @@
                 /*
                 * Add skill to the system.
                 * */
-                addSkill(name){
+                addSkill(name) {
                     // Initialize model to submit to end-point.
                     let model = {
                         name: name
@@ -129,19 +129,9 @@
                         cancelToken: source.token
                     };
 
-                    let promise = axios
-                        .put(`${baseUrl}/api/skill/${id}`, model, options);
-
-                    // Register promise to cache.
-                    $promiseManager
-                        .addPromise(promise, source);
-
-                    return promise
+                    return axios
+                        .put(`${baseUrl}/api/skill/${id}`, model, options)
                         .then((editSkillCategoryResponse) => {
-
-                            // Unregister the promise.
-                            $promiseManager.deletePromise(promise);
-
                             if (!editSkillCategoryResponse)
                                 throw 'Failed to edit skill category';
                             return editSkillCategoryResponse.data;
@@ -151,7 +141,7 @@
                 /*
                 * Delete a skill by using specific id.
                 * */
-                deleteSkill(id){
+                deleteSkill(id) {
 
                     // Initialize cancellation token.
                     const CancelToken = axios.CancelToken;
@@ -160,19 +150,9 @@
                         cancelToken: source.token
                     };
 
-                    let promise = axios
-                        .delete(`${baseUrl}/api/skill/${id}`, null, options);
-
-                    // Register promise to cache.
-                    $promiseManager
-                        .addPromise(promise, source);
-
-                    return promise
+                    return axios
+                        .delete(`${baseUrl}/api/skill/${id}`, null, options)
                         .then((editSkillCategoryResponse) => {
-
-                            // Unregister the promise.
-                            $promiseManager.deletePromise(promise);
-
                             if (!editSkillCategoryResponse)
                                 throw 'Failed to delete skill category';
                             return editSkillCategoryResponse.data;
@@ -255,19 +235,30 @@
                 * Edit user using specific condition.
                 * */
                 loadSkills(condition) {
+
+
+                    // Initialize cancellation token.
+                    const CancelToken = axios.CancelToken;
+                    const source = CancelToken.source();
+                    const options = {
+                        cancelToken: source.token
+                    };
+
                     return axios
-                        .post(`${baseUrl}/api/skill/search`, condition)
+                        .post(`${baseUrl}/api/skill/search`, condition, options)
                         .then((loadSkillsResponse) => {
                             if (!loadSkillsResponse)
                                 throw 'No skill is found';
                             return loadSkillsResponse.data;
                         });
+
+
                 },
 
                 /*
                 * Load upload skill category photo.
                 * */
-                uploadSkillCategoryPhoto(skillCategoryId, file){
+                uploadSkillCategoryPhoto(skillCategoryId, file) {
 
                     // Initialize form data.
                     let formData = new FormData();

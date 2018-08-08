@@ -28,14 +28,15 @@
                 /*
                 * Add project by using specific information.
                 * */
-                addProject(id, userId, name, description, startedTime, finishedTime) {
+                addProject(userId, name, description, startedTime, finishedTime, skillIds, responsibilityIds) {
                     let model = {
-                        id: id,
                         userId: userId,
                         name: name,
                         description: description,
                         startedTime: startedTime,
-                        finishedTime: finishedTime
+                        finishedTime: finishedTime,
+                        skillIds: skillIds,
+                        responsibilityIds: responsibilityIds
                     };
 
                     return axios
@@ -51,13 +52,15 @@
                 /*
                 * Edit project by using specific information.
                 * */
-                editProject(id, userId, name, description, startedTime, finishedTime) {
+                editProject(id, userId, name, description, startedTime, finishedTime, skillIds, responsibilityIds) {
                     let model = {
                         userId: userId,
                         name: name,
                         description: description,
                         startedTime: startedTime,
-                        finishedTime: finishedTime
+                        finishedTime: finishedTime,
+                        skillIds: skillIds,
+                        responsibilityIds: responsibilityIds
                     };
 
                     return axios

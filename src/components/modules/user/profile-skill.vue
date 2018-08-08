@@ -1,6 +1,5 @@
 <template>
     <div>
-
         <div v-if="techniques"
              v-for="technique in techniques">
             <div class="row">
@@ -64,6 +63,7 @@
             </div>
         </div>
 
+        <!--Toolbar button-->
         <button class="scroll-to-top btn btn-primary"
                 @click="vOnAddTechniqueClicked()">
             <span class="fa fa-folder"></span>
@@ -205,7 +205,7 @@
                 .then((userId) => {
                     self.userId = userId;
                     self.loadUserSkillCondition.userIds = [userId];
-                    
+
                     return self
                         ._loadUserSkills()
                 })
@@ -459,13 +459,4 @@
 
 <style scoped>
 
-    .scroll-to-top {
-        position: fixed; /* Fixed/sticky position */
-        bottom: 20px; /* Place the button at the bottom of the page */
-        right: 30px; /* Place the button 30px from the right */
-        z-index: 99; /* Make sure it does not overlap */
-        border: none; /* Remove borders */
-        outline: none; /* Remove outline */
-        cursor: pointer; /* Add a mouse pointer on hover */
-    }
 </style>

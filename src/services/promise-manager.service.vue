@@ -18,16 +18,22 @@
                 //#region Methods
 
                 /*
-                * Map promise and its canceller to cache.
+                * Wrap a promise into cancellable promise.
                 * */
-                addPromise: (promise, canceller) => {
+                addCancellablePromise: (promise) => {
 
-                    // Promise is already in list.
-                    if (_promises[promise]) {
-                        return;
-                    }
+                    // Create deferred instance.
+                    let deferred = $.Deferred();
+                    let deferredPromise = deferred.promise();
 
-                    _promises[promise] = canceller;
+                    // Construct a promise race.
+                    let finalPromise = Promise.race([promise, deferredPromise]);
+
+                    // Add promise to list.
+                    service.cancelPromise(finalPromise);
+                    _promises[finalPromise] = deferred;
+
+                    return finalPromise;
                 },
 
                 /*
@@ -51,9 +57,12 @@
 
                     let canceller = _promises[promise];
                     try{
-                        canceller.cancel();
-                    } catch{
-
+                        if (canceller['cancel'])
+                            canceller.cancel();
+                        else
+                            canceller.reject('MANUALLY_CANCELLED');
+                    } catch (exception){
+                        console.log(exception);
                     }
 
                     service.deletePromise(promise);
@@ -65,7 +74,8 @@
             //#endregion
 
             return service;
-        });
+        })
+        .lifecycle.application();
 </script>
 
 <style scoped>
