@@ -9,9 +9,9 @@
 
             let instance = axios.create();
             instance.interceptors.request.use(pRequestConfig => {
-                let accessToken = $localStorage.getItem('lsAppAccessToken');
+                let accessToken = $localStorage.getItem(lsAppAccessToken);
                 if (accessToken)
-                    pRequestConfig.headers['Authorization'] = `Bearer ${accessToken}`;
+                    pRequestConfig.headers.Authorization = `Bearer ${accessToken}`;
                 return pRequestConfig;
             });
 

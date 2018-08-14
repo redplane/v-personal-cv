@@ -23,6 +23,31 @@
                         iPage++;
 
                     return iPage;
+                },
+
+                /*
+                * Add scroll event to an element.
+                * */
+                addScrollEvent(element, callback){
+
+                    if (!element)
+                        return;
+
+                    if (!callback)
+                        return;
+
+                    $(element).scroll(() => {
+                        if ($(element).scrollTop() === 0) {
+                            callback();
+                        }
+                    });
+                },
+
+                /*
+                * Scroll to top of window.
+                * */
+                scrollTop(element){
+                    $(element).scrollTop(0);
                 }
 
                 //#endregion

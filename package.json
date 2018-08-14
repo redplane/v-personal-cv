@@ -22,6 +22,7 @@
     "vue-inject": "^2.1.0",
     "vue-moment": "^4.0.0",
     "vue-property-decorator": "^6.0.0",
+    "vue-recaptcha": "^1.1.1",
     "vue-router": "^3.0.1",
     "vue-trumbowyg": "^3.3.0",
     "vuetify": "^1.0.19",

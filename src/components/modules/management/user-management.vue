@@ -69,7 +69,7 @@
             <div class="col-lg-12">
                 <div class="form-group">
                     <pagination v-model="loadUsersCondition.pagination.page"
-                                :total-page="loadUsersResult.total"
+                                :total-page="totalPage"
                                 align="center"
                                 :boundary-links="true"
                                 :direction-links="true"
@@ -216,6 +216,14 @@
                     return false;
 
                 return true;
+            },
+
+            /*
+            * Calculate total page to display on the screen.
+            * */
+            totalPage(){
+                let self = this;
+                return self.$ui.loadPageCalculation(self.loadUsersResult.total, self.loadUsersCondition.pagination.records)
             }
         },
         methods: {

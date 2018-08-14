@@ -117,6 +117,7 @@
     // Import skill detail component.
     import SkillDetail from '../skill/skill-detail';
     import {mapMutations} from 'vuex';
+    import {mapGetters} from 'vuex';
 
     export default {
         name: 'skill-dashboard',
@@ -148,21 +149,23 @@
             }
         },
         computed: {
-            /*
-            * Profile information.
-            * */
-            profile() {
-                return this.$store.getters.profile;
-            },
+
+            ...mapGetters([
+                'profile'
+            ]),
 
             /*
             * Check whether user is admin.
             * */
             bIsUserAdmin() {
                 if (!this.profile)
-                    return;
+                    return false;
 
-                return this.profile.role === this.userRoleConstant.admin;
+                let profile = this.profile();
+                if (!profile)
+                    return false;
+
+                return profile.role === this.userRoleConstant.admin;
             },
 
             /*

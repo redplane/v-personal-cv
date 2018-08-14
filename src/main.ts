@@ -23,12 +23,17 @@ import router from './router';
 //#region Dependency injection
 
 const vueInjector = require('vue-inject/dist/vue-inject');
-vueInjector.constant('baseUrl', 'http://2zxysdpz2bbbnaiby-mock.stoplight-proxy.io');
+// vueInjector.constant('baseUrl', 'http://2zxysdpz2bbbnaiby-mock.stoplight-proxy.io');
+vueInjector.constant('baseUrl', 'http://localhost:35952');
 vueInjector.constant('lsAppAccessToken', 'personal-cv.io');
+vueInjector.constant('gCaptchaSiteKey', '6LfgV2gUAAAAACS_PGjH2iHJJwPXQGvEzP4FB83E');
 
 // Import constants.
 const paginationConstant = require('./constants/pagination.constant');
 vueInjector.constant('paginationConstant', paginationConstant.default);
+
+const eventConstant = require('./constants/event.constant');
+vueInjector.constant('eventConstant', eventConstant.default);
 
 // Import user role constant.
 const userRoleConstant = require('./constants/user-role.constant');
@@ -89,6 +94,15 @@ const VueTrumbowyg = require('vue-trumbowyg/dist/vue-trumbowyg.js');
 import 'trumbowyg/dist/ui/trumbowyg.css';
 
 Vue.use(VueTrumbowyg);
+
+//#endregion
+
+//#region Vue re-captcha
+
+const VueGrecaptcha = require('vue-recaptcha');
+Vue.use(VueGrecaptcha, {
+    sitekey: 'your_key'
+})
 
 //#endregion
 

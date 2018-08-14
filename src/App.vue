@@ -42,7 +42,7 @@
     import store from '@/store'
 
     export default {
-        dependencies: ['lsAppAccessToken', '$user', '$toastr', '$localStorage'],
+        dependencies: ['lsAppAccessToken', '$user', '$toastr', '$localStorage', 'eventConstant'],
         components: {
             NavigationBar,
             LoginBox
@@ -115,20 +115,24 @@
                     .then((loginResult) => {
                         // Add to access token to local storage.
                         accessToken = loginResult.accessToken;
+                        // Attach access token to local storage.
+                        self.$localStorage.setItem(self.lsAppAccessToken, accessToken);
 
                         return self.$user
-                            .loadProfile(accessToken);
+                            .loadProfile(null);
                     })
                     .then((profile) => {
                         self.$store.commit('addProfile', profile);
-                        // Attach access token to local storage.
-                        self.$localStorage.setItem(self.lsAppAccessToken, accessToken);
+
 
                         // Display success message.
                         self.$toastr.success('Login successfully.');
 
                         // Close login modal.
                         self.bIsLoginModalAvailable = false;
+
+                        // Trigger application event that login is successfully.
+                        EventBus.emit(self.eventConstant.loginSuccess);
                     })
                     .finally(() => {
                         self.deleteLoadingScreen();

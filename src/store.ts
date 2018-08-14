@@ -12,8 +12,16 @@ export default new Vuex.Store({
         }
     },
     getters: {
+        /*
+        * Get profile information.
+        * */
         profile: (state: any) => state.profile,
-        blockUI: (state: any) => state.blockUI
+
+        /*
+        * Get block UI instance.
+        * */
+        blockUI: (state: any) => state.blockUI,
+
     },
     mutations: {
 

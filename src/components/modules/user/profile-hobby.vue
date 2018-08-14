@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="panel panel-info">
-            <div class="panel-heading clearfix">
+            <div class="panel-heading clearfix" v-if="bIsAbleToEditProfile">
                 <div class="btn-group pull-right" role="group">
                     <button type="button"
                             class="btn btn-info dropdown-toggle"
@@ -35,11 +35,13 @@
                             <td class="text-center">{{hobby.description}}</td>
                             <td class="text-center">
                                 <button class="btn btn-info"
+                                        v-if="bIsAbleToEditProfile"
                                         @click="vOnEditHobbyClicked(hobby)">
                                     <span class="fa fa-edit"></span>
                                 </button>
                                 <span>&nbsp;</span>
                                 <button class="btn btn-danger"
+                                        v-if="bIsAbleToEditProfile"
                                         @click="vOnDeleteHobbyClicked(hobby)">
                                     <span class="fa fa-trash"></span>
                                 </button>
@@ -135,7 +137,35 @@
                 let self = this;
                 let iPage = self.$ui.loadPageCalculation(self.loadUserHobbiesResult.total, self.loadUserHobbiesCondition.pagination.records);
                 return iPage;
-            }
+            },
+
+            ...mapGetters([
+                'profile'
+            ]),
+
+            /*
+            * Check whether user is able to add user description or not.
+            * */
+            bIsAbleToEditProfile(){
+                // Profile not found.
+                if (!self.profile)
+                    return false;
+
+                let profile = self.profile();
+                if (!profile)
+                    return false;
+
+                // Profile is not an admin.
+                if (profile.role !== self.userRoleConstant.admin){
+                    if (profile.id !== self.user.id)
+                        return false;
+
+                    return true;
+                }
+
+                return true;
+
+            },
         },
         data() {
             return {
@@ -182,6 +212,8 @@
                 'addLoadingScreen',
                 'deleteLoadingScreen'
             ]),
+
+
 
             /*
             * Load user hobbies using defined condition.

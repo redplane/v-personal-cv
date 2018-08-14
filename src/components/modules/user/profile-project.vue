@@ -3,6 +3,14 @@
         <div class="col-lg-12">
             <!--Timeline-->
             <ul class="timeline">
+                <li class="root">
+                    <div class="timeline-badge info"
+                         v-if="bHasPreviousProject"
+                         @click="loadPreviousProjects()">
+                        <i class="fa fa-arrow-up"></i>
+                    </div>
+                </li>
+
                 <li v-for="(project, index) in projects"
                     :class="{'timeline-inverted': (index % 2 !== 0)}">
                     <div class="timeline-badge success"><i class="fa fa-leaf"></i></div>
@@ -49,7 +57,9 @@
                                 </ul>
                             </div>
 
-                            <div class="form-group">
+                            <!--Project toolbar-->
+                            <div class="form-group"
+                                 v-if="bIsAbleToAddEditProject" >
                                 <div class="pull-right">
                                     <div class="btn-group"
                                          role="group">
@@ -62,16 +72,6 @@
                                             <span class="caret"></span>
                                         </button>
                                         <ul class="dropdown-menu">
-                                            <li>
-                                                <a href="javascript:void(0);">
-                                                    <span class="fa fa-plus"></span> Add responsibility
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);">
-                                                    <span class="fa fa-plus"></span> Add skill
-                                                </a>
-                                            </li>
                                             <li @click="vOnEditProjectClick(project)">
                                                 <a href="javascript:void(0);">
                                                     <span class="fa fa-edit"></span> Edit project
@@ -90,15 +90,18 @@
                     </div>
                 </li>
 
-                <li>
-                    <div class="timeline-badge info">
-                        <i class="fa fa-ellipsis-h"></i>
+                <li class="treetop">
+                    <div class="timeline-badge info"
+                         v-if="bHasNextProject"
+                         @click="loadNextProject()">
+                        <i class="fa fa-arrow-down"></i>
                     </div>
                 </li>
             </ul>
 
             <!--Toolbar button-->
-            <div class="scroll-to-top">
+            <div class="scroll-to-top"
+                 v-if="bIsAbleToAddEditProject">
                 <button class="btn btn-primary"
                         @click="vOnAddProjectClick()">
                     <span class="fa fa-plus"></span>
@@ -123,7 +126,7 @@
 
 <script>
 
-    import {mapMutations} from 'vuex';
+    import {mapMutations, mapGetters} from 'vuex';
     import AddProfileProject from '../project/add-profile-project';
     import '../../../styles/timeline.css';
     import '../../../styles/button.css';
@@ -139,7 +142,14 @@
                 userId: null,
 
                 /*
-                * Load project result.
+                * Map states.
+                * */
+                ...mapGetters([
+                    'profile'
+                ]),
+
+                /*
+                * Load projects result.
                 * */
                 loadProjectResult: {
                     records: [],
@@ -171,13 +181,65 @@
             }
         },
         computed: {
+            /*
+            * List of projects.
+            * */
             projects() {
                 // Get current context.
                 let self = this;
-                if (!self.loadProjectResult)
+                if (!self.loadProjectResult.records)
                     return [];
 
                 return self.loadProjectResult.records;
+            },
+
+            /*
+            * Check whether more projects can be loaded or not.
+            * */
+            bHasNextProject() {
+                // Get current context.
+                let self = this;
+
+                // Get pagination information.
+                let pagination = self.loadProjectCondition.pagination;
+
+                // Get total records.
+                let totalRecords = self.loadProjectResult.total;
+
+                if ((pagination.page * pagination.records) >= totalRecords)
+                    return false;
+
+                return true;
+            },
+
+            /*
+            * Check whether previous project can be loaded or not.
+            * */
+            bHasPreviousProject(){
+                let self = this;
+                // Get pagination information.
+                let pagination = self.loadProjectCondition.pagination;
+                if (pagination.page <= 1)
+                    return false;
+
+                return true;
+            },
+
+            /*
+            * Check whether user is able to add/edit project.
+            * */
+            bIsAbleToAddEditProject(){
+                // Get current context.
+                let self = this;
+
+                if (!self.profile)
+                    return false;
+
+                let profile = self.profile();
+                if (!profile || profile.id !== self.userId)
+                    return false;
+
+                return true;
             },
 
             /*
@@ -200,6 +262,11 @@
             let pLoadDataPromise = new Promise(resolve => {
                 resolve(self.userIdProperty);
             });
+
+            // self.$ui
+            //     .addScrollEvent(document, () => {
+            //         console.log('Top');
+            //     });
 
             pLoadDataPromise
                 .then((userId) => {
@@ -244,6 +311,49 @@
             },
 
             /*
+            * Load previous projects.
+            * */
+            loadPreviousProjects() {
+
+                // Get current context.
+                let self = this;
+                self.loadProjectCondition.pagination.page--;
+
+                // Add loading screen.
+                self.addLoadingScreen();
+
+                self.loadProjects()
+                    .then((loadProjectsResult) => {
+
+                        // Scroll to top.
+                        self.$ui.scrollTop(document);
+                        self.loadProjectResult = loadProjectsResult;
+                        self.deleteLoadingScreen();
+                    });
+            },
+
+            /*
+            * Load more projects.
+            * */
+            loadNextProject() {
+                // Increase pagination.
+                // Get current context.
+                let self = this;
+
+                // Get loading condition.
+                self.loadProjectCondition.pagination.page++;
+
+                // Add loading screen.
+                self.addLoadingScreen();
+                return self.loadProjects()
+                    .then((loadProjectResult) => {
+                        self.$ui.scrollTop(document);
+                        self.loadProjectResult = loadProjectResult;
+                        self.deleteLoadingScreen();
+                    });
+            },
+
+            /*
             * Delete user project.
             * */
             deleteProject(id) {
@@ -267,19 +377,15 @@
             },
 
             /*
-            * Find the max item between numbers.
-            * */
-            calculateMaxNumber(expression) {
-                return Math.max(expression);
-            },
-
-            /*
             * Called when add project button is clicked.
             * */
             vOnAddProjectClick() {
 
                 // Get current context.
                 let self = this;
+
+                // Clear project information.
+                self.oSelectedProject = null;
 
                 // Display add project model.
                 self.bIsAddEditProjectModalVisible = true;
@@ -301,12 +407,12 @@
                 let responsibilityIds = null;
                 let skillIds = null;
 
-                if (project.responsibilities){
+                if (project.responsibilities) {
                     responsibilityIds = project.responsibilities
                         .map((responsibility) => responsibility.id);
                 }
 
-                if (project.skills){
+                if (project.skills) {
                     skillIds = project.skills
                         .map((skill) => skill.id);
                 }
@@ -343,7 +449,7 @@
             /*
             * Called when edit project button is clicked.
             * */
-            vOnEditProjectClick(project){
+            vOnEditProjectClick(project) {
 
                 // Get current context.
                 let self = this;

@@ -15,7 +15,7 @@
                                         <img class="img img-thumbnail"
                                              v-bind:src="user.photo"/>
                                     </div>
-                                    <div class="panel-footer text-center">
+                                    <div class="panel-footer text-center" v-if="bIsAbleToEditProfile">
                                         <button class="btn btn-info"
                                                 @click="vOnProfileEditClick()">
                                             <span class="fa fa-camera"></span>
@@ -29,7 +29,7 @@
                                     <li v-for="item in user.descriptions" class="alert alert-info">
                                         {{item.description}}
                                     </li>
-                                    <li>
+                                    <li v-if="bIsAbleToEditProfile">
                                         <a href="javascript:void(0)" @click="vOnAddUserDescriptionClick">Add
                                             description</a>
                                     </li>
@@ -104,7 +104,31 @@
         computed: {
             ...mapGetters([
                 'profile'
-            ])
+            ]),
+
+            /*
+            * Check whether user is able to add user description or not.
+            * */
+            bIsAbleToEditProfile(){
+                // Profile not found.
+                if (!self.profile)
+                    return false;
+
+                let profile = self.profile();
+                if (!profile)
+                    return false;
+
+                // Profile is not an admin.
+                if (profile.role !== self.userRoleConstant.admin){
+                    if (profile.id !== self.user.id)
+                        return false;
+
+                    return true;
+                }
+
+                return true;
+
+            }
         },
         mounted() {
 
@@ -249,6 +273,8 @@
                         self.user.descriptions.push(userDescription);
 
                         self.$toastr.success('Added user description successfully.');
+                    })
+                    .finally(() => {
                         self.deleteLoadingScreen();
                     });
             },

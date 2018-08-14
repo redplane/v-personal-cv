@@ -281,8 +281,11 @@
             * Load responsibilities using global search condition.
             * */
             loadResponsibilities(){
+                let self = this;
+                // Copy condition.
+                let conditions = Object.assign({}, self.loadResponsibilitiesCondition);
                 return this.$responsibility
-                    .loadResponsibilities();
+                    .loadResponsibilities(conditions);
             },
 
             /*
@@ -294,7 +297,9 @@
                 // Add loading screen.
                 self.addLoadingScreen();
 
-                self.loadResponsibilities()
+                // Copy condition.
+                let conditions = Object.assign({}, self.loadResponsibilitiesCondition);
+                self.loadResponsibilities(conditions)
                     .then((loadResponsibilitiesResult) => {
                         self.loadResponsibilitiesResult = loadResponsibilitiesResult;
                     })

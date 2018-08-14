@@ -13,7 +13,7 @@
                                 <span>{{technique.name}}</span>
                             </div>
                         </div>
-                        <div class="panel-footer">
+                        <div class="panel-footer" v-if="bIsAbleToEditSkill">
                             <div class="text-center">
                                 <button class="btn btn-info"
                                         @click="vOnSkillCategoryImageCropperClick(technique)">
@@ -36,7 +36,8 @@
                                       :label-text="skill.name"
                                       @click="vOnUserEditSkillClicked(technique, skill)"></progress-bar>
                     </div>
-                    <div class="pull-right">
+                    <div class="pull-right"
+                         v-if="bIsAbleToEditSkill">
                         <button class="btn btn-primary"
                                 v-on:click="vOnAddSkillClicked(technique)">
                             <span class="glyphicon glyphicon-plus"></span>
@@ -65,6 +66,7 @@
 
         <!--Toolbar button-->
         <button class="scroll-to-top btn btn-primary"
+                v-if="bIsAbleToEditSkill"
                 @click="vOnAddTechniqueClicked()">
             <span class="fa fa-folder"></span>
         </button>
@@ -120,7 +122,7 @@
 </template>
 
 <script>
-    import {mapMutations} from 'vuex';
+    import {mapMutations, mapGetters} from 'vuex';
     import SkillCategoryDetail from "../skill-category/skill-category-detail";
     import SkillSelector from "../../shared/skill-selector";
     import ImageCropper from '../../shared/image-cropper';
@@ -148,6 +150,29 @@
             totalUserSkillPage() {
                 let self = this;
                 return self.$ui.loadPageCalculation(self.loadUserSkillResult.total, self.loadUserSkillCondition.pagination.records)
+            },
+
+            /*
+            * Check whether profile is able to edit skill information.
+            * */
+            bIsAbleToEditSkill(){
+
+                let self = this;
+                if (!self.profile)
+                    return false;
+
+                let profile = self.profile();
+                if (!profile)
+                    return false;
+
+                if (profile.role !== self.userRoleConstant.admin){
+                    if (profile.id !== self.userId)
+                        return false;
+
+                    return true;
+                }
+
+                return true;
             }
         },
         data() {
@@ -223,6 +248,10 @@
             ...mapMutations([
                 'addLoadingScreen',
                 'deleteLoadingScreen'
+            ]),
+
+            ...mapGetters([
+                'profile'
             ]),
 
             /*

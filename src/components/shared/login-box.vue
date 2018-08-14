@@ -31,11 +31,11 @@
                         </div>
                     </div>
 
-                    <!--TODO: Captcha-->
+                    <!--Google recaptcha-->
                     <div class="row">
                         <div class="col-lg-12">
-                            <input class="form-control"
-                                   v-model="loginModel.clientCaptchaCode"/>
+                            <vue-recaptcha :sitekey="captchaSiteKey"
+                                           @verify="vOnGoogleCaptchaVerify"></vue-recaptcha>
                         </div>
                     </div>
                 </div>
@@ -58,8 +58,12 @@
 </template>
 
 <script>
+
+    import vueRecaptcha from 'vue-recaptcha';
+
     export default {
         name: 'login-box',
+        dependencies: ['gCaptchaSiteKey'],
         data(){
             return {
                 /*
@@ -92,6 +96,23 @@
             vOnCancelClick(){
                 let self = this;
                 self.$emit('click-cancel');
+            },
+
+            /*
+            * Called when captcha is verified.
+            * */
+            vOnGoogleCaptchaVerify(response){
+                let self = this;
+                self.loginModel.clientCaptchaCode = response;
+            }
+
+        },
+        components:{
+            vueRecaptcha
+        },
+        computed:{
+            captchaSiteKey(){
+                return this.gCaptchaSiteKey;
             }
         }
     }

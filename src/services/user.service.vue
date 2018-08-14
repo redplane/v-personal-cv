@@ -8,9 +8,9 @@
                 /*
                 * Edit user using specific condition.
                 * */
-                loadProfile(accessToken) {
+                loadProfile(id) {
                     return $axios
-                        .get(`${baseUrl}/api/user/personal-profile/${accessToken}`)
+                        .get(`${baseUrl}/api/user/personal-profile/${id}`)
                         .then((loadProfileResponse) => {
                             if (!loadProfileResponse)
                                 throw 'Cannot get user profile';

@@ -181,3 +181,16 @@
         right: auto;
     }
 }
+
+.timeline .root {
+    top: 0 !important;
+    margin-bottom: 75px;
+}
+
+.timeline .root div {
+    top: 0 !important;
+}
+
+.timeline .treetop {
+    margin-bottom: 75px;
+}

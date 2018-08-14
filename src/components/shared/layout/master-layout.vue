@@ -29,7 +29,7 @@
             if (accessToken) {
                 let $user = injector.get('$user');
                 loadUserProfilePromise = $user
-                    .loadProfile(accessToken);
+                    .loadProfile(null);
             } else {
                 loadUserProfilePromise = new Promise(resolve => {
                     resolve(null);
