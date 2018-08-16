@@ -128,7 +128,7 @@
 
     export default {
         name: 'user-dashboard',
-        dependencies: ['$user', '$toastr', 'paginationConstant', 'userRoleConstant'],
+        dependencies: ['$user', '$ui', '$toastr', 'paginationConstant', 'userRoleConstant'],
         components: {
             UserDetail
         },

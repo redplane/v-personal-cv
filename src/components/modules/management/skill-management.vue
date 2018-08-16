@@ -161,7 +161,7 @@
                 if (!this.profile)
                     return false;
 
-                let profile = this.profile();
+                let profile = this.profile;
                 if (!profile)
                     return false;
 

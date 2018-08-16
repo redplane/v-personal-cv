@@ -195,7 +195,8 @@
                     self.user = pUser;
 
                     self.$toastr.success('User data has been loaded successfully.');
-
+                })
+                .finally(() => {
                     // Unlock the app UI.
                     self.deleteLoadingScreen();
                 });

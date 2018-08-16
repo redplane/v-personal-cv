@@ -1,9 +1,8 @@
 <script>
     const injector = require('vue-inject/dist/vue-inject');
-    const axios = require('axios').default;
 
     injector
-        .service('$skill', ['baseUrl', '$promiseManager'], (baseUrl, $promiseManager) => {
+        .service('$skill', ['baseUrl', '$promiseManager', '$axios'], (baseUrl, $promiseManager, $axios) => {
             return {
                 //#region Methods
 
@@ -11,8 +10,7 @@
                 * Get hobbies by using specific conditions.
                 * */
                 loadSkillCategories(condition) {
-
-                    return axios
+                    return $axios
                         .post(`${baseUrl}/api/skill-category/search`, condition)
                         .then((loadSkillCategoriesResponse) => {
                             if (!loadSkillCategoriesResponse)
@@ -40,7 +38,7 @@
                         'Content-Type': null
                     };
 
-                    return axios
+                    return $axios
                         .post(`${baseUrl}/api/skill-category`, fd, headers)
                         .then((loadSkillCategoriesResponse) => {
                             if (!loadSkillCategoriesResponse)
@@ -64,7 +62,7 @@
                         skillIds: skillIds
                     };
 
-                    return axios
+                    return $axios
                         .post(`${baseUrl}/api/skill-category-skill`, model)
                         .then((addSkillCategoriesResponse) => {
                             if (!addSkillCategoriesResponse)
@@ -83,7 +81,7 @@
                     fd.append('photo', photo);
                     fd.append('name', name);
 
-                    return axios
+                    return this,$axios
                         .put(`${baseUrl}/api/skill-category/${id}`, fd)
                         .then((editSkillCategoryResponse) => {
                             if (!editSkillCategoryResponse)
@@ -101,7 +99,7 @@
                         name: name
                     };
 
-                    let promise = axios
+                    let promise = $axios
                         .post(`${baseUrl}/api/skill`, model);
 
                     return promise
@@ -121,16 +119,8 @@
                     let model = {
                         name: name
                     };
-
-                    // Initialize cancellation token.
-                    const CancelToken = axios.CancelToken;
-                    const source = CancelToken.source();
-                    const options = {
-                        cancelToken: source.token
-                    };
-
-                    return axios
-                        .put(`${baseUrl}/api/skill/${id}`, model, options)
+                    return $axios
+                        .put(`${baseUrl}/api/skill/${id}`, model)
                         .then((editSkillCategoryResponse) => {
                             if (!editSkillCategoryResponse)
                                 throw 'Failed to edit skill category';
@@ -142,16 +132,8 @@
                 * Delete a skill by using specific id.
                 * */
                 deleteSkill(id) {
-
-                    // Initialize cancellation token.
-                    const CancelToken = axios.CancelToken;
-                    const source = CancelToken.source();
-                    const options = {
-                        cancelToken: source.token
-                    };
-
-                    return axios
-                        .delete(`${baseUrl}/api/skill/${id}`, null, options)
+                    return $axios
+                        .delete(`${baseUrl}/api/skill/${id}`, null)
                         .then((editSkillCategoryResponse) => {
                             if (!editSkillCategoryResponse)
                                 throw 'Failed to delete skill category';
@@ -162,20 +144,8 @@
                 /*
                 * Add hobby.
                 * */
-                loadSkillCategorySkillRelationships(skillCategoryIds, skillIds, page, records) {
-                    // Build model to submit api end-point.
-                    let condition = {
-                        skillCategoryIds: skillCategoryIds,
-                        skillIds: skillIds
-                    };
-
-                    if (page || records) {
-                        let pagination = condition['pagination'] = {};
-                        pagination['page'] = page;
-                        pagination['records'] = records;
-                    }
-
-                    return axios
+                loadSkillCategorySkillRelationships(condition) {
+                    return $axios
                         .post(`${baseUrl}/api/skill-category-skill/search`, condition)
                         .then((loadSkillCategorySkillRelationshipResponse) => {
                             if (!loadSkillCategorySkillRelationshipResponse)
@@ -202,7 +172,7 @@
                         name: name
                     };
 
-                    return axios
+                    return $axios
                         .post(`${baseUrl}/api/skill-category-skill`, model)
                         .then((addSkillCategorySkillResponse) => {
                             if (!addSkillCategorySkillResponse)
@@ -221,7 +191,7 @@
                         point: point
                     };
 
-                    return axios
+                    return $axios
                         .put(`${baseUrl}/api/skill-category-skill?skillCategoryId=${skillCategoryId}&skillId=${skillId}`, model)
                         .then((editSkillCategorySkillRelationshipResponse) => {
                             if (!editSkillCategorySkillRelationshipResponse)
@@ -236,16 +206,8 @@
                 * */
                 loadSkills(condition) {
 
-
-                    // Initialize cancellation token.
-                    const CancelToken = axios.CancelToken;
-                    const source = CancelToken.source();
-                    const options = {
-                        cancelToken: source.token
-                    };
-
-                    return axios
-                        .post(`${baseUrl}/api/skill/search`, condition, options)
+                    return $axios
+                        .post(`${baseUrl}/api/skill/search`, condition)
                         .then((loadSkillsResponse) => {
                             if (!loadSkillsResponse)
                                 throw 'No skill is found';
@@ -264,12 +226,24 @@
                     let formData = new FormData();
                     formData.append('photo', file);
 
-                    return axios
+                    return $axios
                         .put(`${baseUrl}/api/skill-category/photo/${skillCategoryId}`, formData)
                         .then((uploadSkillCategoryPhotoResponse) => {
                             if (!uploadSkillCategoryPhotoResponse)
                                 throw 'Failed to upload skill category photo';
                             return uploadSkillCategoryPhotoResponse.data;
+                        });
+                },
+
+                /*
+                * Delete skill category - skill relationship using specific conditions.
+                * */
+                deleteSkillCategorySkillRelationship(condition){
+                    return $axios
+                        .delete(`${baseUrl}/api/skill-category-skill?skillCategoryId=${condition.skillCategoryId}&skillId=${condition.skillId}`)
+                        .then((loadSkillsResponse) => {
+                            if (!loadSkillsResponse)
+                                throw 'No skill category - skill relationship is found';
                         });
                 }
 

@@ -31,10 +31,19 @@
                 <div class="col-lg-9 col-xs-8">
                     <div class="form-group"
                          v-for="skill in technique.skills">
-                        <progress-bar v-model="skill.point"
-                                      label
-                                      :label-text="skill.name"
-                                      @click="vOnUserEditSkillClicked(technique, skill)"></progress-bar>
+                        <div class="input-group">
+                            <div class="form-control">
+                                <progress-bar v-model="skill.point"
+                                              label
+                                              :label-text="skill.name"
+                                              @click="vOnUserEditSkillClicked(technique, skill)"></progress-bar>
+                            </div>
+                            <span class="input-group-btn">
+                                <button class="btn btn-danger" @click="vOnSkillClickDelete(technique.id, skill.id)">
+                                    <span class="fa fa-trash"></span>
+                                </button>
+                            </span>
+                        </div>
                     </div>
                     <div class="pull-right"
                          v-if="bIsAbleToEditSkill">
@@ -131,7 +140,7 @@
     export default {
         name: 'user-technique-dashboard',
         components: {UserSkillDetail, SkillSelector, SkillCategoryDetail, ImageCropper},
-        dependencies: ['paginationConstant', '$ui', '$user', '$toastr', '$skill'],
+        dependencies: ['paginationConstant', 'userRoleConstant', '$ui', '$user', '$toastr', '$skill'],
         props: {
             userIdProperty: null
         },
@@ -155,7 +164,7 @@
             /*
             * Check whether profile is able to edit skill information.
             * */
-            bIsAbleToEditSkill(){
+            bIsAbleToEditSkill() {
 
                 let self = this;
                 if (!self.profile)
@@ -165,7 +174,7 @@
                 if (!profile)
                     return false;
 
-                if (profile.role !== self.userRoleConstant.admin){
+                if (profile.role !== self.userRoleConstant.admin) {
                     if (profile.id !== self.userId)
                         return false;
 
@@ -199,7 +208,7 @@
                     userIds: null,
                     names: null,
                     createdTime: null,
-                    includeSkills: true,
+                    includePersonalSkills: true,
                     pagination: {
                         page: 1,
                         records: this.paginationConstant.dashboardMaxItem
@@ -274,7 +283,65 @@
 
                 return self.$skill
                     .loadSkillCategories(self.loadUserSkillCondition)
-                    .catch(() => {
+                    .then((loadUserSkillCategoryResult) => {
+                        let skillCategories = loadUserSkillCategoryResult.records;
+                        let loadSkillCategorySkillRelationshipCondition = {
+                            skillCategoryIds: skillCategories.map((skillCategory) => skillCategory.id)
+                        };
+
+                        return self.$skill
+                            .loadSkillCategorySkillRelationships(loadSkillCategorySkillRelationshipCondition)
+                            .then((loadSkillCategorySkillRelationshipResult) => {
+                                let relationships = loadSkillCategorySkillRelationshipResult.records;
+                                return {
+                                    skillCategories: skillCategories,
+                                    relationships: relationships,
+                                    totalSkillCategories: loadUserSkillCategoryResult.total
+                                }
+                            });
+                    })
+                    .then((loadResult) => {
+                        let relationships = loadResult.relationships;
+                        let skillCategories = loadResult.skillCategories;
+                        let loadSkillCondition = {
+                            ids: relationships.map(relationship => relationship.skillId)
+                        };
+
+                        return self.$skill
+                            .loadSkills(loadSkillCondition)
+                            .then((loadSkillResult) => {
+                                let skills = loadSkillResult.records;
+                                let mSkill = {};
+                                skills.forEach(skill => {
+                                    mSkill[skill.id] = skill;
+                                });
+
+                                let mRelationships = {};
+                                relationships.forEach((relationship) => {
+                                    if (!mRelationships[relationship.skillCategoryId])
+                                        mRelationships[relationship.skillCategoryId] = [];
+
+                                    if (!mSkill[relationship.skillId])
+                                        return;
+
+                                    let skill = mSkill[relationship.skillId];
+                                    skill['point'] = relationship.point;
+                                    mRelationships[relationship.skillCategoryId].push(skill);
+                                });
+
+                                skillCategories
+                                    .forEach(skillCategory => {
+                                        skillCategory['skills'] = mRelationships[skillCategory.id];
+                                    });
+
+                                return {
+                                    records: skillCategories,
+                                    total: loadResult.totalSkillCategories
+                                }
+                            });
+                    })
+                    .catch((exception) => {
+                        console.log(exception);
                         return {
                             records: [],
                             total: 0
@@ -286,7 +353,7 @@
             /*
             * Called when pagination changed.
             * */
-            vOnPaginationChange(){
+            vOnPaginationChange() {
                 let self = this;
 
                 // Add loading screen.
@@ -384,6 +451,32 @@
             vOnUserSkillEditCancelled() {
                 let self = this;
                 self.bIsUserSkillModalAvailable = false;
+            },
+
+            /*
+            * Called when skill delete button is clicked.
+            * */
+            vOnSkillClickDelete(skillCategoryId, skillId) {
+                let self = this;
+                let deleteSkillCategorySkillCondition = {
+                    skillCategoryId: skillCategoryId,
+                    skillId: skillId
+                };
+
+                // Block the screen access.
+                self.addLoadingScreen();
+
+                self.$skill
+                    .deleteSkillCategorySkillRelationship(deleteSkillCategorySkillCondition)
+                    .then(() => {
+                        return self._loadUserSkills();
+                    })
+                    .then((loadUserSkillResult) => {
+                        self.loadUserSkillResult = loadUserSkillResult;
+                    })
+                    .finally(() => {
+                        self.deleteLoadingScreen();
+                    })
             },
 
             //#endregion

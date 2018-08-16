@@ -42,7 +42,7 @@
                 <!--Pagination-->
                 <div class="form-group">
                     <pagination v-model="loadSkillCondition.pagination.page"
-                                :total-page="loadSkillResult.total"
+                                :total-page="totalSkillPage"
                                 align="center"
                                 :boundary-links="true"
                                 :direction-links="true"
@@ -71,7 +71,7 @@
 <script>
     export default {
         name: 'skill-selector',
-        dependencies: ['paginationConstant', '$skill', '$lodash'],
+        dependencies: ['paginationConstant', '$skill', '$lodash', '$ui'],
         props: {
             skillCategoryProperty: null
         },
@@ -79,6 +79,9 @@
             return {
                 skillCategory: null,
 
+                /*
+                * Condition to load skills.
+                * */
                 loadSkillCondition: {
                     pagination: {
                         page: 1,
@@ -86,6 +89,9 @@
                     }
                 },
 
+                /*
+                * Load skill result.
+                * */
                 loadSkillResult: {
                     records: [],
                     total: 0
@@ -117,7 +123,7 @@
             /*
             * Called when page is changed.
             * */
-            vOnPageChanged(index) {
+            vOnPageChanged() {
 
                 let self = this;
                 let promises = [];
@@ -144,8 +150,14 @@
                         let skills = loadSkillResult.records;
                         let skillIds = skills.map((skill) => skill.id);
 
+                        let loadSkillCategoryCondition = {
+                            userIds: [skillCategory.userId],
+                            skillCategoryIds: [skillCategory.id],
+                            skillIds: skillIds
+                        };
+
                         self.$skill
-                            .loadSkillCategorySkillRelationships([skillCategory.id], skillIds)
+                            .loadSkillCategorySkillRelationships(loadSkillCategoryCondition)
                             .then((loadSkillCategorySkillResult) => {
                                 self.skillCategory = Object.assign({}, skillCategory);
                                 self.loadSkillResult = loadSkillResult;
@@ -183,6 +195,15 @@
                 let map = self.selectedSkillMap;
                 let ids = Object.keys(map).map((id) => parseInt(id));
                 this.$emit('select-skill', self.skillCategory.id, ids);
+            }
+        },
+        computed: {
+
+            /*
+            * Calculate total skill page to display.
+            * */
+            totalSkillPage(){
+                return this.$ui.loadPageCalculation(this.loadSkillResult.total, this.loadSkillCondition.pagination.records);
             }
         }
     }
