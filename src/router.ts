@@ -9,7 +9,8 @@ import SkillManagement from './components/modules/management/skill-management.vu
 import ResponsibilityManagement from './components/modules/management/responsibility-management.vue';
 
 import ProfileMasterLayout from './components/modules/user/master-layout.vue';
-import Profile from './components/modules/user/profile.vue';
+// import Profile from './components/modules/user/profile.vue';
+import ProfileComponent from "@/components/modules/user/profile/profile.vue";
 import ManagementLayout from '@/components/modules/management-layout.vue';
 import UserProject from '@/components/modules/user/profile-project.vue';
 import UserSkill from '@/components/modules/user/profile-skill.vue';
@@ -52,7 +53,7 @@ export default new Router({
                         {
                             path: 'about-me/:userId',
                             name: 'about-me',
-                            component: Profile
+                            component: ProfileComponent
                         },
                         {
                             path: ':id',

@@ -2,9 +2,9 @@
     <div id="app">
 
         <!--BlockUI layer-->
-        <BlockUI :message="blockUI.message"
-                 :html="blockUI.html"
-                 v-if="blockUI && blockUI.available"></BlockUI>
+        <BlockUI :message="blockUi.message"
+                 :html="blockUi.html"
+                 v-if="blockUi && blockUi.available"></BlockUI>
 
         <navigation-bar/>
 
@@ -50,7 +50,7 @@
         computed:{
             ...mapState(
                 [
-                    'blockUI'
+                    'blockUi'
                 ]
             )
         },

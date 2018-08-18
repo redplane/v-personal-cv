@@ -12,6 +12,7 @@
                             :disable-rotation="true"
                             :prevent-white-space="true"
                             :show-remove-button="false"
+                            :quality="1"
                             @new-image-drawn="vOnNewImageDrawn()"></croppa>
                 </div>
 

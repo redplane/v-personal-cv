@@ -1,9 +1,5 @@
-import Vue from 'vue'
-import Vuex, {StoreOptions} from 'vuex'
-Vue.use(Vuex);
-
+import {Module} from 'vuex';
 import {AppState} from "@/stores/app/app.state";
-
 import {actions} from "@/stores/app/app.action";
 import {mutations} from "@/stores/app/app.mutation";
 import {getters} from "@/stores/app/app.getter";
@@ -16,11 +12,10 @@ export const state: AppState = {
 
 const namespaced: boolean = true;
 
-const store: StoreOptions<AppState> = {
+export const app: Module<AppState, AppState> = {
+    namespaced,
     state,
     getters,
     actions,
     mutations
 };
-
-export default new Vuex.Store<AppState>(store);

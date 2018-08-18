@@ -3,7 +3,7 @@
     const axios = require('axios').default;
 
     injector
-        .service('$userDescription', ['baseUrl'], (baseUrl) => {
+        .service('$userDescription', ['baseUrl', '$axios'], (baseUrl, $axios) => {
             return {
 
                 /*
@@ -27,7 +27,7 @@
                             pagination['records'] = records;
                     }
 
-                    return axios
+                    return $axios
                         .post(`${baseUrl}/api/user-description/search`, condition)
                         .then((loadUserDescriptionResponse) => {
                             if (!loadUserDescriptionResponse)
@@ -51,7 +51,7 @@
                         description: description
                     };
 
-                    return axios
+                    return $axios
                         .post(`${baseUrl}/api/user-description`, model)
                         .then((addUserDescriptionResponse) => {
                             if (!addUserDescriptionResponse)
@@ -69,7 +69,7 @@
                 * Edit user using specific condition.
                 * */
                 editUserDescription(id, userDescription) {
-                    return axios
+                    return $axios
                         .put(`${baseUrl}/api/user-description/${id}`, userDescription)
                         .then((editUserDescriptionResponse) => {
                             if (!editUserDescriptionResponse)
@@ -83,7 +83,7 @@
                 * Find and delete user.
                 * */
                 deleteUserDescription(id){
-                    return axios
+                    return $axios
                         .delete(`${baseUrl}/api/user-description/${id}`)
                         .then((deleteUserDescriptionResponse) => {
                             if (!deleteUserDescriptionResponse)

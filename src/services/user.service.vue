@@ -59,20 +59,47 @@
                 * Edit user using specific condition.
                 * */
                 editUser(id, user) {
-                    return $axios
-                        .put(`${baseUrl}/api/user/${id}`, user)
-                        .then((editUserResponse) => {
-                            if (!editUserResponse)
-                                throw 'Cannot edit user detail';
 
-                            return editUserResponse.data;
+                    let formData = new FormData();
+
+                    if (user.firstName)
+                        formData.append('firstName', user.firstName);
+
+
+                    if (user.lastName)
+                        formData.append('lastName', user.lastName);
+
+
+                    if (user.birthday !== null && user.birthday !== undefined)
+                        formData.append('birthday', user.birthday);
+
+
+                    if (user.photo)
+                        formData.append('photo', user.photo);
+
+                    let options = {
+                        headers: {
+                            'Content-Type': undefined
+                        },
+                        transformRequest: [(data, headers) => {
+                            return data
+                        }]
+                    };
+
+                    let fullUrl = `${baseUrl}/api/user/${id}`;
+                    return $axios
+                        .put(fullUrl, formData, options)
+                        .then((uploadUserProfileImageResponse) => {
+                            if (!uploadUserProfileImageResponse)
+                                throw 'Cannot edit user profile';
+                            return uploadUserProfileImageResponse.data;
                         });
                 },
 
                 /*
                 * Find and delete user.
                 * */
-                deleteUser(id){
+                deleteUser(id) {
                     return $axios
                         .delete(`${baseUrl}/api/user/${id}`)
                         .then((deleteUserResponse) => {
@@ -85,7 +112,7 @@
                 /*
                 * Login using specific information.
                 * */
-                login(loginModel){
+                login(loginModel) {
                     return $axios
                         .post(`${baseUrl}/api/user/login`, loginModel)
                         .then((loginResponse) => {
@@ -98,10 +125,11 @@
                 /*
                 * Upload user profile image.
                 * */
-                uploadProfileImage(id, blob){
+                uploadProfileImage(id, blob) {
 
                     let formData = new FormData();
                     formData.append('photo', blob);
+
 
                     let options = {
                         headers: {
@@ -110,13 +138,25 @@
                     };
 
                     let fullUrl = `${baseUrl}/api/user/profile-image/${id}`;
-                    return $axios
-                        .post(fullUrl, formData, options)
+
+                    return $.post({
+                        url: fullUrl,
+                        contentType: null,
+                        data: formData,
+                    })
                         .then((uploadUserProfileImageResponse) => {
                             if (!uploadUserProfileImageResponse)
                                 throw 'Cannot upload user profile image';
                             return uploadUserProfileImageResponse.data;
                         });
+
+                    // return $axios
+                    //     .post(fullUrl, formData, options)
+                    //     .then((uploadUserProfileImageResponse) => {
+                    //         if (!uploadUserProfileImageResponse)
+                    //             throw 'Cannot upload user profile image';
+                    //         return uploadUserProfileImageResponse.data;
+                    //     });
                 },
 
             }
