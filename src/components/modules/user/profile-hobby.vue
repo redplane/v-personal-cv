@@ -55,7 +55,7 @@
                 <div class="form-group">
                     <div class="text-center">
                         <div class="form-group">
-                            <pagination v-model="loadUserHobbiesCondition.pagination.page"
+                            <pagination v-model="loadHobbyCondition.pagination.page"
                                         :total-page="totalPage"
                                         :boundary-links="true"
                                         size="sm"
@@ -110,270 +110,314 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
+    import {Component, Vue} from 'vue-property-decorator';
+    import {State, Getter, Action, Mutation, namespace} from 'vuex-class'
 
-    import {mapMutations, mapGetters} from 'vuex';
+    // Import components
+    import UserHobbyDetail from './user-hobby-detail';
+    import {Profile} from "../../../models/profile";
+    import {UserRoles} from "../../../enumerations/user-role.enum";
+    import {LoadHobbyViewModel} from "../../../view-model/hobby/load-hobby.view-model";
+    import {SearchResult} from "../../../models/search-result";
+    import {Hobby} from "../../../models/hobby";
+    import {Prop} from "vue-property-decorator";
+    import {Pagination} from "../../../models/pagination";
+    import PaginationConstant from '../../../constants/pagination.constant.vue';
+
+    // Import components
     import UserHobbyDetail from './user-hobby-detail';
 
-    export default {
-        name: 'profile-hobby',
-        dependencies: ['paginationConstant', '$user', '$ui', '$hobby', '$toastr'],
-        components: {UserHobbyDetail},
-        props: {
-            userIdProperty: null
-        },
-        computed: {
-            /*
-            * Get hobbies list.
-            * */
-            hobbies() {
-                let self = this;
-                if (!self.loadUserHobbiesResult)
-                    return [];
+    @Component({
+        dependencies: ['$ui', '$toastr', '$hobby'],
+        components: {
+            UserHobbyDetail
+        }
+    })
+    export default class ProfileHobbyComponent extends Vue {
 
-                return self.loadUserHobbiesResult.records;
-            },
-            totalPage() {
-                let self = this;
-                let iPage = self.$ui.loadPageCalculation(self.loadUserHobbiesResult.total, self.loadUserHobbiesCondition.pagination.records);
-                return iPage;
-            },
+        //#region Properties
 
-            ...mapGetters([
-                'profile'
-            ]),
+        @Prop(Number) private userIdProperty: number;
 
-            /*
-            * Check whether user is able to add user description or not.
-            * */
-            bIsAbleToEditProfile(){
-                // Profile not found.
-                if (!self.profile)
+        /*
+        * User profile which is using system.
+        * */
+        @Getter('profile')
+        private profile: Profile;
+
+        /*
+        * Add loading screen to UI.
+        * */
+        @Mutation('addLoadingScreen') addLoadingScreen: any;
+
+        /*
+        * Delete loading screen on UI.
+        * */
+        @Mutation('deleteLoadingScreen') deleteLoadingScreen: any;
+
+        // Service implementations.
+        private $ui: any;
+
+        /*
+        * User id.
+        * */
+        private userId: number;
+
+        /*
+        * Load user hobby condition.
+        * */
+        private loadHobbyCondition: LoadHobbyViewModel = new LoadHobbyViewModel();
+
+        /*
+        * Load user hobby result.
+        * */
+        private loadHobbyResult: SearchResult<Hobby[]>;
+
+        /*
+        * Whether add/edit user hobby is available or not.
+        * */
+        private bIsAddEditUserHobbyModalAvailable: boolean = false;
+
+        /*
+        * Whether delete hobby is available or not.
+        * */
+        private bIsDeleteUserHobbyModalAvailable: boolean = false;
+
+        /*
+        * The selected user hobby for edit.
+        * */
+        private oSelectedUserHobby: Hobby = new Hobby();
+
+        /*
+        * Get hobbies list.
+        * */
+        public get hobbies(): Array<Hobby> {
+
+            // No result is found.
+            if (!this.loadHobbyResult)
+                return new Array<Hobby>();
+
+            return this.loadHobbyResult.records;
+        }
+
+        /*
+        * Get total hobbies page.
+        * */
+        public get totalPage(): number {
+            let $ui = this.$ui;
+            if (!this.loadHobbyResult)
+                return 1;
+
+            if (!this.loadHobbyCondition)
+                return 1;
+
+            return $ui.loadPageCalculation(this.loadHobbyResult.total, this.loadHobbyCondition.pagination.records);
+        }
+
+        /*
+        * Check whether user is able to add user description or not.
+        * */
+        public get bIsAbleToEditProfile() {
+            // Profile not found.
+            if (!this.profile)
+                return false;
+
+            let profile = this.profile;
+            if (!profile)
+                return false;
+
+            // Profile is not an admin.
+            if (profile.role !== UserRoles.admin) {
+                if (profile.id !== this.userId)
                     return false;
-
-                let profile = self.profile();
-                if (!profile)
-                    return false;
-
-                // Profile is not an admin.
-                if (profile.role !== self.userRoleConstant.admin){
-                    if (profile.id !== self.user.id)
-                        return false;
-
-                    return true;
-                }
-
-                return true;
-
-            },
-        },
-        data() {
-            return {
-                userId: null,
-
-                /*
-                * Load user hobby condition.
-                * */
-                loadUserHobbiesCondition: {
-                    userIds: [],
-                    pagination: {
-                        page: 1,
-                        records: this.paginationConstant.dashboardMaxItem
-                    }
-                },
-
-                /*
-                * Load user hobbies result.
-                * */
-                loadUserHobbiesResult: {
-                    records: [],
-                    total: 0
-                },
-
-                /*
-                * Whether add/edit user hobby is available or not.
-                * */
-                bIsAddEditUserHobbyModalAvailable: false,
-
-                /*
-                * Whether delete hobby is available or not.
-                * */
-                bIsDeleteUserHobbyModalAvailable: false,
-
-                /*
-                * The selected user hobby for edit.
-                * */
-                oSelectedUserHobby: null
             }
-        },
-        methods: {
 
-            ...mapMutations([
-                'addLoadingScreen',
-                'deleteLoadingScreen'
-            ]),
+            return true;
 
+        }
 
+        //#endregion
 
-            /*
-            * Load user hobbies using defined condition.
-            * */
-            _loadUserHobbies() {
-                let self = this;
-                return self.$hobby
-                    .loadUserHobbies(self.loadUserHobbiesCondition);
-            },
+        //#region Constructor
 
-            /*
-            * Called when add hobby is clicked.
-            * */
-            vOnAddUserHobbyClicked() {
-                let self = this;
-                self.oSelectedUserHobby = {};
-                self.bIsAddEditUserHobbyModalAvailable = true;
-            },
+        /*
+        * Initialize component with settings.
+        * */
+        public constructor() {
+            super();
+            this.loadHobbyResult = new SearchResult<Hobby[]>();
+            this.loadHobbyCondition = new LoadHobbyViewModel();
 
-            /*
-            * On edit hobby clicked.
-            * */
-            vOnEditHobbyClicked(userHobby) {
-                let self = this;
-                self.oSelectedUserHobby = userHobby;
-                self.bIsAddEditUserHobbyModalAvailable = true;
-            },
+        }
 
-            /*
-            * On hobby is selected to be deleted.
-            * */
-            vOnDeleteHobbyClicked(userHobby) {
-                let self = this;
-                self.oSelectedUserHobby = userHobby;
-                self.bIsDeleteUserHobbyModalAvailable = true;
-            },
+        //#endregion
 
-            /*
-            * Called when pagination changed.
-            * */
-            vOnPaginationChange() {
+        //#region Methods
 
-                // Get current context.
-                let self = this;
+        //#endregion
 
-                // Add loading screen.
-                self.addLoadingScreen();
+        //#region Events
 
-                self._loadUserHobbies()
-                    .then((loadUserHobbiesResult) => {
-                        self.loadUserHobbiesResult = loadUserHobbiesResult;
-                    })
-                    .finally(() => {
-                        self.deleteLoadingScreen();
-                    });
-            },
-
-            /*
-            * Called when user hobby is confirmed being edied.
-            * */
-            addEditUserHobby(userHobby) {
-                if (!userHobby)
-                    return;
-
-                // Get current context.
-                let self = this;
-
-                // Block screen access.
-                self.addLoadingScreen();
-
-                let pPromise = null;
-
-                if (userHobby.id) {
-                    pPromise = self
-                        .$hobby
-                        .editHobby(userHobby.id, userHobby)
-                        .then(() => {
-                            // Display the toastr notification.
-                            self.$toastr.success('Hobby has been added successfully.')
-                        });
-                } else {
-                    let pUserHobby = Object.assign({}, userHobby);
-                    pUserHobby['userId'] = self.userId;
-
-                    pPromise = self
-                        .$hobby
-                        .addUserHobby(pUserHobby)
-                        .then(() => {
-                            // Display the toastr notification.
-                            self.$toastr.success('Hobby has been added successfully.')
-                        });
-                }
-
-                pPromise
-                    .then(() => {
-                        self.bIsAddEditUserHobbyModalAvailable = false;
-                    })
-                    .finally(() => {
-                        self.deleteLoadingScreen();
-                    });
-            },
-
-            /*
-            * Called when delete hobby is confirmed.
-            * */
-            deleteUserHobby(userHobby) {
-                // No hobby is selected
-                if (!userHobby || !userHobby.id)
-                    return;
-
-                let self = this;
-
-                // Add loading screen.
-                self.addLoadingScreen();
-
-                self.$hobby
-                    .deleteHobby(userHobby.id)
-                    .then(() => {
-                        // Display success message.
-                        self.$toastr.success('Hobby has been deleted successfully.');
-
-                        // Close modal.
-                        self.bIsDeleteUserHobbyModalAvailable = false;
-                    })
-                    .finally(() => {
-                        self.deleteLoadingScreen();
-                    });
-            }
-        },
-        mounted() {
-
-            // Get current context.
-            let self = this;
-
-            //#region Load hobbies
+        /*
+        * Called when component is mounted successfully.
+        * */
+        public mounted() {
+            this.loadHobbyResult = new SearchResult<Hobby[]>();
+            this.loadHobbyCondition.pagination = new Pagination();
+            this.loadHobbyCondition.pagination.records = PaginationConstant.dashboardMaxItem;
 
             // Add loading screen.
-            self.addLoadingScreen();
+            this.addLoadingScreen();
 
-            let loadUserIdPromise = new Promise(resolve => {
-                resolve(self.userIdProperty);
-            });
+            // Get user id.
+            this.userId = this.userIdProperty;
 
-            loadUserIdPromise
-                .then((userId) => {
-                    self.userId = userId;
-                    self.loadUserHobbiesCondition.userIds = [userId];
+            // Initialize loading condition.
+            this.loadHobbyCondition.userIds = [this.userId];
 
-                    return self._loadUserHobbies();
-                })
-                .then((loadUserHobbiesResult) => {
-                    self.loadUserHobbiesResult = loadUserHobbiesResult;
+            // Load user hobbies.
+            this.$hobby
+                .loadUserHobbies(this.loadHobbyCondition)
+                .then((loadHobbyResult: SearchResult<Hobby[]>) => {
+                    this.loadHobbyResult = loadHobbyResult;
+                    return loadHobbyResult;
                 })
                 .finally(() => {
-                    self.deleteLoadingScreen();
+                    this.deleteLoadingScreen();
                 })
-
-            //#endregion
         }
+
+        /*
+        * Called when add hobby is clicked.
+        * */
+        public vOnAddUserHobbyClicked(): void {
+            let hobby: Hobby = new Hobby();
+            hobby.id = 0;
+            hobby.userId = this.userId;
+            hobby.description = '';
+            hobby.name = '';
+
+            this.oSelectedUserHobby = hobby;
+            this.bIsAddEditUserHobbyModalAvailable = true;
+        }
+
+        /*
+        * On edit hobby clicked.
+        * */
+        public vOnEditHobbyClicked(hobby: Hobby): void {
+            this.oSelectedUserHobby = hobby;
+            this.bIsAddEditUserHobbyModalAvailable = true;
+        };
+
+        /*
+        * On hobby is selected to be deleted.
+        * */
+        public vOnDeleteHobbyClicked(hobby: Hobby): void {
+            this.oSelectedUserHobby = hobby;
+            this.bIsDeleteUserHobbyModalAvailable = true;
+        }
+
+        /*
+        * Called when pagination is changed.
+        * */
+        public vOnPaginationChange(): void {
+
+            // Add loading screen.
+            this.addLoadingScreen();
+
+            this.$hobby
+                .loadUserHobbies(this.loadHobbyCondition)
+                .then((loadHobbyResult: SearchResult<Hobby[]>) => {
+                    this.loadHobbyResult = loadHobbyResult;
+                    return loadHobbyResult;
+                })
+                .finally(() => {
+                    this.deleteLoadingScreen();
+                })
+        }
+
+        /*
+        * Called when user hobby is confirmed being edied.
+        * */
+        public addEditUserHobby(hobby: Hobby): void {
+            if (!hobby)
+                return;
+
+            // Block screen access.
+            this.addLoadingScreen();
+
+            let pPromise = null;
+
+            if (hobby.id) {
+                pPromise = this
+                    .$hobby
+                    .editHobby(hobby.id, hobby)
+                    .then(() => {
+                        // Display the toastr notification.
+                        this.$toastr.success('Hobby has been added successfully.')
+                    });
+            } else {
+                let addHobby: Hobby = new Hobby();
+                addHobby = Object.assign({}, hobby);
+                addHobby.userId = this.userId;
+
+                pPromise = this
+                    .$hobby
+                    .addUserHobby(addHobby)
+                    .then(() => {
+                        // Display the toastr notification.
+                        this.$toastr.success('Hobby has been added successfully.')
+                    });
+            }
+
+            pPromise
+                .then(() => {
+                    this.bIsAddEditUserHobbyModalAvailable = false;
+
+                    // Reload the results.
+                    return this.$hobby
+                        .loadUserHobbies(this.loadHobbyCondition)
+                })
+                .then((loadHobbyResult: SearchResult<Hobby[]>) => {
+                    this.loadHobbyResult = loadHobbyResult;
+                    return loadHobbyResult;
+                })
+                .finally(() => {
+                    this.deleteLoadingScreen();
+                });
+        }
+
+        /*
+        * Called when delete hobby is confirmed.
+        * */
+        public deleteUserHobby(hobby: Hobby): void {
+            // No hobby is selected
+            if (!hobby || !hobby.id)
+                return;
+
+            // Add loading screen.
+            this.addLoadingScreen();
+
+            this.$hobby
+                .deleteHobby(hobby.id)
+                .then(() => {
+                    // Display success message.
+                    this.$toastr.success('Hobby has been deleted successfully.');
+
+                    // Close modal.
+                    this.bIsDeleteUserHobbyModalAvailable = false;
+                    return true;
+                })
+                .finally(() => {
+                    this.deleteLoadingScreen();
+                });
+        }
+
+        //#endregion
+
     }
+
 </script>
 
 <style scoped>

@@ -14,7 +14,7 @@ import ProfileComponent from "@/components/modules/user/profile.vue";
 import ManagementLayout from '@/components/modules/management-layout.vue';
 import UserProject from '@/components/modules/user/profile-project.vue';
 import UserSkill from '@/components/modules/user/profile-skill.vue';
-import UserHobbyComponent from '@/components/modules/user/ts/profile-hobby.vue';
+import UserHobbyComponent from '@/components/modules/user/profile-hobby.vue';
 
 
 export default new Router({

@@ -1,9 +1,7 @@
 <script>
     const injector = require('vue-inject/dist/vue-inject');
-    const axios = require('axios').default;
-
     injector
-        .service('$project', ['baseUrl'], (baseUrl) => {
+        .service('$project', ['baseUrl', '$axios'], (baseUrl, $axios) => {
             return {
                 //#region Methods
 
@@ -11,7 +9,7 @@
                 * Get projects by using specific conditions.
                 * */
                 loadProjects(conditions) {
-                    return axios
+                    return $axios
                         .post(`${baseUrl}/api/project/search`, conditions)
                         .then((loadProjectResponse) => {
                             if (!loadProjectResponse)
@@ -39,7 +37,7 @@
                         responsibilityIds: responsibilityIds
                     };
 
-                    return axios
+                    return $axios
                         .post(`${baseUrl}/api/project`, model)
                         .then((addProjectResponse) => {
                             if (!addProjectResponse)
@@ -63,7 +61,7 @@
                         responsibilityIds: responsibilityIds
                     };
 
-                    return axios
+                    return $axios
                         .put(`${baseUrl}/api/project/${id}`, model)
                         .then((addProjectResponse) => {
                             if (!addProjectResponse)
@@ -77,7 +75,7 @@
                 * Delete user project
                 * */
                 deleteProject(id){
-                    return axios
+                    return $axios
                         .delete(`${baseUrl}/api/project/${id}`)
                         .then((deleteProjectResponse) => {
                             if (!deleteProjectResponse)
@@ -98,7 +96,7 @@
                         pagination: pagination
                     };
 
-                    return axios
+                    return $axios
                         .post(`${baseUrl}/api/project-responsibility/search`, condition)
                         .then((loadProjectResponsibilityResponse) => {
                             if (!loadProjectResponsibilityResponse)
@@ -121,7 +119,7 @@
                         responsibilityId: responsibilityId
                     };
 
-                    return axios
+                    return $axios
                         .post(`${baseUrl}/api/project-responsibility`, model)
                         .then((addProjectResponsibilityResponse) => {
                             if (!addProjectResponsibilityResponse)
@@ -145,7 +143,7 @@
                         }
                     };
 
-                    return axios
+                    return $axios
                         .post(`${baseUrl}/api/project-skill/search`, condition)
                         .then((loadProjectSkillRelationshipsResponse) => {
                             if (!loadProjectSkillRelationshipsResponse)
