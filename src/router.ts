@@ -2,19 +2,18 @@ import Vue from 'vue';
 import Router from 'vue-router';
 
 import MasterLayout from './components/shared/layout/master-layout.vue';
-import AdminSideBar from './components/shared/admin-side-bar.vue';
+import AdminSideBar from './components/shared/admin-side-bar.component.vue';
 
 import UserManagement from './components/modules/management/user-management.vue';
 import SkillManagement from './components/modules/management/skill-management.vue';
 import ResponsibilityManagement from './components/modules/management/responsibility-management.vue';
 
-import ProfileMasterLayout from './components/modules/user/master-layout.vue';
-// import Profile from './components/modules/user/profile.vue';
-import ProfileComponent from "@/components/modules/user/profile.vue";
-import ManagementLayout from '@/components/modules/management-layout.vue';
-import UserProject from '@/components/modules/user/profile-project.vue';
+import ProfileMasterLayout from './components/modules/user/master-layout.component.vue';
+import ProfileComponent from "@/components/modules/user/profile.component.vue";
+import ManagementLayout from '@/components/modules/management-layout.component.vue';
+import UserProject from '@/components/modules/user/profile-project.component.vue';
 import UserSkill from '@/components/modules/user/profile-skill.vue';
-import UserHobbyComponent from '@/components/modules/user/profile-hobby.vue';
+import UserHobbyComponent from '@/components/modules/user/profile-hobby.component.vue';
 
 
 export default new Router({

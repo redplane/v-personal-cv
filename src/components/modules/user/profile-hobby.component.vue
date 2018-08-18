@@ -115,7 +115,7 @@
     import {State, Getter, Action, Mutation, namespace} from 'vuex-class'
 
     // Import components
-    import UserHobbyDetail from './user-hobby-detail';
+    import UserHobbyDetail from './user-hobby-detail.component';
     import {Profile} from "../../../models/profile";
     import {UserRoles} from "../../../enumerations/user-role.enum";
     import {LoadHobbyViewModel} from "../../../view-model/hobby/load-hobby.view-model";
@@ -126,7 +126,7 @@
     import PaginationConstant from '../../../constants/pagination.constant.vue';
 
     // Import components
-    import UserHobbyDetail from './user-hobby-detail';
+    import UserHobbyDetail from './user-hobby-detail.component';
 
     @Component({
         dependencies: ['$ui', '$toastr', '$hobby'],
@@ -234,7 +234,6 @@
             }
 
             return true;
-
         }
 
         //#endregion

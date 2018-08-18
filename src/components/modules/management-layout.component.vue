@@ -11,18 +11,15 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 
-    import store from '@/store';
+    import {Component, Vue} from 'vue-property-decorator'
 
-    export default {
-        name: 'management-layout',
-        computed: {
-            profile() {
-                return this.$store.getters.profile;
-            }
-        }
+    @Component
+    export default class ManagementLayoutComponent extends Vue {
+
     }
+
 </script>
 
 <style scoped>

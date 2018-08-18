@@ -72,46 +72,67 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 
-    // Import vue.
-    import Vue from 'vue';
+    import {Vue, Component, Prop} from 'vue-property-decorator';
+    import {User} from "../../../models/user";
 
-    export default {
-        name: 'user-detail',
-        props: {
-            userProperty: {}
-        },
-        data() {
-            return {
-                user: null,
-                visibility: false
-            }
-        },
-        mounted() {
+    @Component
+    export default class UserDetailComponent extends Vue{
 
-            let self = this;
-            let pGetUserDetailPromise = new Promise(resolve => {
-                resolve(self.userProperty);
-            });
+        //#region Properties
 
-            pGetUserDetailPromise
-                .then((user) => {
-                    if (!user)
-                        self.user = {};
-                    else
-                        self.user = Vue.util.extend({}, user);
-                });
-        },
-        methods: {
-            vOnClickOk() {
-                let user = Vue.util.extend({}, this.user);
-                this.$emit('confirm', user);
-            },
-            vOnClickCancel() {
-                this.$emit('cancel');
-            }
+        @Prop(Object)
+        private userProperty: User;
+
+        /*
+        * User information.
+        * */
+        private user: User;
+
+        //#endregion
+
+        //#region Constructor
+
+        /*
+        * Initialize component with settings.
+        * */
+        public constructor(){
+            super();
+            this.user = new User();
         }
+
+        //#endregion
+
+        //#region Methods
+
+        /*
+        * Called when
+        * */
+        public mounted(){
+            this.user = Object.assign({}, this.userProperty);
+        }
+
+        //#endregion
+
+        //#region Events
+
+        /*
+        * Event which is fired when OK button is clicked.
+        * */
+        public vOnClickOk(): void {
+            let user: User = Object.assign({}, this.user);
+            this.$emit('confirm', user);
+        }
+
+        /*
+        * Event which is fired when cancel button is clicked.
+        * */
+        public vOnClickCancel(): void {
+            this.$emit('cancel');
+        }
+
+        //#endregion
     }
 </script>
 

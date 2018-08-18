@@ -134,8 +134,8 @@
     import {mapMutations, mapGetters} from 'vuex';
     import SkillCategoryDetail from "../skill-category/skill-category-detail";
     import SkillSelector from "../../shared/skill-selector";
-    import ImageCropper from '../../shared/image-cropper';
-    import UserSkillDetail from './user-skill-detail';
+    import ImageCropper from '../../shared/image-cropper.component';
+    import UserSkillDetail from './user-skill-detail.component';
 
     export default {
         name: 'user-technique-dashboard',

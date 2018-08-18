@@ -57,64 +57,71 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 
-    import vueRecaptcha from 'vue-recaptcha';
+    import {VueRecaptcha} from 'vue-recaptcha';
+    import {Vue, Component} from 'vue-property-decorator'
+    import {LoginViewModel} from "../../view-model/user/login.view-model";
 
-    export default {
-        name: 'login-box',
+    @Component({
         dependencies: ['gCaptchaSiteKey'],
-        data(){
-            return {
-                /*
-                * Model for exchanging access token.
-                * */
-                loginModel: {
-                    email: '',
-                    password: '',
-                    clientCaptchaCode: ''
-                }
-            }
-        },
-        methods:{
-
-            /*
-            * Called when form is submitted.
-            * */
-            vOnSubmitForm($event){
-                // Prevent form default behaviour.
-                if ($event)
-                    $event.preventDefault();
-
-                let self = this;
-                self.$emit('click-login', self.loginModel);
-            },
-
-            /*
-            * Called when cancel button is clicked.
-            * */
-            vOnCancelClick(){
-                let self = this;
-                self.$emit('click-cancel');
-            },
-
-            /*
-            * Called when captcha is verified.
-            * */
-            vOnGoogleCaptchaVerify(response){
-                let self = this;
-                self.loginModel.clientCaptchaCode = response;
-            }
-
-        },
         components:{
-            vueRecaptcha
-        },
-        computed:{
-            captchaSiteKey(){
-                return this.gCaptchaSiteKey;
-            }
+            VueRecaptcha
         }
+    })
+    export default class LoginBoxComponent extends Vue{
+
+        //#region Properties
+
+        /*
+        * Login model.
+        * */
+        private loginModel: LoginViewModel;
+
+        public get captchaSiteKey(): string{
+            return this.gCaptchaSiteKey;
+        }
+
+        //#endregion
+
+        //#region Constructor
+
+        public constructor(){
+            super();
+            this.loginModel = new LoginViewModel();
+        }
+        //#endregion
+
+        //#region Methods
+
+        /*
+        * Called when form is submitted.
+        * */
+        public vOnSubmitForm($event: any): void{
+            // Prevent form default behaviour.
+            if ($event)
+                $event.preventDefault();
+
+            // Copy view model.
+            let loginModel: LoginViewModel = Object.assign({}, this.loginModel);
+            this.$emit('click-login', loginModel);
+        }
+
+        /*
+        * Called when cancel button is clicked.
+        * */
+        public vOnCancelClick(): void{
+            this.$emit('click-cancel');
+        }
+
+        /*
+        * Called when captcha is verified.
+        * */
+        public vOnGoogleCaptchaVerify(response: string){
+            this.loginModel.clientCaptchaCode = response;
+        }
+
+        //#endregion
     }
 </script>
 

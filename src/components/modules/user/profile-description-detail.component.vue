@@ -35,50 +35,60 @@
     </div>
 </template>
 
-<script>
-    export default {
-        name: 'user-description-detail',
-        props: {
-            userDescriptionProperty: {}
-        },
-        data() {
-            return {
-                userDescription: {
-                    id: 0,
-                    userId: 0,
-                    description: null
-                }
-            }
-        },
-        mounted() {
+<script lang="ts">
 
-            // Get method context.
-            let self = this;
-            let pGetUserDescriptionPromise = new Promise(resolve => {
-                resolve(self.userDescriptionProperty);
-            });
+    import {Component, Prop, Vue} from 'vue-property-decorator';
+    import {UserDescription} from "../../../models/user-description";
 
-            pGetUserDescriptionPromise
-                .then((userDescription) => {
-                    self.userDescription = Object.assign({}, userDescription);
-                });
-        },
-        methods:{
 
-            /*
-            * Called when ok is clicked.
-            * */
-            vOnOkClick(){
-                this.$emit('click-confirm', this.userDescription);
-            },
+    @Component
+    export default class ProfileDescriptionDetailComponent extends Vue {
 
-            /*
-            * Called when cancel is clicked.
-            * */
-            vOnCancelClick(){
-                this.$emit('click-cancel');
-            }
+        //#region Properties
+
+        /*
+        * User description detail property.
+        * */
+        @Prop(Object)
+        private userDescriptionProperty: UserDescription;
+
+        /*
+        * User description information.
+        * */
+        private userDescription: UserDescription | null;
+
+        //#endregion
+
+        //#region Methods
+
+        /*
+        * Called when ok is clicked.
+        * */
+        public vOnOkClick(): void {
+            this.$emit('click-confirm', this.userDescription);
         }
+
+        /*
+        * Called when cancel is clicked.
+        * */
+        public vOnCancelClick(): void {
+            this.$emit('click-cancel');
+        }
+
+        //#endregion
+
+        //#region Events
+
+        /*
+        * Called when component is mounted successfully.
+        * */
+        public mounted(): void{
+            // Get method context.
+            this.userDescription = Object.assign({}, this.userDescriptionProperty);
+        }
+
+        //#endregion
+
     }
 </script>
 

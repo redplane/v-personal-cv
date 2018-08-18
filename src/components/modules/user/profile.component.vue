@@ -79,8 +79,8 @@
     import {UserViewModel} from "../../../view-model/user/user.view-model";
     import {UserRoles} from "../../../enumerations/user-role.enum";
 
-    import UserDescriptionDetail from "./user-description-detail.vue";
-    import ImageCropper from '../../shared/image-cropper.vue';
+    import UserDescriptionDetail from "./profile-description-detail.component.vue";
+    import ImageCropper from '../../shared/image-cropper.component.vue';
     import {EditUserViewModel} from "../../../view-model/user/edit-user.view-model";
 
     @Component({
@@ -295,7 +295,9 @@
                     this.bAddEditUserDescriptionModalOpened = false;
 
                     // Add description to list.
-                    this.user.descriptions.push(userDescription);
+                    if (this.user)
+                        if (this.user.descriptions !== null)
+                            this.user.descriptions.push(userDescription);
 
                     this.$toastr.success('Added user description successfully.');
                     return true;

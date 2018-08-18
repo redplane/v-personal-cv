@@ -123,7 +123,7 @@
 
 <script>
 
-    import UserDetail from '../user/user-detail.vue';
+    import UserDetail from '../user/user-detail.component.vue';
     import {mapMutations} from 'vuex';
 
     export default {

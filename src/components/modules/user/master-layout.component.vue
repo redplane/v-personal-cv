@@ -34,32 +34,63 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 
     // Import vuex map
     import {mapMutations, mapGetters} from 'vuex';
+    import {Component, Vue} from 'vue-property-decorator';
+    import Component from "vue-class-component";
+    import {User} from "../../../models/user";
+    import {Profile} from "../../../models/profile";
+    import {Getter, Mutation} from "vuex-class";
 
-    export default {
-        name: 'profile',
-        data() {
-            return {
-                user: {
-                    id: 1
-                }
-            }
-        },
-        computed: {
-            ...mapGetters([
-                'profile'
-            ])
-        },
-        methods:{
-            ...mapMutations([
-                'addLoadingScreen',
-                'deleteLoadingScreen'
-            ])
+    @Component
+    export default class UserMasterLayoutComponent extends Vue {
+
+        //#region Properties
+
+        /*
+        * User instance.
+        * */
+        private user: User;
+
+        /*
+        * Profile of person who is using system.
+        * */
+        @Getter('profile')
+        private profile: Profile;
+
+        //#endregion
+
+        //#region Constructor
+
+        /*
+        * Initialize component with default settings.
+        * */
+        public constructor(){
+            super();
+            this.user = new User();
+            this.user.id = 1;
         }
+
+        //#endregion
+
+        //#region Methods
+
+        /*
+        * Add loading screen.
+        * */
+        @Mutation('addLoadingScreen')
+        public addLoadingScreen;
+
+        /*
+        * Delete loading screen.
+        * */
+        public deleteLoadingScreen;
+
+        //#endregion
     }
+
 </script>
 
 <style scoped>

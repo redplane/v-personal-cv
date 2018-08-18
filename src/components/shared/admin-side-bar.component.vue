@@ -21,9 +21,15 @@
     </ul>
 </template>
 
-<script>
-    export default {
+<script lang="ts">
+
+    import {Component, Vue} from 'vue-property-decorator'
+
+    @Component({
         name: 'admin-side-bar'
+    })
+    export default class AdminSideBarComponent extends Vue{
+
     }
 </script>
 
