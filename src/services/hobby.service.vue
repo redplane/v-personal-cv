@@ -1,16 +1,15 @@
 <script>
     const injector = require('vue-inject/dist/vue-inject');
-    const axios = require('axios').default;
 
     injector
-        .service('$hobby', ['baseUrl'], (baseUrl) => {
+        .service('$hobby', ['baseUrl', '$axios'], (baseUrl, $axios) => {
             return {
 
                 /*
                 * Get hobbies by using specific conditions.
                 * */
                 loadUserHobbies(conditions) {
-                    return axios
+                    return $axios
                         .post(`${baseUrl}/api/hobby/search`, conditions)
                         .then((loadHobbiesResponse) => {
                             if (!loadHobbiesResponse)
@@ -28,7 +27,7 @@
                 * Add hobby.
                 * */
                 addUserHobby(hobby) {
-                    return axios
+                    return $axios
                         .post(`${baseUrl}/api/hobby`, hobby)
                         .then((addHobbyResponse) => {
                             if (!addHobbyResponse)
@@ -46,7 +45,7 @@
                 * Edit user using specific condition.
                 * */
                 editHobby(id, hobby) {
-                    return axios
+                    return $axios
                         .put(`${baseUrl}/api/hobby/${id}`, hobby)
                         .then((editHobbyResponse) => {
                             if (!editHobbyResponse)
@@ -60,7 +59,7 @@
                 * Find and delete user.
                 * */
                 deleteHobby(id){
-                    return axios
+                    return $axios
                         .delete(`${baseUrl}/api/hobby/${id}`)
                         .then((deleteHobbyResponse) => {
                             if (!deleteHobbyResponse)

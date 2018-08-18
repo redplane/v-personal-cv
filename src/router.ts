@@ -10,11 +10,12 @@ import ResponsibilityManagement from './components/modules/management/responsibi
 
 import ProfileMasterLayout from './components/modules/user/master-layout.vue';
 // import Profile from './components/modules/user/profile.vue';
-import ProfileComponent from "@/components/modules/user/profile/profile.vue";
+import ProfileComponent from "@/components/modules/user/profile.vue";
 import ManagementLayout from '@/components/modules/management-layout.vue';
 import UserProject from '@/components/modules/user/profile-project.vue';
 import UserSkill from '@/components/modules/user/profile-skill.vue';
-import UserHobby from '@/components/modules/user/profile-hobby.vue';
+import UserHobbyComponent from '@/components/modules/user/ts/profile-hobby.vue';
+
 
 export default new Router({
     routes: [
@@ -47,7 +48,7 @@ export default new Router({
                         {
                             path: 'hobby/:userId',
                             name: 'user-hobby',
-                            component: UserHobby,
+                            component: UserHobbyComponent,
                             props: true
                         },
                         {

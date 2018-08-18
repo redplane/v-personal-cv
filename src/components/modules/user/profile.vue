@@ -1,7 +1,8 @@
 <template>
     <div>
         <!--General information-->
-        <div class="row">
+        <div class="row"
+             v-if="user">
             <div class="col-lg-12">
                 <div class="panel panel-default">
                     <div class="panel-heading"><h3 class="panel-title">About {{user.firstName}}
@@ -56,97 +57,170 @@
         <!--Add/edit user description-->
         <modal :header="false"
                :footer="false"
-               v-model="bUserDescriptionModalOpened"
-               v-if="bUserDescriptionModalOpened"
+               v-model="bAddEditUserDescriptionModalOpened"
+               v-if="bAddEditUserDescriptionModalOpened"
                class="replace-body">
             <div slot="default">
-                <user-description-detail :user-description-property="selectedUserDescription"
+                <user-description-detail :user-description-property="oSelectedUserDescription"
                                          v-on:click-confirm="vOnUserDescriptionConfirm($event)"
-                                         v-on:click-cancel="vOnUserDescriptionCancel()"/>
+                                         v-on:click-cancel="vOnUserDescriptionCancel()"></user-description-detail>
             </div>
         </modal>
     </div>
 </template>
 
-<script>
-    import UserDescriptionDetail from "./user-description-detail";
-    import ImageCropper from '../../shared/image-cropper';
-    import UserHobby from './profile-hobby';
+<script lang="ts">
+    import {Component, Vue} from 'vue-property-decorator';
+    import {State, Getter, Action, Mutation, namespace} from 'vuex-class'
+    import {UserDescription} from "../../../models/user-description";
+    import {Profile} from "../../../models/profile";
+    import {SearchResult} from "../../../models/search-result";
+    import {User} from "../../../models/user";
+    import {UserViewModel} from "../../../view-model/user/user.view-model";
+    import {UserRoles} from "../../../enumerations/user-role.enum";
 
-    import {mapMutations, mapGetters} from 'vuex';
+    import UserDescriptionDetail from "./user-description-detail.vue";
+    import ImageCropper from '../../shared/image-cropper.vue';
+    import {EditUserViewModel} from "../../../view-model/user/edit-user.view-model";
 
-    export default {
-        name: 'profile',
-        components: {ImageCropper, UserHobby, UserDescriptionDetail},
-        dependencies: ['userRoleConstant', '$user', '$userDescription', '$hobby', '$skill', '$responsibility', '$project', '$lodash', '$toastr'],
-        data() {
-            return {
-                user: {
-                    id: 1,
-                    descriptions: [],
-                    hobbies: [],
-                    projects: [],
-                    techniques: []
-                },
-                bUserDescriptionModalOpened: false,
-                selectedUserDescription: null,
-                selectedTechnique: null,
+    @Component({
+        dependencies: ['$user', '$userDescription', '$toastr'],
+        components: {
+            UserDescriptionDetail,
+            ImageCropper
+        }
+    })
+    export default class ProfileComponent extends Vue {
 
-                // Whether user profile editor modal is visible or not.
-                bUserProfileEditorVisible: false,
 
-                croppedProfilePhoto: {},
+        //#region Properties
 
-                selectedSkillCategory: null,
-                tabIndex: 0
-            }
-        },
-        computed: {
-            ...mapGetters([
-                'profile'
-            ]),
+        /*
+        * Whether add/edit user description modal is opened or not.
+        * */
+        private bAddEditUserDescriptionModalOpened: boolean = false;
 
-            /*
-            * Check whether user is able to add user description or not.
-            * */
-            bIsAbleToEditProfile(){
-                // Profile not found.
-                if (!self.profile)
+        /*
+        * Whether user profile editor is visible or not.
+        * */
+        private bUserProfileEditorVisible: boolean = false;
+
+
+        /*
+        * User description that is selected for editing.
+        * */
+        private oSelectedUserDescription: UserDescription | null = null;
+
+        /*
+        * User id which has this profile information.
+        * */
+        private userId: number = 0;
+
+        /*
+        * User instance.
+        * */
+        private user: UserViewModel | null = null;
+
+        /*
+        * User profile which is using system.
+        * */
+        @Getter('profile')
+        private profile: Profile;
+
+        /*
+        * Vue router service.
+        * */
+        // private $route: any;
+
+        private $user: any;
+        private $userDescription: any;
+        private $toastr: any;
+
+        //#endregion
+
+        //#region Methods
+
+        /*
+        * Add loading screen to UI.
+        * */
+        @Mutation('addLoadingScreen') addLoadingScreen: any;
+
+        /*
+        * Delete loading screen on UI.
+        * */
+        @Mutation('deleteLoadingScreen') deleteLoadingScreen: any;
+
+        /*
+        * Check whether user is able to add user description or not.
+        * */
+        public get bIsAbleToEditProfile(): boolean {
+            // Profile not found.
+            if (!this.profile)
+                return false;
+
+            let profile = this.profile;
+            // Profile is not an admin.
+            if (this.profile.role !== UserRoles.admin) {
+                if (profile.id !== this.userId)
                     return false;
-
-                let profile = self.profile();
-                if (!profile)
-                    return false;
-
-                // Profile is not an admin.
-                if (profile.role !== self.userRoleConstant.admin){
-                    if (profile.id !== self.user.id)
-                        return false;
-
-                    return true;
-                }
 
                 return true;
-
             }
-        },
-        mounted() {
 
+            return true;
+
+        }
+
+        //#endregion
+
+        //#region Constructor
+
+        constructor() {
+            super();
+
+            console.log(this.$user);
+        }
+
+        //#endregion
+
+        //#region Methods
+
+        /*
+        * Load user descriptions.
+        * */
+        public loadUserDescriptions(): Promise<UserDescription[]> {
+            return this.$userDescription
+                .loadUserDescriptions(null, [this.userId], null, null)
+                .then((loadUserDescriptionsResult: SearchResult<UserDescription[]>) => {
+                    return loadUserDescriptionsResult.records;
+                })
+                .catch(() => {
+                    return [];
+                });
+        }
+
+
+        //#endregion
+
+        //#region Events
+
+        /*
+        * Called when component is mounted successfully.
+        * */
+        public mounted() {
             // Get params in route.
-            let params = this.$route.params;
-            let userId = parseInt(params.id);
-
-            // Get function context.
-            let self = this;
+            let params: any = this.$route.params;
+            let userId = parseInt(params['userId']);
+            this.userId = userId;
 
             // Block UI.
-            self.addLoadingScreen();
+            this.addLoadingScreen();
 
             // List of promises that needs resolving.
             let promises = [];
 
             // Find user information from cache. This is for preventing requesting to api end-point too many times.
-            let user = params.user;
+            let user = <User> params.user;
             if (user) {
                 promises[0] = new Promise((resolve) => {
                     resolve(user);
@@ -155,16 +229,16 @@
 
                 // Build search condition.
                 let condition = {
-                    userIds: [self.user.id],
+                    userIds: [userId],
                     pagination: {
                         page: 1,
                         records: 1
                     }
                 };
 
-                promises[0] = self.$user
+                promises[0] = this.$user
                     .loadUsers(condition)
-                    .then((loadUsersResult) => {
+                    .then((loadUsersResult: SearchResult<User[]>) => {
                         // Get users.
                         let users = loadUsersResult.records;
                         return users[0];
@@ -172,170 +246,130 @@
             }
 
             //Load user descriptions
-            promises[1] = self.loadUserDescriptions();
+            promises[1] = this.loadUserDescriptions();
 
             //#endregion
 
             Promise.all(promises)
-                .then((loadRecordResults) => {
+                .then((loadRecordResults: Array<any>) => {
                     // Get user.
-                    let user = loadRecordResults[0];
-                    let userDescriptions = loadRecordResults[1];
+                    this.user = <UserViewModel> loadRecordResults[0];
 
-                    let pUser = {};
-                    pUser.id = user.id;
-                    pUser.firstName = user.firstName;
-                    pUser.lastName = user.lastName;
-                    pUser.photo = user.photo;
+                    // Update user descriptions.
+                    let userDescriptions = <UserDescription[]> loadRecordResults[1];
+                    this.user.descriptions = userDescriptions;
 
-                    pUser.descriptions = userDescriptions;
-                    pUser.techniques = [];
+                    this.$toastr.success('User data has been loaded successfully.');
+                    return true;
+                })
+                .then(() => {
+                    // Unlock the app UI.
+                    this.deleteLoadingScreen();
+                });
+        }
 
-                    // Update user information.
-                    self.user = pUser;
+        //#region User descriptions
 
-                    self.$toastr.success('User data has been loaded successfully.');
+        /*
+        * Called when add user description is clicked.
+        * */
+        public vOnAddUserDescriptionClick(): void {
+            this.oSelectedUserDescription = new UserDescription();
+            this.oSelectedUserDescription.id = 0;
+            this.oSelectedUserDescription.description = '';
+            this.oSelectedUserDescription.userId = this.userId;
+
+            this.bAddEditUserDescriptionModalOpened = true;
+        }
+
+        /*
+        * Called when add/edit user description is confirmed adding/editing.
+        * */
+        public vOnUserDescriptionConfirm(model: UserDescription): void {
+            // Block UI.
+            this.addLoadingScreen();
+
+            this.$userDescription
+                .addUserDescription(model.userId, model.description)
+                .then((userDescription: UserDescription) => {
+                    this.bAddEditUserDescriptionModalOpened = false;
+
+                    // Add description to list.
+                    this.user.descriptions.push(userDescription);
+
+                    this.$toastr.success('Added user description successfully.');
+                    return true;
                 })
                 .finally(() => {
-                    // Unlock the app UI.
+                    this.deleteLoadingScreen();
+                });
+        }
+
+        /*
+        * Called when add/edit user description is cancelled.
+        * */
+        public vOnUserDescriptionCancel(): void {
+            this.bAddEditUserDescriptionModalOpened = false;
+        }
+
+        //#endregion
+
+        //#region Profile photo
+
+        /*
+        * Called when profile editor button is clicked.
+        * */
+        vOnProfileEditClick() {
+            this.bUserProfileEditorVisible = true;
+        }
+
+        /*
+        * Called when image cropper modal cancel button is clicked.
+        * */
+        vOnImageCropperCancel() {
+            this.bUserProfileEditorVisible = false;
+        }
+
+        /*
+        * Called when profile image is cropped.
+        * */
+        vOnProfileImageCropped(blob: Blob) {
+
+            // Get current context.
+            let self = this;
+
+            // Get targeted user.
+            let user = this.user;
+            if (!user)
+                return;
+
+            // Add loading screen.
+            this.addLoadingScreen();
+
+            let editUserOption = new EditUserViewModel();
+            editUserOption.photo = blob;
+
+            this.$user
+                .editUser(user.id, editUserOption, blob)
+                .then((user: User) => {
+                    this.$toastr.success('User profile image is uploaded.');
+
+                    // Update profile image.
+                    if (this.user)
+                        this.user.photo = user.photo;
+
+                    // Close the modal.
+                    this.bUserProfileEditorVisible = false;
+                    return true;
+                })
+                .finally(() => {
                     self.deleteLoadingScreen();
                 });
-        },
-        methods: {
-
-            // Map mutations.
-            ...mapMutations([
-                'addLoadingScreen',
-                'deleteLoadingScreen'
-            ]),
-
-            /*
-            * Load user hobbies by using specific conditions.
-            * */
-            loadUserHobbies() {
-                // Get current function context.
-                let self = this;
-
-                // Get user id.
-                return self.$hobby
-                    .loadUserHobbies(null, [self.user.id], null)
-                    .then((loadUserHobbiesResult) => {
-                        return loadUserHobbiesResult.records;
-                    })
-                    .catch(() => {
-                        self.user.hobbies = []
-                    });
-            },
-
-            /*
-            * Load user descriptions by using specific conditions.
-            * */
-            loadUserDescriptions() {
-                // Get function context.
-                let self = this;
-
-                return self.$userDescription
-                    .loadUserDescriptions(null, [self.user.id], null, null)
-                    .then((loadUserDescriptionsResult) => {
-                        return loadUserDescriptionsResult.records;
-                    })
-                    .catch(() => {
-                        return [];
-                    });
-            },
-
-            /*
-            * Called when add user description is clicked.
-            * */
-            vOnAddUserDescriptionClick() {
-                this.selectedUserDescription = {
-                    userId: this.user.id,
-                    description: ''
-                };
-
-                this.bUserDescriptionModalOpened = true;
-            },
-
-            /*
-            * Called when add/edit user description is confirmed adding/editing.
-            * */
-            vOnUserDescriptionConfirm(model) {
-                let self = this;
-
-                // Block UI.
-                self.addLoadingScreen();
-
-                self.$userDescription
-                    .addUserDescription(model.userId, model.description)
-                    .then((userDescription) => {
-                        self.bUserDescriptionModalOpened = false;
-
-                        // Add description to list.
-                        self.user.descriptions.push(userDescription);
-
-                        self.$toastr.success('Added user description successfully.');
-                    })
-                    .finally(() => {
-                        self.deleteLoadingScreen();
-                    });
-            },
-
-            /*
-            * Called when add/edit user description is cancelled.
-            * */
-            vOnUserDescriptionCancel() {
-                this.bUserDescriptionModalOpened = false;
-            },
-
-            /*
-            * Called when profile editor button is clicked.
-            * */
-            vOnProfileEditClick() {
-                this.bUserProfileEditorVisible = true;
-            },
-
-            /*
-            * Called when image cropper modal cancel button is clicked.
-            * */
-            vOnImageCropperCancel() {
-                this.bUserProfileEditorVisible = false;
-            },
-
-            /*
-            * Called when profile image is cropped.
-            * */
-            vOnProfileImageCropped(blob) {
-
-                // Get current context.
-                let self = this;
-
-                // Get targeted user.
-                let user = this.user;
-
-                // Add loading screen.
-                self.addLoadingScreen();
-
-                // Initialize upload profile promise.
-                let pUploadProfileImagePromise = null;
-
-                pUploadProfileImagePromise = self.$user
-                    .uploadProfileImage(user.id, blob);
-
-                pUploadProfileImagePromise
-                    .then(() => {
-                        self.$toastr.success('User profile image is uploaded.');
-
-                        // Close the modal.
-                        self.bUserProfileEditorVisible = false;
-                    })
-                    .finally(() => {
-                        self.deleteLoadingScreen();
-                    });
-            }
         }
+
+        //#endregion
+
+        //#endregion
     }
+
 </script>
-
-<style scoped>
-
-</style>

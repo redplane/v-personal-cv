@@ -10,6 +10,9 @@
                 * */
                 loadPageCalculation(totalRecords, itemsPerPage){
 
+                    if (!totalRecords || !itemsPerPage)
+                        return 1;
+                    
                     if (totalRecords < 1 || itemsPerPage < 1)
                         return 1;
 
