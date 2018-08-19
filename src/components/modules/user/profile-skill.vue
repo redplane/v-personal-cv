@@ -133,7 +133,7 @@
 <script>
     import {mapMutations, mapGetters} from 'vuex';
     import SkillCategoryDetail from "../skill-category/skill-category-detail";
-    import SkillSelector from "../../shared/skill-selector";
+    import SkillSelector from "../../shared/skill-selector.component";
     import ImageCropper from '../../shared/image-cropper.component';
     import UserSkillDetail from './user-skill-detail.component';
 

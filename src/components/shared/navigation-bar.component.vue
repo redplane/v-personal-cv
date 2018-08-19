@@ -27,7 +27,7 @@
                     </li>
 
                     <li v-if="!profile">
-                        <a href="javascript:void(0);" v-on:click="vOnSigninClicked()">Sign in</a>
+                        <a href="javascript:void(0);" v-on:click="vOnSignInClicked()">Sign in</a>
                     </li>
                 </ul>
             </div>
@@ -35,30 +35,45 @@
     </nav>
 </template>
 
-<script>
+<script lang="ts">
 
     import {EventBus} from '@/event-bus.ts'
+    import {Vue, Component} from 'vue-property-decorator'
+    import {Profile} from "../../models/profile"
+    import {Getter} from 'vuex-class'
 
-    export default {
-        name: 'navigation-bar',
-        props: {},
-        computed: {
-            profile() {
-                return this.$store.getters.profile;
-            }
-        },
-        methods: {
-            vOnSigninClicked() {
-                EventBus.$emit('eventClickSignIn');
-            },
+    @Component({
+        name: 'navigation-bar'
+    })
+    export default class NavigationBarComponent extends Vue {
 
-            /*
-            * Called when sign out button is clicked.
-            * */
-            vOnSignOutClicked(){
-                EventBus.$emit('eventClickSignOut');
-            }
+        //#region Properties
+
+        /*
+        * Profile state.
+        * */
+        @Getter('profile')
+        public profile: Profile;
+
+        //#endregion
+
+        //#region Methods
+
+        /*
+        * Called when Sign In button is clicked.
+        * */
+        public vOnSignInClicked(): void {
+            EventBus.$emit('eventClickSignIn');
         }
+
+        /*
+        * Called when sign out button is clicked.
+        * */
+        public vOnSignOutClicked(): void{
+            EventBus.$emit('eventClickSignOut');
+        }
+
+        //#endregion
     }
 
 </script>

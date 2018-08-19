@@ -34,8 +34,8 @@
 
     // Import toastr style.
 
-    import NavigationBar from './components/shared/navigation-bar'
-    import LoginBox from './components/shared/login-box';
+    import NavigationBar from './components/shared/navigation-bar.component'
+    import LoginBox from './components/shared/login-box.component';
 
     import {EventBus} from '@/event-bus'
     import { mapState, mapMutations } from 'vuex'
@@ -132,7 +132,7 @@
                         self.bIsLoginModalAvailable = false;
 
                         // Trigger application event that login is successfully.
-                        EventBus.emit(self.eventConstant.loginSuccess);
+                        EventBus.$emit(self.eventConstant.loginSuccess);
                     })
                     .finally(() => {
                         self.deleteLoadingScreen();

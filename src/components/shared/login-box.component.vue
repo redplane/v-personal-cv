@@ -59,7 +59,7 @@
 
 <script lang="ts">
 
-    import {VueRecaptcha} from 'vue-recaptcha';
+    import VueRecaptcha from 'vue-recaptcha';
     import {Vue, Component} from 'vue-property-decorator'
     import {LoginViewModel} from "../../view-model/user/login.view-model";
 
@@ -78,6 +78,9 @@
         * */
         private loginModel: LoginViewModel;
 
+        /*
+        * Captcha key that is used by front-end.
+        * */
         public get captchaSiteKey(): string{
             return this.gCaptchaSiteKey;
         }
@@ -119,6 +122,17 @@
         * */
         public vOnGoogleCaptchaVerify(response: string){
             this.loginModel.clientCaptchaCode = response;
+        }
+
+        //#endregion
+
+        //#region Events
+
+        /*
+        * Called when component is mounted successfully.
+        * */
+        public mounted(): void{
+            console.log(this.captchaSiteKey);
         }
 
         //#endregion
