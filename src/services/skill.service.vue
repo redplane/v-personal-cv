@@ -55,11 +55,11 @@
                 /*
                 * Add skills to a specific category.
                 * */
-                addSkillsToCategory(skillCategoryId, skillIds) {
+                addSkillsToCategory(skillCategoryId, hasSkills) {
                     // Initialize model to submit api.
                     let model = {
                         skillCategoryId: skillCategoryId,
-                        skillIds: skillIds
+                        hasSkills: hasSkills
                     };
 
                     return $axios
@@ -74,15 +74,27 @@
                 /*
                 * Edit skill category by using specific information.
                 * */
-                editSkillCategory(id, userId, photo, name) {
+                editSkillCategory(model) {
                     // Initialize model to submit api.
                     let fd = new FormData();
-                    fd.append('userId', userId);
-                    fd.append('photo', photo);
-                    fd.append('name', name);
+
+                    if (model.photo)
+                        fd.append('photo', model.photo);
+
+                    if (model.name)
+                        fd.append('name', model.name);
+
+                    let options = {
+                        headers: {
+                            'Content-Type': undefined
+                        },
+                        transformRequest: [(data, headers) => {
+                            return data
+                        }]
+                    };
 
                     return this,$axios
-                        .put(`${baseUrl}/api/skill-category/${id}`, fd)
+                        .put(`${baseUrl}/api/skill-category/${model.id}`, fd, options)
                         .then((editSkillCategoryResponse) => {
                             if (!editSkillCategoryResponse)
                                 throw 'Failed to edit skill category';

@@ -32,7 +32,9 @@
                         <tbody>
                         <tr v-for="hobby in hobbies">
                             <td class="text-center">{{hobby.name}}</td>
-                            <td class="text-center">{{hobby.description}}</td>
+                            <td class="text-center">
+                                <div v-html="hobby.description"></div>
+                            </td>
                             <td class="text-center">
                                 <button class="btn btn-info"
                                         v-if="bIsAbleToEditProfile"
@@ -115,7 +117,7 @@
     import {State, Getter, Action, Mutation, namespace} from 'vuex-class'
 
     // Import components
-    import UserHobbyDetail from './user-hobby-detail.component';
+    import UserHobbyDetail from './profile-hobby-editor';
     import {Profile} from "../../../models/profile";
     import {UserRoles} from "../../../enumerations/user-role.enum";
     import {LoadHobbyViewModel} from "../../../view-model/hobby/load-hobby.view-model";
@@ -126,7 +128,7 @@
     import PaginationConstant from '../../../constants/pagination.constant.vue';
 
     // Import components
-    import UserHobbyDetail from './user-hobby-detail.component';
+    import UserHobbyDetail from './profile-hobby-editor';
 
     @Component({
         dependencies: ['$ui', '$toastr', '$hobby'],

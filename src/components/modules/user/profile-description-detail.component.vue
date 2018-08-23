@@ -1,10 +1,11 @@
 <template>
     <div>
-        <div class="panel panel-info">
+        <div class="panel panel-info"
+             v-if="model">
             <div class="panel-heading">
                 <h3 class="panel-title">
-                    <span v-if="!userDescription || !userDescription.id">Add user description</span>
-                    <span v-if="userDescription && userDescription.id">Edit user description</span>
+                    <span v-if="!model || !model.id">Add user description</span>
+                    <span v-if="model && model.id">Edit user description</span>
                 </h3>
             </div>
             <div class="panel-body">
@@ -16,10 +17,8 @@
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="form-group">
-                            <textarea v-model="userDescription.description"
-                                      class="form-control"
-                                      rows="5"
-                                      style="resize: none"></textarea>
+                            <trumbowyg v-model="model.description"
+                                       :config="editorConfigs"></trumbowyg>
                         </div>
                     </div>
                 </div>
@@ -39,9 +38,14 @@
 
     import {Component, Prop, Vue} from 'vue-property-decorator';
     import {UserDescription} from "../../../models/user-description";
+    import Trumbowyg from 'vue-trumbowyg/src/component.vue';
 
-
-    @Component
+    @Component({
+        name: 'profile-description-detail',
+        components:{
+            Trumbowyg
+        }
+    })
     export default class ProfileDescriptionDetailComponent extends Vue {
 
         //#region Properties
@@ -55,7 +59,26 @@
         /*
         * User description information.
         * */
-        private userDescription: UserDescription | null;
+        private model: UserDescription = new UserDescription();
+
+        /*
+        * Trumbowyg edit configuration.
+        * */
+        private editorConfigs: any = {
+            btns: [
+                ['viewHTML'],
+                ['undo', 'redo'], // Only supported in Blink browsers
+                ['formatting'],
+                ['strong', 'em', 'del'],
+                ['superscript', 'subscript'],
+                ['link'],
+                ['insertImage'],
+                ['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'],
+                ['unorderedList', 'orderedList'],
+                ['horizontalRule'],
+                ['removeformat'],
+            ]
+        };
 
         //#endregion
 
@@ -65,7 +88,7 @@
         * Called when ok is clicked.
         * */
         public vOnOkClick(): void {
-            this.$emit('click-confirm', this.userDescription);
+            this.$emit('click-confirm', this.model);
         }
 
         /*
@@ -83,8 +106,13 @@
         * Called when component is mounted successfully.
         * */
         public mounted(): void{
+            if (!this.userDescriptionProperty){
+                this.model = new UserDescription();
+                return;
+            }
+
             // Get method context.
-            this.userDescription = Object.assign({}, this.userDescriptionProperty);
+            this.model = Object.assign({}, this.userDescriptionProperty);
         }
 
         //#endregion

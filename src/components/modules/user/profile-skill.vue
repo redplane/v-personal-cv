@@ -31,16 +31,48 @@
                 <div class="col-lg-9 col-xs-8">
                     <div class="form-group"
                          v-for="skill in technique.skills">
-                        <div class="input-group">
+                        <div :class="{'input-group': profile}"
+                             v-if="((editingSkill.skillId !== skill.skillId) || (editingSkill.skillCategoryId !== skill.skillCategoryId))">
+
+                            <!--Skill is not being edited-->
                             <div class="form-control">
                                 <progress-bar v-model="skill.point"
                                               label
                                               :label-text="skill.name"
-                                              @click="vOnUserEditSkillClicked(technique, skill)"></progress-bar>
+                                              @click="vOnUserEditSkillClicked(skill)"></progress-bar>
                             </div>
-                            <span class="input-group-btn">
-                                <button class="btn btn-danger" @click="vOnSkillClickDelete(technique.id, skill.id)">
+
+                            <span class="input-group-btn" v-if="profile">
+                                <button class="btn btn-info"
+                                        @click="vOnSkillSelectedToEdited(skill)">
+                                    <span class="fa fa-edit"></span>
+                                </button>
+                                <button class="btn btn-danger"
+                                        @click="vOnSkillClickDelete(technique.id, skill.skillId)">
                                     <span class="fa fa-trash"></span>
+                                </button>
+                            </span>
+                        </div>
+
+                        <!--Skill is being edited-->
+                        <div v-else-if="profile"
+                             class="input-group">
+                            <input class="form-control"
+                                   type="number"
+                                   min="1"
+                                   max="100"
+                                   step="1"
+                                   v-model="editingSkill.point">
+
+                            <span class="input-group-btn">
+                                <button class="btn btn-primary"
+                                        @click="vOnEditSkillInfo()">
+                                    <span class="fa fa-check"></span>
+                                </button>
+
+                                <button class="btn btn-danger"
+                                        @click="vOnCancelSkillEdit()">
+                                    <span class="fa fa-times"></span>
                                 </button>
                             </span>
                         </div>
@@ -62,8 +94,8 @@
             <div class="form-group">
                 <div class="text-center">
                     <div class="form-group">
-                        <pagination v-model="loadUserSkillCondition.pagination.page"
-                                    :total-page="totalUserSkillPage"
+                        <pagination v-model="loadSkillCategoryCondition.pagination.page"
+                                    :total-page="totalSkillCategoryPage"
                                     :boundary-links="true"
                                     size="sm"
                                     @change="vOnPaginationChange()">
@@ -86,7 +118,7 @@
                v-model="bIsAddEditSkillModalOpened"
                v-if="bIsAddEditSkillModalOpened"
                class="replace-body">
-            <skill-selector :skill-category-property="selectedSkillCategory"
+            <skill-selector :skill-category-property="oSelectedSkillCategory"
                             v-on:cancel="bIsAddEditSkillModalOpened = false"
                             v-on:select-skill="vOnSkillsSelected">
             </skill-selector>
@@ -130,452 +162,489 @@
     </div>
 </template>
 
-<script>
-    import {mapMutations, mapGetters} from 'vuex';
+<script lang="ts">
     import SkillCategoryDetail from "../skill-category/skill-category-detail";
     import SkillSelector from "../../shared/skill-selector.component";
     import ImageCropper from '../../shared/image-cropper.component';
     import UserSkillDetail from './user-skill-detail.component';
+    import {Component, Prop, Vue} from 'vue-property-decorator';
+    import {Profile} from "../../../models/profile";
+    import {Getter, Mutation} from "vuex-class";
+    import {UserRoles} from "../../../enumerations/user-role.enum";
+    import {LoadSkillCategoryViewModel} from "../../../view-model/skill-category/load-skill-category.view-model";
+    import {SkillCategory} from "../../../models/skill-category";
+    import {SearchResult} from "../../../models/search-result";
+    import {Skill} from "../../../models/skill";
+    import {HasSkillViewModel} from "../../../view-model/has-skill.view-model";
+    import {SkillViewModel} from "../../../view-model/skill/skill.view-model";
+    import {SkillCategoryViewModel} from "../../../view-model/skill-category.view-model";
+    import {EditSkillCategoryViewModel} from "../../../view-model/skill-category/edit-skill-category.view-model";
+    import {SkillInfoViewModel} from "../../../view-model/skill/skill-info.view-model";
 
-    export default {
-        name: 'user-technique-dashboard',
-        components: {UserSkillDetail, SkillSelector, SkillCategoryDetail, ImageCropper},
-        dependencies: ['paginationConstant', 'userRoleConstant', '$ui', '$user', '$toastr', '$skill'],
-        props: {
-            userIdProperty: null
+    @Component({
+        components: {
+            UserSkillDetail, SkillSelector, SkillCategoryDetail, ImageCropper
         },
-        computed: {
-            techniques() {
-                let self = this;
-                if (!self.loadUserSkillResult)
-                    return [];
+        dependencies: ['paginationConstant', 'userRoleConstant', '$ui', '$user', '$toastr', '$skill']
+    })
+    export default class ProfileSkillComponent extends Vue {
 
-                return self.loadUserSkillResult.records;
-            },
+        //#region Properties
 
-            /*
-            * Total page that will be displayed on screen.
-            * */
-            totalUserSkillPage() {
-                let self = this;
-                return self.$ui.loadPageCalculation(self.loadUserSkillResult.total, self.loadUserSkillCondition.pagination.records)
-            },
+        // Profile information.
+        @Getter('profile')
+        public profile: Profile;
 
-            /*
-            * Check whether profile is able to edit skill information.
-            * */
-            bIsAbleToEditSkill() {
+        // User id property.
+        @Prop(Number)
+        private userIdProperty: number;
 
-                let self = this;
-                if (!self.profile)
+        // Id of user which is being viewed.
+        private userId: number;
+
+        // Id of skill which is currently being edited.
+        private editingSkill: HasSkillViewModel = new HasSkillViewModel();
+
+        // Skill which is currently selected.
+        private oSelectedUserSkill: any;
+
+        // Skill category which is selected.
+        private oSelectedSkillCategory: SkillCategory;
+
+        // Condition to load skill categories.
+        private loadSkillCategoryCondition: LoadSkillCategoryViewModel;
+
+        // Category load result.
+        private loadSkillCategoryResult: SearchResult<SkillCategoryViewModel[]>;
+
+        // Whether skill modal is available or not.
+        private bIsUserSkillModalAvailable: boolean = false;
+
+        // Whether add/edit skill modal is available or not.
+        private bIsAddEditSkillModalOpened: boolean = false;
+
+        // Whether add/edit skill category modal is available or not.
+        private bIsAddEditTechniqueModalOpened: boolean = false;
+
+        // Whether skill photo cropper modal is visible or not.
+        private bIsSkillCategoryPhotoModalVisible: boolean = false;
+
+        /*
+        * Check whether profile is able to edit skill information.
+        * */
+        public get bIsAbleToEditSkill(): boolean {
+            if (!this.profile)
+                return false;
+
+            if (this.profile.role !== UserRoles.admin) {
+                if (this.profile.id !== this.userId)
                     return false;
-
-                let profile = self.profile();
-                if (!profile)
-                    return false;
-
-                if (profile.role !== self.userRoleConstant.admin) {
-                    if (profile.id !== self.userId)
-                        return false;
-
-                    return true;
-                }
 
                 return true;
             }
-        },
-        data() {
-            return {
 
-                // Id of current user.
-                userId: null,
+            return true;
+        }
 
-                // Skill which is currently selected.
-                oSelectedUserSkill: null,
+        /*
+        * List of skill categories to be displayed.
+        * */
+        public get techniques(): Array<SkillCategoryViewModel> {
 
-                // Whether skill modal is available or not.
-                bIsUserSkillModalAvailable: false,
+            if (!this.loadSkillCategoryResult)
+                return new Array<SkillCategoryViewModel>();
 
-                bIsAddEditSkillModalOpened: false,
-                bIsAddEditTechniqueModalOpened: false,
+            let skillCategories = this.loadSkillCategoryResult.records;
+            if (!skillCategories)
+                return new Array<SkillCategoryViewModel>();
 
-                // Whether skill photo cropper modal is visible or not.
-                bIsSkillCategoryPhotoModalVisible: false,
+            return skillCategories;
+        }
 
-                // User skill search condition.
-                loadUserSkillCondition: {
-                    ids: null,
-                    userIds: null,
-                    names: null,
-                    createdTime: null,
-                    includePersonalSkills: true,
-                    pagination: {
-                        page: 1,
-                        records: this.paginationConstant.dashboardMaxItem
-                    }
-                },
+        /*
+        * Total page that will be displayed on screen.
+        * */
+        public get totalSkillCategoryPage(): number {
+            let $ui = this.$ui;
 
-                // User technique search result.
-                loadUserSkillResult: {
-                    records: [],
-                    total: 0
-                }
-            }
-        },
-        mounted() {
+            // Invalid search result.
+            if (!this.loadSkillCategoryResult || !this.loadSkillCategoryResult.total)
+                return 1;
 
-            // Get current context.
-            let self = this;
+            if (!this.loadSkillCategoryCondition || !this.loadSkillCategoryCondition.pagination || !this.loadSkillCategoryCondition.pagination.records)
+                return 1;
+
+            return $ui
+                .loadPageCalculation(this.loadSkillCategoryResult.total, this.loadSkillCategoryCondition.pagination.records)
+        }
+
+        //#endregion
+
+        //#region Constructor
+
+        /*
+        * Initialize component with settings.
+        * */
+        public constructor() {
+            super();
+            this.loadSkillCategoryCondition = new LoadSkillCategoryViewModel();
+            this.loadSkillCategoryResult = new SearchResult<SkillCategoryViewModel[]>();
+        }
+
+        //#endregion
+
+        //#region Methods
+
+        // Map mutations.
+        @Mutation('addLoadingScreen')
+        public addLoadingScreen: any;
+
+        // Delete loading screen.
+        @Mutation('deleteLoadingScreen')
+        public deleteLoadingScreen: any;
+
+        /*
+        * Called when technique is clicked to be edited.
+        * */
+        public vOnEditTechniqueClicked(skillCategory: SkillCategory) {
+            this.oSelectedSkillCategory = skillCategory;
+            this.bIsAddEditTechniqueModalOpened = true;
+        }
+
+        /*
+        * Load user skill categories by using specific conditions.
+        * */
+        private loadSkillCategories(): Promise<SearchResult<SkillCategoryViewModel[]>> {
+
+            // Initialize search result.
+            let loadHasSkillResult = new SearchResult<SkillCategoryViewModel[]>();
+            loadHasSkillResult.records = [];
+            loadHasSkillResult.total = 0;
+
+            // User id isn't defined.
+            if (!this.userId || !this.userId)
+                return new Promise(resolve => resolve(loadHasSkillResult));
+
+            return this.$skill
+                .loadSkillCategories(this.loadSkillCategoryCondition)
+                .catch(() => {
+                    return new SearchResult<SkillCategoryViewModel[]>();
+                });
+
+        }
+
+        /*
+        * Called when pagination changed.
+        * */
+        public vOnPaginationChange(): void {
 
             // Add loading screen.
-            self.addLoadingScreen();
+            this.addLoadingScreen();
+
+            return this
+                .loadSkillCategories()
+                .then((loadSkillCategoryResult: SearchResult<SkillCategoryViewModel[]>) => {
+                    this.loadSkillCategoryResult = loadSkillCategoryResult;
+                })
+                .finally(() => {
+                    this.deleteLoadingScreen();
+                })
+        }
+
+        //#region Skill
+
+        /*
+        * Called when add skill button is clicked.
+        * */
+        public vOnAddSkillClicked(skillCategory: SkillCategory): void {
+            this.oSelectedSkillCategory = skillCategory;
+            this.bIsAddEditSkillModalOpened = true;
+        }
+
+        /*
+        * Called when skill is selected to be edited.
+        * */
+        public vOnUserEditSkillClicked(skillCategory: SkillCategory, userSkill: Skill): void {
+            // Skill is not valid.
+            if (!userSkill || !userSkill.id || !skillCategory || !skillCategory.id)
+                return;
+
+            this.oSelectedUserSkill = Object.assign({}, userSkill);
+            this.oSelectedUserSkill['skillCategoryId'] = skillCategory.id;
+            this.bIsUserSkillModalAvailable = true;
+        }
+
+        /*
+        * Called when skill are selected to be added.
+        * */
+        public vOnSkillsSelected(skillCategoryId: number, hasSkills: Array<HasSkillViewModel> | null): void {
+            // Block UI.
+            this.addLoadingScreen();
+
+            this.$skill
+                .addSkillsToCategory(skillCategoryId, hasSkills)
+                .then((skillCategories) => {
+                    this.$toastr.success(`${skillCategories.length} have/has been added to system successfully.`);
+                    // Close modal dialog.
+                    this.bIsAddEditSkillModalOpened = false;
+
+                    return this.loadSkillCategories();
+                })
+                .then((loadSkillCategoryResult: SearchResult<SkillCategoryViewModel[]>) => {
+                    this.loadSkillCategoryResult = loadSkillCategoryResult;
+                })
+                .finally(() => {
+                    // Unblock screen.
+                    this.deleteLoadingScreen();
+                });
+        }
+
+        /*
+        * Called when skill is edited.
+        * */
+        public vOnSkillEdited(skill) {
+            if (!skill || !skill.id || !skill.skillCategoryId)
+                return;
+
+            // Block screen access.
+            this.addLoadingScreen();
+
+            this.$skill
+                .editSkillCategorySkillRelationship(skill.skillCategoryId, skill.id, skill.point)
+                .then(() => {
+                    // Display toast notification.
+                    this.$toastr.success('Skill is edited successfully.');
+
+                    // Hide modal dialog.
+                    this.bIsUserSkillModalAvailable = false;
+                })
+                .finally(() => {
+                    this.deleteLoadingScreen();
+                });
+
+        }
+
+        /*
+        * Called when user skill edit modal is cancelled.
+        * */
+        public vOnUserSkillEditCancelled(): void {
+            this.bIsUserSkillModalAvailable = false;
+        }
+
+        /*
+        * Called when skill delete button is clicked.
+        * */
+        public vOnSkillClickDelete(skillCategoryId: number, skillId: number): void {
+            let deleteSkillCategorySkillCondition = {
+                skillCategoryId: skillCategoryId,
+                skillId: skillId
+            };
+
+            // Block the screen access.
+            this.addLoadingScreen();
+
+            this.$skill
+                .deleteSkillCategorySkillRelationship(deleteSkillCategorySkillCondition)
+                .then(() => {
+                    return this.loadSkillCategories();
+                })
+                .then((loadSkillCategoryResult: SearchResult<SkillCategoryViewModel[]>) => {
+                    this.loadSkillCategoryResult = loadSkillCategoryResult;
+                })
+                .finally(() => {
+                    this.deleteLoadingScreen();
+                })
+        }
+
+        //#endregion
+
+        //#region Skill category
+
+        /*
+        * Add skill category.
+        * */
+        public addEditSkillCategory(technique: SkillCategoryViewModel): void {
+            let pAddEditTechniquePromise = null;
+
+            // Freeze ui.
+            this.addLoadingScreen();
+
+            if (!technique.id) {
+                pAddEditTechniquePromise = this.$skill.addSkillCategory(this.userId, null, technique.description)
+                    .then((skillCategory: SkillCategory) => {
+                        this.$toastr.success('A skill category has been added.');
+                    });
+            }
+            else {
+                pAddEditTechniquePromise = this.$skill.editSkillCategory(technique)
+                    .then((editSkillCategoryResult: SkillCategory) => {
+                        this.$toastr.success('Skill category has been edited successfully.');
+                        for (let skillCategory of this.loadSkillCategoryResult.records) {
+                            if (skillCategory.id !== editSkillCategoryResult.id)
+                                continue;
+
+                            skillCategory.name = editSkillCategoryResult.name;
+                            skillCategory.photo = editSkillCategoryResult.photo;
+                        }
+                    });
+            }
+
+            pAddEditTechniquePromise
+                .then(() => {
+                    this.bIsAddEditTechniqueModalOpened = false;
+                    this.deleteLoadingScreen();
+                });
+        }
+
+        /*
+        * Called when add technique is clicked.
+        * */
+        public vOnAddTechniqueClicked(): void {
+            // Clear model information.
+            this.oSelectedSkillCategory = new SkillCategory();
+            this.bIsAddEditTechniqueModalOpened = true;
+        }
+
+        /*
+        * Called when skill category image cropper is clicked.
+        * */
+        public vOnSkillCategoryImageCropperClick(skillCategory: SkillCategory): void {
+            let self = this;
+            self.oSelectedSkillCategory = skillCategory;
+            self.bIsSkillCategoryPhotoModalVisible = true;
+        }
+
+        /*
+        * Called when skill category photo image is cropped.
+        * */
+        public vOnSkillCategoryPhotoCropped(blob: Blob): void {
+
+            // Get skill category.
+            let skillCategory = this.oSelectedSkillCategory;
+            if (!skillCategory || !skillCategory.id)
+                return;
+
+            if (!blob)
+                return;
+
+            // Initialize model.
+            let model: EditSkillCategoryViewModel = new EditSkillCategoryViewModel();
+            model.id = skillCategory.id;
+            model.photo = blob;
+
+            // Add loading screen.
+            this.addLoadingScreen();
+
+            // Upload image to skill category.
+            this.$skill
+                .editSkillCategory(model)
+                .then((editSkillCategoryResult: SkillCategory) => {
+                    // Display toast notification.
+                    this.$toastr.success('Skill category photo has been uploaded to server successfully.');
+
+                    for (let skillCategory of this.loadSkillCategoryResult.records) {
+                        if (skillCategory.id !== editSkillCategoryResult.id)
+                            continue;
+
+                        skillCategory.name = editSkillCategoryResult.name;
+                        skillCategory.photo = editSkillCategoryResult.photo;
+                    }
+
+                    // Hide the modal.
+                    this.bIsSkillCategoryPhotoModalVisible = false;
+                })
+                .finally(() => {
+                    this.deleteLoadingScreen();
+                });
+        }
+
+        /*
+        * Called when skill category photo modal cancel button is clicked.
+        * */
+        public vOnSkillCategoryPhotoCancel(): void {
+            this.bIsSkillCategoryPhotoModalVisible = false;
+        }
+
+        /*
+        * Called when skill is selected to be editted.
+        * */
+        public vOnSkillSelectedToEdited(skillInfo: HasSkillViewModel): void {
+            this.editingSkill = new HasSkillViewModel();
+            this.editingSkill = Object.assign({}, skillInfo);
+        }
+
+        /*
+        * Called when skill is cancelled editing.
+        * */
+        public vOnCancelSkillEdit(): void {
+            this.editingSkill = new HasSkillViewModel();
+        }
+
+        /*
+        * Called when skill info is confirmed to be edited.
+        * */
+        public vOnEditSkillInfo(): void{
+
+            // Get skill info.
+            let skillInfo: HasSkillViewModel = this.editingSkill;
+            if (!skillInfo)
+                return;
+
+            // Add loading screen.
+            this.addLoadingScreen();
+
+            this.$skill
+                .editSkillCategorySkillRelationship(skillInfo.skillCategoryId, skillInfo.skillId, skillInfo.point)
+                .then((editHasSkillResult: HasSkillViewModel) => {
+                    return this.loadSkillCategories()
+                })
+                .then((loadSkillResult: SearchResult<SkillCategoryViewModel[]>) => {
+                    // Cancel skill editing.
+                    this.editingSkill = new HasSkillViewModel();
+                    this.loadSkillCategoryResult = loadSkillResult;
+
+                    this.$toastr.success('Skill point has been edited');
+                    return loadSkillResult;
+                })
+                .finally(() => {
+                    this.deleteLoadingScreen();
+                })
+        }
+        //#endregion
+
+        //#region Events
+
+        /*
+        * Called when component is mounted successfully.
+        * */
+        public mounted(): void {
+            // Add loading screen.
+            this.addLoadingScreen();
 
             // Get user id.
             let loadUserPromise = new Promise(resolve => {
-                resolve(self.userIdProperty);
+                resolve(this.userIdProperty);
             });
 
             loadUserPromise
                 .then((userId) => {
-                    self.userId = userId;
-                    self.loadUserSkillCondition.userIds = [userId];
+                    this.userId = userId;
+                    this.loadSkillCategoryCondition.userIds = [userId];
+                    this.loadSkillCategoryCondition.includeSkills = true;
 
-                    return self
-                        ._loadUserSkills()
+                    return this
+                        .loadSkillCategories()
                 })
-                .then((loadUserSkillResult) => {
-                    self.loadUserSkillResult = loadUserSkillResult;
+                .then((loadSkillCategoryResult: SearchResult<SkillCategoryViewModel[]>) => {
+                    this.loadSkillCategoryResult = loadSkillCategoryResult;
                 })
                 .finally(() => {
-                    self.deleteLoadingScreen();
+                    this.deleteLoadingScreen();
                 })
 
-        },
-        methods: {
-
-            // Map mutations.
-            ...mapMutations([
-                'addLoadingScreen',
-                'deleteLoadingScreen'
-            ]),
-
-            ...mapGetters([
-                'profile'
-            ]),
-
-            /*
-            * Called when technique is clicked to be edited.
-            * */
-            vOnEditTechniqueClicked(skillCategory) {
-                let self = this;
-                self.oSelectedSkillCategory = skillCategory;
-                self.bIsAddEditTechniqueModalOpened = true;
-            },
-
-            /*
-            * Load user skill categories by using specific conditions.
-            * */
-            _loadUserSkills() {
-                // Get current context.
-                let self = this;
-                if (!self.userId || !self.userId)
-                    return;
-
-                return self.$skill
-                    .loadSkillCategories(self.loadUserSkillCondition)
-                    .then((loadUserSkillCategoryResult) => {
-                        let skillCategories = loadUserSkillCategoryResult.records;
-                        let loadSkillCategorySkillRelationshipCondition = {
-                            skillCategoryIds: skillCategories.map((skillCategory) => skillCategory.id)
-                        };
-
-                        return self.$skill
-                            .loadSkillCategorySkillRelationships(loadSkillCategorySkillRelationshipCondition)
-                            .then((loadSkillCategorySkillRelationshipResult) => {
-                                let relationships = loadSkillCategorySkillRelationshipResult.records;
-                                return {
-                                    skillCategories: skillCategories,
-                                    relationships: relationships,
-                                    totalSkillCategories: loadUserSkillCategoryResult.total
-                                }
-                            });
-                    })
-                    .then((loadResult) => {
-                        let relationships = loadResult.relationships;
-                        let skillCategories = loadResult.skillCategories;
-                        let loadSkillCondition = {
-                            ids: relationships.map(relationship => relationship.skillId)
-                        };
-
-                        return self.$skill
-                            .loadSkills(loadSkillCondition)
-                            .then((loadSkillResult) => {
-                                let skills = loadSkillResult.records;
-                                let mSkill = {};
-                                skills.forEach(skill => {
-                                    mSkill[skill.id] = skill;
-                                });
-
-                                let mRelationships = {};
-                                relationships.forEach((relationship) => {
-                                    if (!mRelationships[relationship.skillCategoryId])
-                                        mRelationships[relationship.skillCategoryId] = [];
-
-                                    if (!mSkill[relationship.skillId])
-                                        return;
-
-                                    let skill = mSkill[relationship.skillId];
-                                    skill['point'] = relationship.point;
-                                    mRelationships[relationship.skillCategoryId].push(skill);
-                                });
-
-                                skillCategories
-                                    .forEach(skillCategory => {
-                                        skillCategory['skills'] = mRelationships[skillCategory.id];
-                                    });
-
-                                return {
-                                    records: skillCategories,
-                                    total: loadResult.totalSkillCategories
-                                }
-                            });
-                    })
-                    .catch((exception) => {
-                        console.log(exception);
-                        return {
-                            records: [],
-                            total: 0
-                        }
-                    });
-
-            },
-
-            /*
-            * Called when pagination changed.
-            * */
-            vOnPaginationChange() {
-                let self = this;
-
-                // Add loading screen.
-                self.addLoadingScreen();
-                return self
-                    ._loadUserSkills()
-                    .then((loadUserSkillResult) => {
-                        self.loadUserSkillResult = loadUserSkillResult;
-                    })
-                    .finally(() => {
-                        self.deleteLoadingScreen();
-                    })
-            },
-
-            //#region Skill
-
-            /*
-            * Called when add skill button is clicked.
-            * */
-            vOnAddSkillClicked(skillCategory) {
-                let self = this;
-                self.selectedSkillCategory = skillCategory;
-                self.bIsAddEditSkillModalOpened = true;
-            },
-
-            /*
-            * Called when skill is selected to be edited.
-            * */
-            vOnUserEditSkillClicked(skillCategory, userSkill) {
-                // Skill is not valid.
-                if (!userSkill || !userSkill.id || !skillCategory || !skillCategory.id)
-                    return;
-
-                // Get current context.
-                let self = this;
-
-                self.oSelectedUserSkill = Object.assign({}, userSkill);
-                self.oSelectedUserSkill['skillCategoryId'] = skillCategory.id;
-                self.bIsUserSkillModalAvailable = true;
-            },
-
-            /*
-            * Called when skill are selected to be added.
-            * */
-            vOnSkillsSelected(skillCategoryId, skillIds) {
-                let self = this;
-                // Block UI.
-                self.addLoadingScreen();
-
-                self.$skill
-                    .addSkillsToCategory(skillCategoryId, skillIds)
-                    .then((skillCategories) => {
-                        self.$toastr.success(`${skillCategories.length} have/has been added to system successfully.`);
-
-                        // Close modal dialog.
-                        self.bIsAddEditSkillModalOpened = false;
-
-                        // Unblock screen.
-                        self.deleteLoadingScreen();
-                    });
-            },
-
-            /*
-            * Called when skill is edited.
-            * */
-            vOnSkillEdited(skill) {
-
-                // Get current context.
-                let self = this;
-
-                if (!skill || !skill.id || !skill.skillCategoryId)
-                    return;
-
-                // Block screen access.
-                self.addLoadingScreen();
-
-                self.$skill
-                    .editSkillCategorySkillRelationship(skill.skillCategoryId, skill.id, skill.point)
-                    .then(() => {
-                        // Display toast notification.
-                        self.$toastr.success('Skill is edited successfully.');
-
-                        // Hide modal dialog.
-                        self.bIsUserSkillModalAvailable = false;
-                    })
-                    .finally(() => {
-                        self.deleteLoadingScreen();
-                    });
-
-            },
-
-            /*
-            * Called when user skill edit modal is cancelled.
-            * */
-            vOnUserSkillEditCancelled() {
-                let self = this;
-                self.bIsUserSkillModalAvailable = false;
-            },
-
-            /*
-            * Called when skill delete button is clicked.
-            * */
-            vOnSkillClickDelete(skillCategoryId, skillId) {
-                let self = this;
-                let deleteSkillCategorySkillCondition = {
-                    skillCategoryId: skillCategoryId,
-                    skillId: skillId
-                };
-
-                // Block the screen access.
-                self.addLoadingScreen();
-
-                self.$skill
-                    .deleteSkillCategorySkillRelationship(deleteSkillCategorySkillCondition)
-                    .then(() => {
-                        return self._loadUserSkills();
-                    })
-                    .then((loadUserSkillResult) => {
-                        self.loadUserSkillResult = loadUserSkillResult;
-                    })
-                    .finally(() => {
-                        self.deleteLoadingScreen();
-                    })
-            },
-
-            //#endregion
-
-            //#region Skill category
-
-            /*
-            * Add skill category.
-            * */
-            addEditSkillCategory(technique) {
-                let pAddEditTechniquePromise = null;
-                let self = this;
-
-                // Freeze ui.
-                self.addLoadingScreen();
-
-                if (!technique.id)
-                    pAddEditTechniquePromise = self.$skill.addSkillCategory(self.userId, null, technique.description)
-                        .then((skillCategory) => {
-                            self.$toastr.success('A skill category has been added.');
-                        });
-                else
-                    pAddEditTechniquePromise = self.$skill.editSkillCategory(technique.id, technique.userId, technique.photo, technique.name)
-                        .then(() => {
-                            self.$toastr.success('Skill has been edited successfully.');
-                        });
-
-                pAddEditTechniquePromise
-                    .then(() => {
-                        self.bIsAddEditTechniqueModalOpened = false;
-                        self.deleteLoadingScreen();
-                    });
-            },
-
-            /*
-            * Called when add technique is clicked.
-            * */
-            vOnAddTechniqueClicked() {
-                let self = this;
-                // Clear model information.
-                self.oSelectedSkillCategory = {};
-
-                self.bIsAddEditTechniqueModalOpened = true;
-            },
-
-            /*
-            * Called when skill category image cropper is clicked.
-            * */
-            vOnSkillCategoryImageCropperClick(skillCategory) {
-                let self = this;
-                self.oSelectedSkillCategory = skillCategory;
-                self.bIsSkillCategoryPhotoModalVisible = true;
-            },
-
-            /*
-            * Called when skill category photo image is cropped.
-            * */
-            vOnSkillCategoryPhotoCropped(blob) {
-
-                // Get current context.
-                let self = this;
-
-                // Get skill category.
-                let skillCategory = self.oSelectedSkillCategory;
-                if (!skillCategory || !skillCategory.id)
-                    return;
-
-                if (!blob)
-                    return;
-
-                // Add loading screen.
-                self.addLoadingScreen();
-
-                // Upload image to skill category.
-                self.$skill
-                    .uploadSkillCategoryPhoto(skillCategory.id, blob)
-                    .then(() => {
-                        // Display toast notification.
-                        self.$toastr.success('Skill category photo has been uploaded to server successfully.');
-
-                        // Hide the modal.
-                        self.bIsSkillCategoryPhotoModalVisible = false;
-                    })
-                    .finally(() => {
-                        self.deleteLoadingScreen();
-                    });
-            },
-
-            /*
-            * Called when skill category photo modal cancel button is clicked.
-            * */
-            vOnSkillCategoryPhotoCancel() {
-                let self = this;
-                self.bIsSkillCategoryPhotoModalVisible = false;
-            }
-
-            //#endregion
-
         }
+
+        //#endregion
     }
 </script>
 

@@ -30,7 +30,7 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 
     // Import toastr style.
 
@@ -38,44 +38,74 @@
     import LoginBox from './components/shared/login-box.component';
 
     import {EventBus} from '@/event-bus'
-    import { mapState, mapMutations } from 'vuex'
+    import {mapState, mapMutations} from 'vuex'
     import store from '@/store'
 
-    export default {
-        dependencies: ['lsAppAccessToken', '$user', '$toastr', '$localStorage', 'eventConstant'],
+    import {Component, Vue} from 'vue-property-decorator';
+    import {Getter, Mutation, State} from "vuex-class";
+    import {Profile} from "./models/profile";
+    import {LoginViewModel} from "./view-model/user/login.view-model";
+
+    const GlobalConstant = require('./constants/global.constant.ts').GlobalConstant;
+    const EventConstant = require('./constants/event.constant.ts').EventConstant;
+
+    @Component({
+        dependencies: ['$user', '$toastr', '$localStorage'],
         components: {
             NavigationBar,
             LoginBox
-        },
-        computed:{
-            ...mapState(
-                [
-                    'blockUi'
-                ]
-            )
-        },
-        data() {
-            return {
-                bIsLoginModalAvailable: false
-            }
-        },
-        mounted() {
+        }
+    })
+    export default class AppComponent extends Vue {
 
-            // Get current function context.
-            let self = this;
+        //#region Properties
 
+        // Block UI instance.
+        @State('blockUi')
+        private blockUi: any;
+
+        // Profile information.
+        @Getter('profile')
+        private profile: Profile;
+
+        // Whether login modal is available or not.
+        private bIsLoginModalAvailable: boolean = false;
+
+        //#endregion
+
+        //#region Constructor
+
+        public constructor() {
+            super();
+
+        }
+
+        //#endregion
+
+        //#region Methods
+
+        @Mutation('addLoadingScreen')
+        private addLoadingScreen: any;
+
+        @Mutation('deleteLoadingScreen')
+        private deleteLoadingScreen: any;
+
+        //#endregion
+
+        //#region Events
+
+        public mounted(): void {
             /*
             * Called when sign in button is clicked.
             * */
             EventBus.$on('eventClickSignIn', () => {
 
                 // Profile is valid. Ignore this event.
-                let profile = self.profile;
+                let profile = this.profile;
                 if (profile)
                     return;
 
-
-                self.bIsLoginModalAvailable = true;
+                this.bIsLoginModalAvailable = true;
             });
 
             /*
@@ -83,70 +113,61 @@
             * */
             EventBus.$on('eventClickSignOut', () => {
                 // Clear the access token.
-                self.$localStorage.removeItem(self.lsAppAccessToken);
+                this.$localStorage.removeItem(GlobalConstant.accessTokenKey);
 
                 // Clear profile from vuex.
                 store.commit('deleteProfile');
             })
-
-        },
-        methods: {
-
-            // Map mutations.
-            ...mapMutations([
-                'addLoadingScreen',
-                'deleteLoadingScreen'
-            ]),
-
-            /*
-            * Called when sign in confirm button is clicked.
-            * */
-            vOnSignIn(loginModel) {
-
-                // Declare access token.
-                let accessToken = null;
-                let self = this;
-
-                // Block app UI.
-                self.addLoadingScreen();
-
-                self.$user
-                    .login(loginModel)
-                    .then((loginResult) => {
-                        // Add to access token to local storage.
-                        accessToken = loginResult.accessToken;
-                        // Attach access token to local storage.
-                        self.$localStorage.setItem(self.lsAppAccessToken, accessToken);
-
-                        return self.$user
-                            .loadProfile(null);
-                    })
-                    .then((profile) => {
-                        self.$store.commit('addProfile', profile);
-
-
-                        // Display success message.
-                        self.$toastr.success('Login successfully.');
-
-                        // Close login modal.
-                        self.bIsLoginModalAvailable = false;
-
-                        // Trigger application event that login is successfully.
-                        EventBus.$emit(self.eventConstant.loginSuccess);
-                    })
-                    .finally(() => {
-                        self.deleteLoadingScreen();
-                    })
-
-            },
-
-            /*
-            * Called when sign in operation is cancelled by user.
-            * */
-            vOnCancelSignIn() {
-                this.bIsLoginModalAvailable = false;
-            }
         }
+
+        /*
+        * Called when sign in confirm button is clicked.
+        * */
+        public vOnSignIn(loginModel: LoginViewModel): void {
+
+            // Declare access token.
+            let accessToken = null;
+
+            // Block app UI.
+            this.addLoadingScreen();
+
+            this.$user
+                .login(loginModel)
+                .then((loginResult) => {
+                    // Add to access token to local storage.
+                    accessToken = loginResult.accessToken;
+                    // Attach access token to local storage.
+                    this.$localStorage.setItem(GlobalConstant.accessTokenKey, accessToken);
+                    return this.$user
+                        .loadProfile(null);
+                })
+                .then((profile) => {
+                    this.$store.commit('addProfile', profile);
+
+
+                    // Display success message.
+                    this.$toastr.success('Login successfully.');
+
+                    // Close login modal.
+                    this.bIsLoginModalAvailable = false;
+
+                    // Trigger application event that login is successfully.
+                    EventBus.$emit(EventConstant.loginSuccessful);
+                })
+                .finally(() => {
+                    this.deleteLoadingScreen();
+                })
+
+        }
+
+        /*
+        * Called when sign in operation is cancelled by user.
+        * */
+        public vOnCancelSignIn(): void {
+            this.bIsLoginModalAvailable = false;
+        }
+
+        //#endregion
     }
 </script>
 

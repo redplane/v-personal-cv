@@ -15,11 +15,12 @@
                             <th></th>
                             <th>Name</th>
                             <th>Created time</th>
+                            <th>Point</th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr v-if="bIsLoadingSkills">
-                            <td colspan="3" class="text-center">Data is being fetched ....</td>
+                            <td colspan="4" class="text-center">Data is being fetched ....</td>
                         </tr>
                         <tr v-else
                             v-for="skill in loadedSkills">
@@ -33,6 +34,11 @@
                             </td>
                             <td>
                                 {{skill.createdTime}}
+                            </td>
+                            <td>
+                                <input type="number"
+                                       class="form-control"
+                                       v-model="mSelectedSkillPoint[skill.id]">
                             </td>
                         </tr>
                         </tbody>
@@ -69,7 +75,6 @@
 </template>
 
 <script lang="ts">
-
     import {SkillCategory} from "../../models/skill-category";
     import {Component, Prop, Vue} from 'vue-property-decorator';
     import {LoadSkillViewModel} from "../../view-model/skill/load-skill.view-model";
@@ -79,6 +84,7 @@
     import {Mutation} from "vuex-class";
     import {Pagination} from "../../models/pagination";
     import PaginationConstant from '../../constants/pagination.constant.vue';
+    import {HasSkillViewModel} from "../../view-model/has-skill.view-model";
 
     @Component({
         name: 'skill-selector',
@@ -118,6 +124,11 @@
         * Map of selected skill.
         * */
         private mSelectedSkillMap: { [id: number]: SkillCategorySkillRelationship; } = {};
+
+        /*
+        * Map of skill & point.
+        * */
+        private mSelectedSkillPoint: { [id: number]: number } = {};
 
         /*
         * Calculate total skill page to display.
@@ -248,6 +259,9 @@
             this.loadSkills(null)
                 .then((loadSkillResult: SearchResult<Skill[]>) => {
                     this.loadSkillResult = loadSkillResult;
+                    let skills = loadSkillResult.records;
+                    if (skills)
+                        this.addSkillPointToMap(skills);
                 })
                 .finally(() => {
                     this.deleteLoadingScreen();
@@ -266,17 +280,48 @@
         * Called when ok button is clicked.
         * */
         public vOnModalConfirm(): void {
-
             // Get selected skill map.
             let mSelectedSkillMap = this.mSelectedSkillMap;
             if (!mSelectedSkillMap)
                 return null;
 
-            let ids = Object
+            // List of skills.
+
+            let hasSkills: Array<HasSkillViewModel> = Object
                 .keys(mSelectedSkillMap)
                 .filter((key) => mSelectedSkillMap[key])
-                .map((id) => parseInt(id));
-            this.$emit('select-skill', this.skillCategory.id, ids);
+                .map((id) => {
+                    let iId = parseInt(id);
+                    let hasSkill = new HasSkillViewModel();
+                    hasSkill.skillId = parseInt(iId);
+                    hasSkill.skillCategoryId = this.skillCategory.id;
+                    hasSkill.point = this.mSelectedSkillPoint[iId];
+
+                    return hasSkill;
+                });
+
+
+            this.$emit('select-skill', this.skillCategory.id, hasSkills);
+        }
+
+        /*
+        * Add skill point to map.
+        * */
+        private addSkillPointToMap(skills: Skill[]): void {
+
+            // Selected skill - point map.
+            let mSelectedSkillPoint: { [id: number]: number } = {};
+
+            for (let skill of skills) {
+                mSelectedSkillPoint[skill.id] = 0;
+                let skillCategory = this.mSelectedSkillMap[skill.id];
+                if (!skillCategory)
+                    continue;
+
+                mSelectedSkillPoint[skill.id] = skillCategory.point;
+            }
+
+            this.mSelectedSkillPoint = mSelectedSkillPoint;
         }
 
         //#endregion
@@ -295,15 +340,21 @@
             // Mark the flag that skills are being fetched.
             this.bIsLoadingSkills = true;
 
+            // Load skills.
             let pLoadSkillPromise = this.loadSkills(null);
 
+            // Load skill map.
             let pLoadSelectedSkillMapPromise = this
                 .loadSelectedSkills(this.skillCategory.id);
 
             Promise.all([pLoadSkillPromise, pLoadSelectedSkillMapPromise])
                 .then((loadedResults: Array<any>) => {
-                    this.loadSkillResult = <SearchResult<Array<Skill>>> loadedResults[0];
+                    this.loadSkillResult = <SearchResult<Skill[]>> loadedResults[0];
                     this.mSelectedSkillMap = loadedResults[1];
+
+                    let loadedSkills = this.loadSkillResult.records;
+                    if (loadedSkills)
+                        this.addSkillPointToMap(loadedSkills);
                 })
                 .finally(() => {
                     this.bIsLoadingSkills = false;

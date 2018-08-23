@@ -32,9 +32,6 @@ vueInjector.constant('gCaptchaSiteKey', '6LfgV2gUAAAAACS_PGjH2iHJJwPXQGvEzP4FB83
 const paginationConstant = require('./constants/pagination.constant');
 vueInjector.constant('paginationConstant', paginationConstant.default);
 
-const eventConstant = require('./constants/event.constant');
-vueInjector.constant('eventConstant', eventConstant.default);
-
 // Import user role constant.
 const userRoleConstant = require('./constants/user-role.constant');
 vueInjector.constant('userRoleConstant', userRoleConstant.default);

@@ -1,7 +1,7 @@
 import Vue from 'vue';
-import Router from 'vue-router';
+import Router, {Route} from 'vue-router';
 
-import MasterLayout from './components/shared/layout/master-layout.vue';
+import MasterLayout from './components/shared/layout/master-layout.component.vue';
 import AdminSideBar from './components/shared/admin-side-bar.component.vue';
 
 import UserManagement from './components/modules/management/user-management.vue';
@@ -14,13 +14,31 @@ import ManagementLayout from '@/components/modules/management-layout.component.v
 import UserProject from '@/components/modules/user/profile-project.component.vue';
 import UserSkill from '@/components/modules/user/profile-skill.vue';
 import UserHobbyComponent from '@/components/modules/user/profile-hobby.component.vue';
-
+import {GlobalConstant} from '@/constants/global.constant.ts';
+import {Profile} from "@/models/profile";
+import store from './store';
 
 export default new Router({
     routes: [
         {
             path: '/',
             component: MasterLayout,
+            beforeEnter: (to: Route, from: Route, next: Function) => {
+                const vueInjector = require('vue-inject/dist/vue-inject');
+                const $localStorage = vueInjector.get('$localStorage');
+                const accessToken = $localStorage.getItem(GlobalConstant.accessTokenKey);
+                if (!accessToken){
+                    next();
+                    return;
+                }
+
+                const $user = vueInjector.get('$user');
+                $user.loadProfile(0)
+                    .then((profile: Profile) => {
+                        store.commit('addProfile', profile);
+                        next();
+                    });
+            },
             children: [
                 {
                     path: '/',

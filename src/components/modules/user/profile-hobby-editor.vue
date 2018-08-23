@@ -28,9 +28,6 @@
                 </div>
                 <div class="col-lg-9">
                     <div class="form-group">
-                        <!--<textarea class="form-control"-->
-                        <!--v-model="userHobby.description"-->
-                        <!--rows="3"></textarea>-->
                         <trumbowyg v-model="userHobby.description" :config="editorConfig"></trumbowyg>
                     </div>
                 </div>

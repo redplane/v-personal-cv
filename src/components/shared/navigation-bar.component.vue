@@ -5,7 +5,8 @@
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
                         data-target="#bs-example-navbar-collapse-1" aria-expanded="false"><span class="sr-only">Toggle navigation</span><span
                         class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
-                <a class="navbar-brand" href="javascript:void(0);">Personal CV</a>
+                <router-link class="navbar-brand"
+                   :to="{name: 'default'}">Personal CV</router-link>
             </div>
 
             <div class="collapse navbar-collapse"
@@ -26,9 +27,24 @@
                         </ul>
                     </li>
 
-                    <li v-if="!profile">
-                        <a href="javascript:void(0);" v-on:click="vOnSignInClicked()">Sign in</a>
+                    <li class="dropdown"
+                        v-else>
+                        <a href="javascript:void(0);"
+                           class="dropdown-toggle"
+                           data-toggle="dropdown"
+                           role="button"
+                           aria-haspopup="true"
+                           aria-expanded="false">Anonymous <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li @click="vOnSignInClicked()">
+                                <a href="javascript:void(0);" >Sign in</a>
+                            </li>
+                            <li @click="vOnRegisterClicked()">
+                                <a href="javascript:void(0);">Register</a>
+                            </li>
+                        </ul>
                     </li>
+
                 </ul>
             </div>
         </div>
@@ -41,6 +57,7 @@
     import {Vue, Component} from 'vue-property-decorator'
     import {Profile} from "../../models/profile"
     import {Getter} from 'vuex-class'
+    const EventConstant = require('../../constants/event.constant.ts').EventConstant;
 
     @Component({
         name: 'navigation-bar'
@@ -63,14 +80,21 @@
         * Called when Sign In button is clicked.
         * */
         public vOnSignInClicked(): void {
-            EventBus.$emit('eventClickSignIn');
+            EventBus.$emit(EventConstant.clickSignIn);
         }
 
         /*
         * Called when sign out button is clicked.
         * */
         public vOnSignOutClicked(): void{
-            EventBus.$emit('eventClickSignOut');
+            EventBus.$emit(EventConstant.clickSignOut);
+        }
+
+        /*
+        * Called when register button is clicked
+        * */
+        public vOnRegisterClicked(): void{
+            EventBus.$emit(EventConstant.clickRegister);
         }
 
         //#endregion

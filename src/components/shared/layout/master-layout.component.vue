@@ -4,18 +4,31 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 
     import store from '@/store';
+    import {Component, Vue} from 'vue-property-decorator';
+    import {Profile} from "../../../models/profile";
+    import {Getter} from "vuex-class";
 
-    export default {
-        name: 'master-layout',
-        computed: {
-            profile() {
-                return this.$store.getters.profile;
-            }
-        },
-        beforeRouteEnter: (to, from, next) => {
+    @Component({
+        name: 'master-layout'
+    })
+    export default class MasterLayoutComponent extends Vue {
+
+        //#region Properties
+
+        @Getter('profile')
+        public profile: Profile;
+
+        //#endregion
+
+        //#region Events
+
+        /*
+        * Called before route is entered.
+        * */
+        public beforeRouteEnter(to, from, next){
             // Import vuex store.
             const injector = require('vue-inject/dist/vue-inject');
             const lsAppAccessToken = injector.get('lsAppAccessToken');
@@ -37,11 +50,13 @@
             }
 
             loadUserProfilePromise
-                .then((profile) => {
+                .then((profile: Profile) => {
                     store.commit('addProfile', profile);
                     next();
                 });
         }
+
+        //#endregion
     }
 </script>
 

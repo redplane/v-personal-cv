@@ -1,29 +1,32 @@
-export class LoginViewModel{
-
+export class RegisterViewModel {
     //#region Properties
 
     // Email address.
     public email: string;
 
-    // Account password.
+    // First name.
+    public firstName: string;
+
+    // Last name.
+    public lastName: string;
+
+    // Password.
     public password: string;
 
-    // Client captcha code.
+    // Captcha code provided by re-captcha service.
     public clientCaptchaCode: string;
 
     //#endregion
 
     //#region Constructor
 
-    /*
-    * Initialize view model with default settings.
-    * */
     public constructor(){
         this.email = '';
+        this.firstName = '';
+        this.lastName = '';
         this.password = '';
         this.clientCaptchaCode = '';
     }
 
     //#endregion
-
 }

@@ -57,7 +57,7 @@
         <div class="row">
             <div class="col-lg-12">
                 <div class="form-group">
-                    <pagination v-model="loadSkillCondition.pagination.page"
+                    <pagination v-model="loadSkillCategoryCondition.pagination.page"
                                 :total-page="loadSkillResult.total"
                                 align="center"
                                 :boundary-links="true"
@@ -136,7 +136,7 @@
                 /*
                 * Load skill condition.
                 * */
-                loadSkillCondition:{
+                loadSkillCategoryCondition:{
                     pagination:{
                         page: 1,
                         records: this.paginationConstant.dashboardMaxItem
@@ -299,7 +299,7 @@
                 // Get current class context.
                 let self = this;
 
-                let loadSkillCondition = this.loadSkillCondition;
+                let loadSkillCondition = this.loadSkillCategoryCondition;
                 let pagination = loadSkillCondition.pagination;
 
                 return self.$skill
