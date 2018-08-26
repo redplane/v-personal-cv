@@ -4,9 +4,9 @@ import Router, {Route} from 'vue-router';
 import MasterLayout from './components/shared/layout/master-layout.component.vue';
 import AdminSideBar from './components/shared/admin-side-bar.component.vue';
 
-import UserManagement from './components/modules/management/user-management.vue';
-import SkillManagement from './components/modules/management/skill-management.vue';
-import ResponsibilityManagement from './components/modules/management/responsibility-management.vue';
+import UserManagement from './components/modules/management/user-management.component.vue';
+import SkillManagement from './components/modules/management/skill-management.component.vue';
+import ResponsibilityManagement from './components/modules/management/responsibility-management.component.vue';
 
 import ProfileMasterLayout from './components/modules/user/master-layout.component.vue';
 import ProfileComponent from "@/components/modules/user/profile.component.vue";
