@@ -115,7 +115,7 @@
 <script>
 
     // Import skill detail component.
-    import SkillDetail from '../skill/skill-detail';
+    import SkillDetail from '../skill/skill-detail.component';
     import {mapMutations} from 'vuex';
     import {mapGetters} from 'vuex';
 

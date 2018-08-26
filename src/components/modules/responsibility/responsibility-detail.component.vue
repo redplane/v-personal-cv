@@ -62,64 +62,82 @@
     </div>
 </template>
 
-<script>
-    import Vue from 'vue';
+<script lang="ts">
 
-    export default {
+    import {Vue, Component, Prop} from 'vue-property-decorator'
+    import {Responsibility} from "../../../models/responsibility";
+    @Component({
         name: 'responsibility-detail',
-        props: {
-            readonlyProperty: false,
-            responsibilityProperty: {}
-        },
-        computed: {
-            /*
-            * Check whether component is in edit-mode or not.
-            * */
-            bIsInEditMode(){
-                // In create mode.
-                if (this.responsibility.id)
-                    return true;
+        dependencies: ['$lodash']
+    })
+    export default class ResponsibilityDetailComponent extends Vue {
 
-                return false;
-            }
-        },
-        data() {
-            return {
-                responsibility: {},
-                visibility: false
-            }
-        },
-        mounted() {
+        //#region Properties
 
-            let self = this;
-            let pGetResponsibilityPromise = new Promise(resolve => {
-                resolve(self.responsibilityProperty);
-            });
+        // Responsibility to display its information onto component.
+        private responsibility: Responsibility;
 
-            pGetResponsibilityPromise
-                .then((responsibility) => {
-                    if (!responsibility)
-                        self.responsibility = {};
-                    else
-                        self.responsibility = Vue.util.extend({}, responsibility);
-                });
+        // Responsibility input property.
+        @Prop(Object)
+        private responsibilityProperty: Responsibility;
 
-            this.visibility = this.visibilityProperty;
-        },
-        methods: {
-            vOnClickOk() {
-                let responsibility = Vue.util.extend({}, this.responsibility);
-                this.$emit('confirm', responsibility);
-            },
-            vOnClickCancel() {
-                this.$emit('cancel');
-            }
-        },
-        watch: {
-            readonlyProperty(value) {
-                this.readonlyProperty = value;
-            }
+        // Check whether component is in edit-mode or not.
+        public get bIsInEditMode(): boolean {
+            // In create mode.
+            if (this.responsibility.id)
+                return true;
+
+            return false;
         }
+
+        //#endregion
+
+        //#region Constructor
+
+        /*
+        * Initialize component with settings.
+        * */
+        public constructor(){
+            super();
+            this.responsibility = new Responsibility();
+        }
+
+        //#endregion
+
+        //#region Methods
+
+        /*
+        * Called when ok button is clicked.
+        * */
+        public vOnClickOk(): void {
+            let responsibility: Responsibility = this.$lodash.clone(this.responsibility);
+            this.$emit('confirm', responsibility);
+        }
+
+        /*
+        * Called when cancel is clicked.
+        * */
+        public vOnClickCancel(): void {
+            this.$emit('cancel');
+        }
+
+        //#endregion
+
+        //#region Events
+
+        /*
+        * Called when component is mounted successfully.
+        * */
+        public mounted(): void {
+
+            if (this.responsibilityProperty)
+                this.responsibility = this.$lodash.clone(this.responsibilityProperty);
+            else
+                this.responsibility = new Responsibility();
+        }
+
+        //#endregion
+
     }
 </script>
 

@@ -111,7 +111,7 @@
 <script>
 
     // Import responsibility detail component.
-    import ResponsibilityDetail from '../responsibility/responsibility-detail';
+    import ResponsibilityDetail from '../responsibility/responsibility-detail.component';
     import { mapMutations } from 'vuex';
 
     export default {

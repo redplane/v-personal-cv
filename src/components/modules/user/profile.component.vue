@@ -213,8 +213,7 @@
 
         constructor() {
             super();
-
-            console.log(this.$user);
+            this.user = new UserViewModel();
         }
 
         //#endregion

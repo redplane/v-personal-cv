@@ -163,7 +163,7 @@
 </template>
 
 <script lang="ts">
-    import SkillCategoryDetail from "../skill-category/skill-category-detail";
+    import SkillCategoryDetail from "../skill-category/skill-category-detail.component";
     import SkillSelector from "../../shared/skill-selector.component";
     import ImageCropper from '../../shared/image-cropper.component';
     import UserSkillDetail from './user-skill-detail.component';

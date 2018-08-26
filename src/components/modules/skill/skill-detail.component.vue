@@ -53,55 +53,72 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 
-    import Vue from 'vue';
+    import {Vue, Component, Prop} from 'vue-property-decorator'
+    import {Skill} from "../../../models/skill";
 
-    export default {
+    @Component({
         name: 'skill-detail',
-        props: {
-            skillProperty: {}
-        },
-        data() {
-            return {
-                skill: this.skillProperty,
-                visibility: false
-            }
-        },
-        mounted() {
+        dependencies: ['$lodash']
+    })
+    export default class SkillDetailComponent extends Vue {
 
-            let self = this;
-            let pGetSkillDetailPromise = new Promise(resolve => {
-                resolve(self.skillProperty);
-            });
+        //#region Properties
 
-            pGetSkillDetailPromise
-                .then((skill) => {
-                    if (!skill)
-                        self.skill = Vue.util.extend({}, {});
-                    else
-                        self.skill = Vue.util.extend({}, skill);
-                });
+        // Skill category input property.
+        @Prop(Object)
+        private skillProperty: Skill;
 
-            this.visibility = this.visibilityProperty;
-        },
-        methods: {
 
-            /*
-            * Called when ok button is clicked.
-            * */
-            vOnClickOk() {
-                let skill = Vue.util.extend({}, this.skill);
-                this.$emit('confirm', skill);
-            },
+        // Skill information.
+        private skill: Skill;
 
-            /*
-            * Called when cancel button is clicked.
-            * */
-            vOnClickCancel() {
-                this.$emit('cancel');
-            }
+        //#endregion
+
+        //#region Constructor
+
+        public constructor(){
+            super();
+            this.skill = new Skill();
         }
+
+        //#endregion
+
+        //#region Methods
+
+        /*
+        * Called when ok button is clicked.
+        * */
+        public vOnClickOk(): void {
+            let skill: Skill = this.$lodash.clone(this.skill);
+            this.$emit('confirm', skill);
+        }
+
+        /*
+        * Called when cancel button is clicked.
+        * */
+        public vOnClickCancel(): void {
+            this.$emit('cancel');
+        }
+
+        //#endregion
+
+        //#region Events
+
+        /*
+        * Called when component is mounted.
+        * */
+        public mounted(): void{
+            if (this.skillProperty) {
+                this.skill = this.$lodash.clone(this.skillProperty);
+                return;
+            }
+
+            this.skill = new Skill();
+        }
+
+        //#endregion
     }
 </script>
 
