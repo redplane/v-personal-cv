@@ -173,257 +173,274 @@
     </div>
 </template>
 
-<script>
-    export default {
-        name: 'add-profile-project',
-        dependencies: ['paginationConstant', '$skill', '$responsibility', '$promiseManager'],
-        props: {
-            projectProperty: {}
-        },
-        computed: {
-            /*
-            * Whether user can add skill or not.
-            * */
-            bIsAbleToAddSkill() {
-                if (!this.addSkillModel)
-                    return false;
+<script lang="ts">
 
-                if (!this.addSkillModel.id)
-                    return false;
+    import {Vue, Component, Prop} from 'vue-property-decorator'
+    import {Project} from "../../../models/project";
+    import {Responsibility} from "../../../models/responsibility";
+    import {Skill} from "../../../models/skill";
+    const PaginationConstant = require('../../../constants/pagination.constant.ts').PaginationConstant;
 
-                return true;
-            },
+    @Component({
+        dependencies: ['$skill', '$responsibility', '$promiseManager']
+    })
+    export default class AddEditProfileComponent extends Vue {
 
-            /*
-            * Whether user can add responsibility or not.
-            * */
-            bIsAbleToAddResponsibility() {
-                if (!this.addResponsibilityModel)
-                    return false;
+        //#region Properties
 
-                if (!this.addResponsibilityModel.id)
-                    return false;
+        // Project information.
+        private project: Project;
 
-                return true;
+        // Input project property.
+        @Prop(Object)
+        private projectProperty: Project;
+
+        // List of added responsibilities
+        private addedResponsibilities: Responsibility[];
+
+        // List of added skills.
+        private addedSkills: Skill[];
+
+        /*
+        * Information of skill that will be added into project.
+        * */
+        private addSkillModel: any;
+
+        /*
+        * Information of responsibility will be added into project.
+        * */
+        private addResponsibilityModel: any;
+
+        // Promise that used for loading skills.
+        private loadSkillPromise: null;
+
+        // Promise that used for loading responsibilities.
+        private loadResponsibilityPromise: null;
+
+        /*
+        * Whether user can add skill or not.
+        * */
+        public get bIsAbleToAddSkill(): boolean {
+            if (!this.addSkillModel)
+                return false;
+
+            if (!this.addSkillModel.id)
+                return false;
+
+            return true;
+        }
+
+        /*
+        * Whether user can add responsibility or not.
+        * */
+        public get bIsAbleToAddResponsibility(): boolean {
+            if (!this.addResponsibilityModel)
+                return false;
+
+            if (!this.addResponsibilityModel.id)
+                return false;
+
+            return true;
+        }
+
+        //#endregion
+
+        //#region Constructor
+
+        /*
+        * Initialize component.
+        * */
+        public constructor(){
+            super();
+            this.project = new Project();
+            this.addedResponsibilities = new Array<Responsibility>();
+            this.addResponsibilityModel = new Responsibility();
+            this.addSkillModel = new Skill();
+            this.addedSkills = new Array<Skill>();
+        }
+
+        //#endregion
+
+        //#region Methods
+
+        /*
+        * Called when user is querying a skill.
+        * */
+        public vOnSkillQueried(query: string, done: Function): void {
+
+            let loadSkillsCondition = {
+                names: query ? [query] : null,
+                pagination: {
+                    page: 1,
+                    records: PaginationConstant.typeaheadMaxItem
+                }
+            };
+
+            // Cancel the previous promise.
+            if (this.loadSkillPromise) {
+                this.$promiseManager
+                    .cancelPromise(this.loadSkillPromise);
             }
 
-        },
-        data() {
-            return {
-                /*
-                * Project information.
-                * */
-                project: null,
+            let pLoadSkillPromise = this.$skill
+                .loadSkills(loadSkillsCondition);
 
-                // List of added responsibilities
-                addedResponsibilities: [],
+            this.loadSkillPromise = this.$promiseManager
+                .addCancellablePromise(pLoadSkillPromise);
 
-                // List of added skills.
-                addedSkills: [],
+            this.loadSkillPromise
+                .then((loadSkillsResult) => {
+                    done(loadSkillsResult.records);
+                })
+                .catch(() => {
+                    done([]);
+                });
+        }
 
-                /*
-                * Information of skill that will be added into project.
-                * */
-                addSkillModel: null,
+        /*
+        * Called when user is querying a responsibility
+        * */
+        public vOnResponsibilityQueried(query: string, done: Function): void {
 
-                /*
-                * Information of responsibility will be added into project.
-                * */
-                addResponsibilityModel: null,
+            let loadResponsibilitiesCondition = {
+                names: query ? [query] : null,
+                pagination: {
+                    page: 1,
+                    records: PaginationConstant.typeaheadMaxItem
+                }
+            };
 
-                // Promise that used for loading skills.
-                _loadSkillPromise: null,
-
-                // Promise that used for loading responsibilities.
-                _loadResponsibilityPromise: null
+            // Cancel the previous promise.
+            if (this.loadResponsibilityPromise) {
+                this.$promiseManager
+                    .cancelPromise(this.loadResponsibilityPromise);
             }
-        },
-        methods: {
-            /*
-            * Called when user is querying a skill.
-            * */
-            vOnSkillQueried(query, done) {
-                let self = this;
 
-                let loadSkillsCondition = {
-                    names: query ? [query] : null,
-                    pagination: {
-                        page: 1,
-                        records: self.paginationConstant.typeaheadMaxItem
-                    }
-                };
+            let pLoadResponsibilityPromise = this.$responsibility
+                .loadResponsibilities(loadResponsibilitiesCondition);
 
-                // Cancel the previous promise.
-                if (self._loadSkillPromise) {
-                    self.$promiseManager
-                        .cancelPromise(self._loadSkillPromise);
-                }
+            this.loadResponsibilityPromise = this.$promiseManager
+                .addCancellablePromise(pLoadResponsibilityPromise);
 
-                let pLoadSkillPromise = self.$skill
-                    .loadSkills(loadSkillsCondition);
+            this.loadResponsibilityPromise
+                .then((loadResponsibilityResult) => {
+                    done(loadResponsibilityResult.records);
+                })
+                .catch(() => {
+                    done([]);
+                });
+        }
 
-                self._loadSkillPromise = self.$promiseManager
-                    .addCancellablePromise(pLoadSkillPromise);
+        /*
+        * Add skill to local list.
+        * */
+        public addLocalSkill(skill: Skill): void {
+            // Skill is invalid.
+            if (!skill)
+                return;
 
-                self._loadSkillPromise
-                    .then((loadSkillsResult) => {
-                        done(loadSkillsResult.records);
-                    })
-                    .catch(() => {
-                        done([]);
-                    });
-            },
+            // Find added item.
+            let items = this.addedSkills
+                .filter((addedSkill) => addedSkill.id === skill.id);
 
-            /*
-            * Called when user is querying a responsibility
-            * */
-            vOnResponsibilityQueried(query, done) {
-                let self = this;
+            if (items && items.length)
+                return;
 
-                let loadResponsibilitiesCondition = {
-                    names: query ? [query] : null,
-                    pagination: {
-                        page: 1,
-                        records: self.paginationConstant.typeaheadMaxItem
-                    }
-                };
+            this.addedSkills.push(skill);
 
-                // Cancel the previous promise.
-                if (self._loadResponsibilityPromise) {
-                    self.$promiseManager
-                        .cancelPromise(self._loadResponsibilityPromise);
-                }
+            // Clear addSkillModel.
+            this.addSkillModel = null;
+        }
 
-                let pLoadResponsibilityPromise = self.$responsibility
-                    .loadResponsibilities(loadResponsibilitiesCondition);
+        /*
+        * Delete skill from list locally.
+        * */
+        public deleteLocalSkill(skill: Skill): void {
+            // Skill is invalid.
+            if (!skill)
+                return;
 
-                self._loadResponsibilityPromise = self.$promiseManager
-                    .addCancellablePromise(pLoadResponsibilityPromise);
-
-                self._loadResponsibilityPromise
-                    .then((loadResponsibilityResult) => {
-                        done(loadResponsibilityResult.records);
-                    })
-                    .catch(() => {
-                        done([]);
-                    });
-            },
-
-            /*
-            * Add skill to local list.
-            * */
-            addLocalSkill(skill) {
-                // Skill is invalid.
-                if (!skill)
-                    return;
-
-                // Get current context.
-                let self = this;
-
-                // Find added item.
-                let items = self.addedSkills
-                    .filter((addedSkill) => addedSkill.id === skill.id);
-
-                if (items && items.length)
-                    return;
-
-                self.addedSkills.push(skill);
-
-                // Clear addSkillModel.
-                self.addSkillModel = null;
-            },
-
-            /*
-            * Delete skill from list locally.
-            * */
-            deleteLocalSkill(skill) {
-                // Skill is invalid.
-                if (!skill)
-                    return;
-
-                // Get current context.
-                let self = this;
-                let iItemIndex = self.addedSkills.indexOf(skill);
-                if (iItemIndex < 0)
-                    return;
-
-                self.addedSkills
-                    .splice(iItemIndex, 1);
-            },
-
-            /*
-            * Add responsibility to local list.
-            * */
-            addLocalResponsibility(responsibility) {
-                // Responsibility is invalid.
-                if (!responsibility)
-                    return;
-
-                // Get current context.
-                let self = this;
-
-                // Find the added item.
-                let items = self
-                    .addedResponsibilities
-                    .filter((addedResponsibility) => addedResponsibility.id === responsibility.id);
-
-                if (items && items.length)
-                    return;
-
-                self.addedResponsibilities.push(responsibility);
-
-                // Clear addSkillModel.
-                self.addResponsibilityModel = null;
-            },
-
-            /*
-            * Delete responsibility from local list.
-            * */
-            deleteLocalResponsibility(responsibility) {
-                // Responsibility is invalid.
-                if (!responsibility)
-                    return;
-
-                // Get current context.
-                let self = this;
-                let iItemIndex = self.addedResponsibilities.indexOf(responsibility);
-                if (iItemIndex < 0)
-                    return;
-
-                self.addedResponsibilities
-                    .splice(iItemIndex, 1);
-            },
-
-            /*
-            * Called when ok button is clicked.
-            * */
-            vOnClickOk() {
-                // Get current context.
-                let self = this;
-
-                // Copy model to local instance.
-                let project = {};
-                project = Object.assign({}, self.project);
-                if (self.addedResponsibilities)
-                    project['responsibilities'] = [].concat(self.addedResponsibilities);
-
-                if (self.addedSkills)
-                    project['skills'] = [].concat(self.addedSkills);
-
-                project.startedTime = self.$moment(project.startedTime, 'YYYY/MM/DD').unix();
-                project.finishedTime = self.$moment(project.finishedTime, 'YYYY/MM/DD').unix();
-                self.$emit('click-ok', project);
-            },
-        },
-        mounted() {
             // Get current context.
-            let self = this;
+            let iItemIndex = this.addedSkills.indexOf(skill);
+            if (iItemIndex < 0)
+                return;
+
+            this.addedSkills
+                .splice(iItemIndex, 1);
+        }
+
+        /*
+        * Add responsibility to local list.
+        * */
+        public addLocalResponsibility(responsibility: Responsibility): void {
+            // Responsibility is invalid.
+            if (!responsibility)
+                return;
+
+            // Find the added item.
+            let items = this
+                .addedResponsibilities
+                .filter((addedResponsibility) => addedResponsibility.id === responsibility.id);
+
+            if (items && items.length)
+                return;
+
+            this.addedResponsibilities.push(responsibility);
+
+            // Clear addSkillModel.
+            this.addResponsibilityModel = null;
+        }
+
+        /*
+        * Delete responsibility from local list.
+        * */
+        public deleteLocalResponsibility(responsibility: Responsibility) {
+            // Responsibility is invalid.
+            if (!responsibility)
+                return;
+
+            // Get current context.
+            let iItemIndex = this.addedResponsibilities.indexOf(responsibility);
+            if (iItemIndex < 0)
+                return;
+
+            this.addedResponsibilities
+                .splice(iItemIndex, 1);
+        }
+
+        /*
+        * Called when ok button is clicked.
+        * */
+        public vOnClickOk(): void {
+
+            // Copy model to local instance.
+            let project = {};
+            project = Object.assign({}, this.project);
+            if (this.addedResponsibilities)
+                project['responsibilities'] = [].concat(this.addedResponsibilities);
+
+            if (this.addedSkills)
+                project['skills'] = [].concat(this.addedSkills);
+
+            project.startedTime = this.$moment(project.startedTime, 'YYYY/MM/DD').unix();
+            project.finishedTime = this.$moment(project.finishedTime, 'YYYY/MM/DD').unix();
+            this.$emit('click-ok', project);
+        }
+
+        //#endregion
+
+        //#region Events
+
+        /*
+        * Called when component is mounted successfully.
+        * */
+        public mounted(): void {
 
             // Get project information.
             let pGetProjectPromise = null;
-            if (self.projectProperty != null) {
+            if (this.projectProperty != null) {
                 pGetProjectPromise = new Promise(resolve => {
-                    let projectProperty = self.projectProperty;
+                    let projectProperty = this.projectProperty;
                     if (projectProperty instanceof Function) {
                         resolve(projectProperty());
                         return;
@@ -448,18 +465,22 @@
 
             pGetProjectPromise
                 .then((project) => {
-                    self.project = Object.assign({}, project);
+                    this.project = Object.assign({}, project);
                     if (project.responsibilities)
-                        self.addedResponsibilities = [].concat(project.responsibilities);
+                        this.addedResponsibilities = [].concat(project.responsibilities);
 
                     if (project.skills)
-                        self.addedSkills = [].concat(project.skills);
+                        this.addedSkills = [].concat(project.skills);
 
-                    self.project.startedTime = this.$moment.unix(project.startedTime).format('YYYY/MM/DD');
-                    self.project.finishedTime = this.$moment.unix(project.finishedTime).format('YYYY/MM/DD');
+                    this.project.startedTime = this.$moment.unix(project.startedTime).format('YYYY/MM/DD');
+                    this.project.finishedTime = this.$moment.unix(project.finishedTime).format('YYYY/MM/DD');
                 });
         }
+
+        //#endregion
     }
+
+    Vue.component('add-profile-project', AddEditProfileComponent)
 </script>
 
 <style scoped>

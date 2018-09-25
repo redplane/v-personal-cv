@@ -59,7 +59,7 @@
             <div class="col-lg-12">
                 <div class="form-group">
                     <pagination v-model="loadResponsibilitiesCondition.pagination.page"
-                                :total-page="loadResponsibilitiesResult.total"
+                                :total-page="totalPage"
                                 align="center"
                                 :boundary-links="true"
                                 :direction-links="true"
@@ -125,7 +125,7 @@
     const PaginationConstant = require('../../../constants/pagination.constant.ts').PaginationConstant;
 
     @Component({
-        dependencies: ['$responsibility', '$toastr'],
+        dependencies: ['$responsibility', '$toastr', '$ui'],
         components: {ResponsibilityDetail}
     })
     export default class ResponsibilityManagementComponent extends Vue {
@@ -159,6 +159,29 @@
                 return [];
 
             return this.loadResponsibilitiesResult.records;
+        }
+
+        /*
+        * Calculate total page to display on the screen.
+        * */
+        public get totalPage(): number {
+            // No pagination setting.
+            if (!this.loadResponsibilitiesCondition)
+                return 1;
+
+            let pagination: Pagination = this.loadResponsibilitiesCondition.pagination;
+            if (pagination == null || pagination.records < 1)
+                return 1;
+
+            if (!this.loadResponsibilitiesResult)
+                return 1;
+
+            let loadUsersResult = this.loadResponsibilitiesResult;
+            if (loadUsersResult.total < 1)
+                return 1;
+
+            return this.$ui
+                .loadPageCalculation(loadUsersResult.total, pagination.records)
         }
 
         // Check whether user is admin.

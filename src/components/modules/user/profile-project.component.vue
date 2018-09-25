@@ -160,7 +160,7 @@
         /*
         * User id.
         * */
-        public userId: number;
+        public userId: number = 0;
 
         /*
         * Profile state.
@@ -249,6 +249,10 @@
         * Check whether user is able to add/edit project.
         * */
         public get bIsAbleToAddEditProject(): boolean {
+
+            if (!this.userId)
+                return false;
+
             if (!this.profile)
                 return false;
 

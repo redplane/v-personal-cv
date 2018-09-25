@@ -109,8 +109,27 @@ Vue.config.productionTip = false;
 // Import vuex.
 import store from './store';
 
-new Vue({
-    router,
-    store,
-    render: h => h(App)
-}).$mount('#app');
+import * as $ from 'jquery'
+$.getJSON('/app.config.json', json => {
+    console.log(json);
+});
+
+// $.ajax({
+//     url: '/app.config.json',
+//     contentType: 'application/json',
+//     method: 'GET',
+//     cache: false,
+//     crossDomain: false,
+//     success: (data: any) => {
+//         new Vue({
+//             router,
+//             store,
+//             render: h => h(App)
+//         }).$mount('#app');
+//     }
+// });
+
+
+
+
+
