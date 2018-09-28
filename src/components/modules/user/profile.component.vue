@@ -115,9 +115,14 @@
     import ProfileDescriptionDetailComponent from "./profile-description-detail.component.vue";
     import ImageCropper from '../../shared/image-cropper.component.vue';
     import {EditUserViewModel} from "../../../view-model/user/edit-user.view-model";
+    import {LoadUserViewModel} from "../../../view-model/user/load-user.view-model";
+    import {LoadUserDescriptionViewModel} from "../../../view-model/user-description/load-user-description.view-model";
+    import {Pagination} from "../../../models/pagination";
+    import {AddUserDescriptionViewModel} from "../../../view-model/user-description/add-user-description.view-model";
+    import {EditUserDescriptionViewModel} from "../../../view-model/user-description/edit-user-description.view-model";
 
     @Component({
-        dependencies: ['$user', '$userDescription', '$toastr'],
+        dependencies: ['$toastr'],
         components: {
             ProfileDescriptionDetailComponent,
             ImageCropper
@@ -160,16 +165,9 @@
         /*
         * User profile which is using system.
         * */
-        @Getter('profile')
+        @Getter('profile', {namespace: 'app'})
         private profile: Profile;
 
-        /*
-        * Vue router service.
-        * */
-        // private $route: any;
-
-        private $user: any;
-        private $userDescription: any;
         private $toastr: any;
 
         //#endregion
@@ -179,12 +177,33 @@
         /*
         * Add loading screen to UI.
         * */
-        @Mutation('addLoadingScreen') addLoadingScreen: any;
+        @Mutation('addLoadingScreen', {namespace: 'app'})
+        private addLoadingScreen: () => void;
 
         /*
         * Delete loading screen on UI.
         * */
-        @Mutation('deleteLoadingScreen') deleteLoadingScreen: any;
+        @Mutation('deleteLoadingScreen')
+        private deleteLoadingScreen: () => void;
+
+        @Action('editUser', {namespace: 'apiUser'})
+        private editUserAsync: (editUserModel: EditUserViewModel) => Promise<User>;
+
+        @Action('loadUsers', {namespace: 'apiUser'})
+        private loadUsersAsync: (loadUsersCondition: LoadUserViewModel) => Promise<SearchResult<User[]>>;
+
+        @Action('loadUserDescriptions', {namespace: 'apiUserDescription'})
+        private loadUserDescriptionsAsync: (condition: LoadUserDescriptionViewModel) => Promise<SearchResult<UserDescription[]>>;
+
+        @Action('deleteUserDescription', {namespace: 'apiUserDescription'})
+        private deleteUserDescriptionAsync: (id: number) => Promise<void>;
+
+        @Action('addUserDescription')
+        private addUserDescriptionAsync: (addUserDescriptionModel: AddUserDescriptionViewModel) => Promise<UserDescription>;
+
+        @Action('editUserDescription')
+        private editUserDescriptionAsync: (editUserDescriptionModel: EditUserDescriptionViewModel) => Promise<UserDescription>;
+
 
         /*
         * Check whether user is able to add user description or not.
@@ -224,8 +243,13 @@
         * Load user descriptions.
         * */
         public loadUserDescriptions(): Promise<UserDescription[]> {
-            return this.$userDescription
-                .loadUserDescriptions(null, [this.userId], null, null)
+
+            let condition = new LoadUserDescriptionViewModel();
+            condition.userIds = [this.userId];
+            condition.pagination = null;
+
+            return this
+                .loadUserDescriptionsAsync(condition)
                 .then((loadUserDescriptionsResult: SearchResult<UserDescription[]>) => {
                     return loadUserDescriptionsResult.records;
                 })
@@ -238,9 +262,8 @@
         * Delete profile description.
         * */
         public deleteProfileDescription(id: number): void {
-            this.$userDescription
-                .deleteUserDescription(id)
-                .then((deleteUserProfileResult: any) => {
+            this.deleteUserDescriptionAsync(id)
+                .then(() => {
                     // Display success message.
                     this.$toastr.success('Description has been deleted successfully.');
                     return this.loadUserDescriptions();
@@ -287,8 +310,8 @@
                     }
                 };
 
-                promises[0] = this.$user
-                    .loadUsers(condition)
+                promises[0] = this
+                    .loadUsersAsync(condition)
                     .then((loadUsersResult: SearchResult<User[]>) => {
                         // Get users.
                         let users = loadUsersResult.records;
@@ -352,16 +375,26 @@
             let pAddEditProfileDescriptionPromise = null;
 
             if (!model.id) {
-                pAddEditProfileDescriptionPromise = this.$userDescription
-                    .addUserDescription(model.userId, model.description)
+
+                let addUserDescriptionModel = new AddUserDescriptionViewModel();
+                addUserDescriptionModel.userId = model.userId;
+                addUserDescriptionModel.description = model.description;
+
+                pAddEditProfileDescriptionPromise = this
+                    .addUserDescriptionAsync(addUserDescriptionModel)
                     .then((userDescription: UserDescription) => {
                         this.bAddEditUserDescriptionModalOpened = false;
                         this.$toastr.success('Added user description successfully.');
                         return true;
                     });
             } else {
-                pAddEditProfileDescriptionPromise = this.$userDescription
-                    .editUserDescription(model.id, model)
+
+                let editUserDescription = new EditUserDescriptionViewModel();
+                editUserDescription.id = model.id;
+                editUserDescription.description = model.description;
+
+                pAddEditProfileDescriptionPromise = this
+                    .editUserDescriptionAsync(editUserDescription)
                     .then((userDescription: UserDescription) => {
                         this.bAddEditUserDescriptionModalOpened = false;
                         this.$toastr.success('Added user description successfully.');
@@ -414,10 +447,6 @@
         * Called when profile image is cropped.
         * */
         public vOnProfileImageCropped(blob: Blob): void {
-
-            // Get current context.
-            let self = this;
-
             // Get targeted user.
             let user = this.user;
             if (!user)
@@ -426,11 +455,11 @@
             // Add loading screen.
             this.addLoadingScreen();
 
-            let editUserOption = new EditUserViewModel();
-            editUserOption.photo = blob;
+            let editUserModel = new EditUserViewModel();
+            editUserModel.id = user.id;
+            editUserModel.photo = blob;
 
-            this.$user
-                .editUser(user.id, editUserOption, blob)
+            this.editUserAsync(editUserModel)
                 .then((user: User) => {
                     this.$toastr.success('User profile image is uploaded.');
 
@@ -443,7 +472,7 @@
                     return true;
                 })
                 .finally(() => {
-                    self.deleteLoadingScreen();
+                    this.deleteLoadingScreen();
                 });
         }
 

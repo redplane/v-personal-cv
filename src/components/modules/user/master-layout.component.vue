@@ -57,7 +57,7 @@
         /*
         * Profile of person who is using system.
         * */
-        @Getter('profile')
+        @Getter('profile', {namespace: 'app'})
         private profile: Profile;
 
         //#endregion
@@ -67,7 +67,7 @@
         /*
         * Initialize component with default settings.
         * */
-        public constructor(){
+        public constructor() {
             super();
             this.user = new User();
             this.user.id = 1;
@@ -80,13 +80,14 @@
         /*
         * Add loading screen.
         * */
-        @Mutation('addLoadingScreen')
-        public addLoadingScreen;
+        @Mutation('addLoadingScreen', {namespace: 'app'})
+        public addLoadingScreen: () => void;
 
         /*
         * Delete loading screen.
         * */
-        public deleteLoadingScreen;
+        @Mutation('deleteLoadingScreen', {namespace: 'app'})
+        public deleteLoadingScreen: () => void;
 
         //#endregion
     }

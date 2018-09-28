@@ -115,6 +115,7 @@
 <script lang="ts">
     import {Component, Vue} from 'vue-property-decorator';
     import {State, Getter, Action, Mutation, namespace} from 'vuex-class'
+    import {cloneDeep} from 'lodash';
 
     // Import components
     import UserHobbyDetail from './profile-hobby-editor';
@@ -131,7 +132,7 @@
     import UserHobbyDetail from './profile-hobby-editor';
 
     @Component({
-        dependencies: ['$ui', '$toastr', '$hobby'],
+        dependencies: ['$ui', '$toastr'],
         components: {
             UserHobbyDetail
         }
@@ -145,18 +146,21 @@
         /*
         * User profile which is using system.
         * */
-        @Getter('profile')
+        @Getter('profile', {namespace: 'app'})
         private profile: Profile;
 
         /*
         * Add loading screen to UI.
         * */
-        @Mutation('addLoadingScreen') addLoadingScreen: any;
+        @Mutation('addLoadingScreen', {namespace: 'app'})
+        private addLoadingScreen: () => void;
 
         /*
         * Delete loading screen on UI.
         * */
-        @Mutation('deleteLoadingScreen') deleteLoadingScreen: any;
+        @Mutation('deleteLoadingScreen')
+        private deleteLoadingScreen: () => void;
+
 
         // Service implementations.
         private $ui: any;
@@ -256,6 +260,19 @@
 
         //#region Methods
 
+        @Action('loadHobbies')
+        private loadHobbiesAsync: (conditions: LoadHobbyViewModel) => Promise<SearchResult<Hobby[]>>;
+
+        @Action('editHobby')
+        private editHobbyAsync: (hobby: Hobby) => Promise<Hobby>;
+
+        @Action('addHobby')
+        private addHobbyAsync: (hobby: Hobby) => Promise<Hobby>;
+
+        @Action('editHobby')
+        private deleteHobbyAsync: (id: number) => Promise<void>;
+
+
         //#endregion
 
         //#region Events
@@ -278,8 +295,7 @@
             this.loadHobbyCondition.userIds = [this.userId];
 
             // Load user hobbies.
-            this.$hobby
-                .loadUserHobbies(this.loadHobbyCondition)
+            this.loadHobbiesAsync(this.loadHobbyCondition)
                 .then((loadHobbyResult: SearchResult<Hobby[]>) => {
                     this.loadHobbyResult = loadHobbyResult;
                     return loadHobbyResult;
@@ -327,8 +343,7 @@
             // Add loading screen.
             this.addLoadingScreen();
 
-            this.$hobby
-                .loadUserHobbies(this.loadHobbyCondition)
+            this.loadHobbiesAsync(this.loadHobbyCondition)
                 .then((loadHobbyResult: SearchResult<Hobby[]>) => {
                     this.loadHobbyResult = loadHobbyResult;
                     return loadHobbyResult;
@@ -352,20 +367,18 @@
 
             if (hobby.id) {
                 pPromise = this
-                    .$hobby
-                    .editHobby(hobby.id, hobby)
+                    .editHobbyAsync(hobby)
                     .then(() => {
                         // Display the toastr notification.
                         this.$toastr.success('Hobby has been added successfully.')
                     });
             } else {
-                let addHobby: Hobby = new Hobby();
-                addHobby = Object.assign({}, hobby);
-                addHobby.userId = this.userId;
+                let addHobbyModel = new Hobby();
+                addHobbyModel = cloneDeep(hobby);
+                addHobbyModel.userId = this.userId;
 
                 pPromise = this
-                    .$hobby
-                    .addUserHobby(addHobby)
+                    .addHobbyAsync(addHobbyModel)
                     .then(() => {
                         // Display the toastr notification.
                         this.$toastr.success('Hobby has been added successfully.')
@@ -377,8 +390,8 @@
                     this.bIsAddEditUserHobbyModalAvailable = false;
 
                     // Reload the results.
-                    return this.$hobby
-                        .loadUserHobbies(this.loadHobbyCondition)
+                    return this
+                        .loadHobbiesAsync(this.loadHobbyCondition)
                 })
                 .then((loadHobbyResult: SearchResult<Hobby[]>) => {
                     this.loadHobbyResult = loadHobbyResult;
@@ -400,8 +413,7 @@
             // Add loading screen.
             this.addLoadingScreen();
 
-            this.$hobby
-                .deleteHobby(hobby.id)
+            this.deleteHobbyAsync(hobby.id)
                 .then(() => {
                     // Display success message.
                     this.$toastr.success('Hobby has been deleted successfully.');

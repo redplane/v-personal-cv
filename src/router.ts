@@ -27,17 +27,18 @@ export default new Router({
                 const vueInjector = require('vue-inject/dist/vue-inject');
                 const $localStorage = vueInjector.get('$localStorage');
                 const accessToken = $localStorage.getItem(GlobalConstant.accessTokenKey);
-                if (!accessToken){
+                if (!accessToken) {
                     next();
                     return;
                 }
 
-                const $user = vueInjector.get('$user');
-                $user.loadProfile(0)
+                store
+                    .dispatch('apiUser/loadProfile', 0, {root: true})
                     .then((profile: Profile) => {
-                        store.commit('addProfile', profile);
+                        store.commit('app/addProfile', profile);
                         next();
-                    });
+                    })
+                    .catch(() => next());
             },
             children: [
                 {

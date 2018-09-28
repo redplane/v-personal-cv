@@ -117,27 +117,29 @@
     // Import skill detail component.
     import SkillDetail from '../skill/skill-detail.component'
     import {Vue, Component} from 'vue-property-decorator'
-    import {Getter, Mutation} from "vuex-class"
+    import {Action, Getter, Mutation} from "vuex-class"
     import {Profile} from "../../../models/profile"
     import {UserRoles} from '../../../enumerations/user-role.enum'
     import {SearchResult} from "../../../models/search-result";
     import {Skill} from "../../../models/skill";
     import {LoadSkillViewModel} from "../../../view-model/skill/load-skill.view-model";
     import {Pagination} from "../../../models/pagination";
+    import {AddSkillViewModel} from "../../../view-model/skill/add-skill.view-model";
+    import {EditSkillViewModel} from "../../../view-model/skill/edit-skill.view-model";
     const PaginationConstant = require('../../../constants/pagination.constant.ts').PaginationConstant;
 
     @Component({
         components:{
             SkillDetail
         },
-        dependencies: ['$skill', '$toastr', '$ui']
+        dependencies: ['$toastr', '$ui']
     })
     export default class SkillManagementComponent extends Vue {
 
         //#region Properties
 
         // Profile information.
-        @Getter('profile')
+        @Getter('profile', {namespace: 'app'})
         private profile: Profile;
 
         // Load skills result.
@@ -216,11 +218,23 @@
         //#region Methods
 
         // Mutation maps.
-        @Mutation('addLoadingScreen')
-        public addLoadingScreen: any;
+        @Mutation('addLoadingScreen', {namespace: 'app'})
+        public addLoadingScreen: () => void;
 
-        @Mutation('deleteLoadingScreen')
-        public deleteLoadingScreen: any;
+        @Mutation('deleteLoadingScreen', {namespace: 'app'})
+        public deleteLoadingScreen: () => void;
+
+        @Action('addSkill', {namespace: 'apiSkill'})
+        public addSkillAsync: (addSkillModel: AddSkillViewModel) => Promise<Skill>;
+
+        @Action('editSkill', {namespace: 'apiSkill'})
+        public editSkillAsync: (editSkillModel: EditSkillViewModel) => Promise<Skill>;
+
+        @Action('deleteSkill', {namespace: 'apiSkill'})
+        public deleteSkillAsync: (id: number) => Promise<void>;
+
+        @Action('loadSkills', {namespace: 'apiSkill'})
+        public loadSkillsAsync: (condition: LoadSkillViewModel) => Promise<SearchResult<Skill[]>>;
 
         /*
         * Called when edit skill button is clicked.
@@ -258,14 +272,21 @@
             this.addLoadingScreen();
 
             if (!skill.id) {
-                pAddEditSkillPromise = this.$skill
-                    .addSkill(skill.name)
+                let addSkillModel = new AddSkillViewModel();
+                addSkillModel.name = skill.name;
+                pAddEditSkillPromise = this
+                    .addSkillAsync(addSkillModel)
                     .then(() => {
                         this.$toastr.success('Skill has been added to system.');
                     });
             } else {
-                pAddEditSkillPromise = this.$skill
-                    .editSkill(skill.id, skill.name)
+
+                let editSkillModel = new EditSkillViewModel();
+                editSkillModel.id = skill.id;
+                editSkillModel.name = skill.name;
+
+                pAddEditSkillPromise = this
+                    .editSkillAsync(editSkillModel)
                     .then(() => {
                         this.$toastr.success('Skill has been edited.')
                     });
@@ -293,8 +314,7 @@
             this.addLoadingScreen();
 
             // Call api to delete skill.
-            this.$skill
-                .deleteSkill(skill.id)
+            this.deleteSkillAsync(skill.id)
                 .then(() => {
                     self.$toastr.success('Skill has been removed !');
 
@@ -312,8 +332,8 @@
         public loadSkills(): Promise<SearchResult<Skill[]>> {
             let loadSkillCondition = this.loadSkillsCondition;
 
-            return this.$skill
-                .loadSkills(loadSkillCondition)
+            return this
+                .loadSkillsAsync(loadSkillCondition)
                 .catch(() => {
                     let loadSkillsResult = new SearchResult<Skill[]>();
                     loadSkillsResult.records = [];

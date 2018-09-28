@@ -179,10 +179,15 @@
     import {Project} from "../../../models/project";
     import {Responsibility} from "../../../models/responsibility";
     import {Skill} from "../../../models/skill";
-    const PaginationConstant = require('../../../constants/pagination.constant.ts').PaginationConstant;
+    import {LoadResponsibilityViewModel} from "../../../view-model/load-responsibility.view-model";
+    import {SearchResult} from "../../../models/search-result";
+    import {Action} from "vuex-class";
+    import {LoadSkillViewModel} from "../../../view-model/skill/load-skill.view-model";
+    import {Pagination} from "../../../models/pagination";
+    const {PaginationConstant} = require('../../../constants/pagination.constant.ts');
 
     @Component({
-        dependencies: ['$skill', '$responsibility', '$promiseManager']
+        dependencies: ['$promiseManager']
     })
     export default class AddEditProfileComponent extends Vue {
 
@@ -263,18 +268,22 @@
 
         //#region Methods
 
+        @Action('loadResponsibilities', {namespace: 'apiResponsibility'})
+        private loadResponsibilitiesAsync: (condition: LoadResponsibilityViewModel) => Promise<SearchResult<Responsibility[]>>;
+
+        @Action('loadSkills', {namespace: 'apiSkill'})
+        private loadSkillsAsync: (condition: LoadSkillViewModel) => Promise<SearchResult<Skill[]>>;
+
         /*
         * Called when user is querying a skill.
         * */
-        public vOnSkillQueried(query: string, done: Function): void {
+        public vOnSkillQueried(query: string, done: (skills: Skill[]) => void): void {
 
-            let loadSkillsCondition = {
-                names: query ? [query] : null,
-                pagination: {
-                    page: 1,
-                    records: PaginationConstant.typeaheadMaxItem
-                }
-            };
+            let loadSkillsCondition = new LoadSkillViewModel();
+            loadSkillsCondition.names = query ? [query]: null;
+            loadSkillsCondition.pagination = new Pagination();
+            loadSkillsCondition.pagination.page = 1;
+            loadSkillsCondition.pagination.records = PaginationConstant.typeaheadMaxItem;
 
             // Cancel the previous promise.
             if (this.loadSkillPromise) {
@@ -282,14 +291,13 @@
                     .cancelPromise(this.loadSkillPromise);
             }
 
-            let pLoadSkillPromise = this.$skill
-                .loadSkills(loadSkillsCondition);
+            let pLoadSkillPromise = this.loadSkillsAsync(loadSkillsCondition);
 
             this.loadSkillPromise = this.$promiseManager
                 .addCancellablePromise(pLoadSkillPromise);
 
             this.loadSkillPromise
-                .then((loadSkillsResult) => {
+                .then((loadSkillsResult: SearchResult<Skill[]>) => {
                     done(loadSkillsResult.records);
                 })
                 .catch(() => {
@@ -300,7 +308,7 @@
         /*
         * Called when user is querying a responsibility
         * */
-        public vOnResponsibilityQueried(query: string, done: Function): void {
+        public vOnResponsibilityQueried(query: string, done: (responsibilities: Responsibility[])): void {
 
             let loadResponsibilitiesCondition = {
                 names: query ? [query] : null,
@@ -316,8 +324,7 @@
                     .cancelPromise(this.loadResponsibilityPromise);
             }
 
-            let pLoadResponsibilityPromise = this.$responsibility
-                .loadResponsibilities(loadResponsibilitiesCondition);
+            let pLoadResponsibilityPromise = this.loadResponsibilitiesAsync(loadResponsibilitiesCondition);
 
             this.loadResponsibilityPromise = this.$promiseManager
                 .addCancellablePromise(pLoadResponsibilityPromise);

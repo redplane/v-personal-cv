@@ -113,19 +113,18 @@
 
     // Import responsibility detail component.
     import ResponsibilityDetail from '../responsibility/responsibility-detail.component';
-    import {mapMutations} from 'vuex';
     import {Vue, Component} from 'vue-property-decorator'
     import {SearchResult} from "../../../models/search-result";
     import {Responsibility} from "../../../models/responsibility";
     import {LoadResponsibilityViewModel} from "../../../view-model/load-responsibility.view-model";
     import {Pagination} from "../../../models/pagination";
     import {Profile} from "../../../models/profile";
-    import {Getter, Mutation} from "vuex-class";
+    import {Action, Getter, Mutation} from "vuex-class";
 
     const PaginationConstant = require('../../../constants/pagination.constant.ts').PaginationConstant;
 
     @Component({
-        dependencies: ['$responsibility', '$toastr', '$ui'],
+        dependencies: ['$toastr', '$ui'],
         components: {ResponsibilityDetail}
     })
     export default class ResponsibilityManagementComponent extends Vue {
@@ -133,8 +132,20 @@
         //#region Properties
 
         // Profile information.
-        @Getter('profile')
+        @Getter('profile', {namespace: 'app'})
         private profile: Profile;
+
+        @Action('addResponsibility', {namespace: 'apiResponsibility'})
+        private addResponsibilityAsync: (responsibility: Responsibility) => Promise<Responsibility>;
+
+        @Action('editResponsibility', {namespace: 'apiResponsibility'})
+        private editResponsibilityAsync: (responsibility: Responsibility) => Promise<Responsibility>;
+
+        @Action('deleteResponsibility', {namespace: 'apiResponsibility'})
+        private deleteResponsibilityAsync: (id: number) => Promise<void>;
+
+        @Action('loadResponsibilities', {namespace: 'apiResponsibility'})
+        private loadResponsibilitiesAsync: (conditions: LoadResponsibilityViewModel) => Promise<SearchResult<Responsibility[]>>;
 
         // Load responsibilities result.
         private loadResponsibilitiesResult: SearchResult<Responsibility[]>;
@@ -187,7 +198,7 @@
         // Check whether user is admin.
         public bIsUserAdmin(): boolean {
             if (!this.profile)
-                return;
+                return false;
 
             return this.profile.role === PaginationConstant.admin;
         }
@@ -215,11 +226,11 @@
         //#region Methods
 
         // Import mutation.
-        @Mutation('addLoadingScreen')
-        public addLoadingScreen: any;
+        @Mutation('addLoadingScreen', {namespace: 'app'})
+        public addLoadingScreen: () => void;
 
-        @Mutation('deleteLoadingScreen')
-        public deleteLoadingScreen: any;
+        @Mutation('deleteLoadingScreen', {namespace: 'app'})
+        public deleteLoadingScreen: () => void;
 
 
         /*
@@ -254,26 +265,31 @@
             let pAddEditPromise = null;
             let responsibility = $event;
 
+            // Add loading screen.
+            this.addLoadingScreen();
+
             // Get current context.
-            let self = this;
             if (!responsibility.id) {
 
-                pAddEditPromise = this.$responsibility
-                    .addResponsibility(responsibility)
+                pAddEditPromise = this
+                    .addResponsibilityAsync(responsibility)
                     .then(() => {
-                        self.$toastr.success('Added responsibility to system.');
+                        this.$toastr.success('Added responsibility to system.');
                     });
             } else {
-                pAddEditPromise = this.$responsibility
-                    .editResponsibility(responsibility.id, responsibility)
+                pAddEditPromise = this
+                    .editResponsibilityAsync(responsibility)
                     .then(() => {
-                        self.$toastr.success('Responsibility has been edited.');
+                        this.$toastr.success('Responsibility has been edited.');
                     });
             }
 
             pAddEditPromise
                 .then(() => {
-                    self.bIsResponsibilityDetailModalOpened = false;
+                    this.bIsResponsibilityDetailModalOpened = false;
+                })
+                .finally(() => {
+                    this.deleteLoadingScreen();
                 });
         }
 
@@ -281,22 +297,19 @@
         * Delete responsibility by searching for its id.
         * */
         public deleteResponsibility(id: number): void {
-            // Get context.
-            let self = this;
 
             // Block app UI.
-            self.addLoadingScreen();
+            this.addLoadingScreen();
 
-            this.$responsibility
-                .deleteResponsibility(id)
+            this.deleteResponsibilityAsync(id)
                 .then(() => {
-                    self.$toastr.success('Responsibility has been delete from the system successfully.');
+                    this.$toastr.success('Responsibility has been delete from the system successfully.');
 
                     // Close modal dialog.
-                    self.bIsDeleteResponsibilityModalOpened = false;
+                    this.bIsDeleteResponsibilityModalOpened = false;
                 })
                 .finally(() => {
-                    self.deleteLoadingScreen();
+                    this.deleteLoadingScreen();
                 });
         }
 
@@ -311,8 +324,8 @@
             else
                 conditions = Object.assign({}, loadResponsibilitiesCondition);
 
-            return this.$responsibility
-                .loadResponsibilities(conditions)
+            return this
+                .loadResponsibilitiesAsync(conditions)
                 .catch(() => {
                     let loadResponsibilitiesResult = new SearchResult<Responsibility[]>();
                     loadResponsibilitiesResult.records = [];

@@ -1,8 +1,9 @@
 import {GetterTree} from 'vuex';
 import {AppState} from "@/stores/app/app.state";
 import {Profile} from "@/models/profile";
+import {RootState} from "@/stores/root/root.state";
 
-export const getters: GetterTree<AppState, AppState> = {
+export const getters: GetterTree<AppState, RootState> = {
 
     /*
     * Get profile information.
@@ -12,6 +13,8 @@ export const getters: GetterTree<AppState, AppState> = {
     /*
     * Get block UI instance.
     * */
-    blockUi: (state: any) => state.blockUi
+    blockUi: (state: any) => state.blockUi,
 
+    // App setting
+    appSetting: (state: AppState) => state.appSetting
 };

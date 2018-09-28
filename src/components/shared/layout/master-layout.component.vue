@@ -9,7 +9,8 @@
     import store from '@/store';
     import {Component, Vue} from 'vue-property-decorator';
     import {Profile} from "../../../models/profile";
-    import {Getter} from "vuex-class";
+    import {Action, Getter} from "vuex-class";
+    import {User} from "../../../models/user";
 
     @Component({
         name: 'master-layout'
@@ -18,8 +19,11 @@
 
         //#region Properties
 
-        @Getter('profile')
+        @Getter('profile', {namespace: 'app'})
         public profile: Profile;
+
+        @Action('loadProfile', {namespace: 'apiUser'})
+        private loadProfileAsync: () => Promise<User>;
 
         //#endregion
 
@@ -40,9 +44,7 @@
             // Get access token from storage.
             let accessToken = localStorage.getItem(lsAppAccessToken);
             if (accessToken) {
-                let $user = injector.get('$user');
-                loadUserProfilePromise = $user
-                    .loadProfile(null);
+                loadUserProfilePromise = this.loadProfileAsync(0);
             } else {
                 loadUserProfilePromise = new Promise(resolve => {
                     resolve(null);

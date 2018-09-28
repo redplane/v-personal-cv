@@ -7,12 +7,12 @@ export class LoadSkillCategorySkillRelationshipViewModel {
     /*
     * Skill category indexes.
     * */
-    public skillCategoryIds: Array<null> | null;
+    public skillCategoryIds: Array<number> | null;
 
     /*
     * Skill indexes.
     * */
-    public skillIds: Array<null> | null;
+    public skillIds: Array<number> | null;
 
     /*
     * Pagination information.

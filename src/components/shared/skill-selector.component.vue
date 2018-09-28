@@ -81,14 +81,16 @@
     import {SearchResult} from "../../models/search-result";
     import {Skill} from "../../models/skill";
     import {SkillCategorySkillRelationship} from "../../models/skill-category-skill-relationship";
-    import {Mutation} from "vuex-class";
+    import {Action, Mutation} from "vuex-class";
     import {Pagination} from "../../models/pagination";
     import PaginationConstant from '../../constants/pagination.constant.vue';
     import {HasSkillViewModel} from "../../view-model/has-skill.view-model";
+    import {LoadSkillCategorySkillRelationshipViewModel} from "../../view-model/skill/load-skill-category-skill-relationship.view-model";
+    import {ProjectSkillRelationship} from "../../models/project-skill-relationship";
 
     @Component({
         name: 'skill-selector',
-        dependencies: ['$ui', '$lodash', '$skill']
+        dependencies: ['$ui']
     })
     export default class SkillSelectorComponent extends Vue {
 
@@ -123,7 +125,7 @@
         /*
         * Map of selected skill.
         * */
-        private mSelectedSkillMap: { [id: number]: SkillCategorySkillRelationship; } = {};
+        private mSelectedSkillMap: { [id: string]: SkillCategorySkillRelationship; } = {};
 
         /*
         * Map of skill & point.
@@ -186,26 +188,32 @@
         /*
         * Add loading screen to UI.
         * */
-        @Mutation('addLoadingScreen')
-        public addLoadingScreen: any;
+        @Mutation('addLoadingScreen', {namespace: 'app'})
+        public addLoadingScreen: () => void;
 
         /*
         * Delete loading screen from UI.
         * */
-        @Mutation('deleteLoadingScreen')
-        public deleteLoadingScreen: any;
+        @Mutation('deleteLoadingScreen', {namespace: 'app'})
+        public deleteLoadingScreen: () => void;
 
+
+        @Action('loadSkills', {namespace: 'apiSkill'})
+        private loadSkillsAsync: (condition: LoadSkillViewModel) => Promise<SearchResult<Skill[]>>;
+
+        @Action('loadSkillCategorySkillRelationships', {namespace: 'apiSkill'})
+        private loadSkillCategorySkillRelationshipsAsync: (condition: LoadSkillCategorySkillRelationshipViewModel) => Promise<SearchResult<ProjectSkillRelationship[]>>;
 
         /*
         * Load skill by using specific condition.
         * */
-        public loadSkills(loadSkillCondition: LoadSkillViewModel): Promise<SearchResult<Skill[]>> {
+        public loadSkills(loadSkillCondition: LoadSkillViewModel | null): Promise<SearchResult<Skill[]>> {
             let condition: LoadSkillViewModel = loadSkillCondition;
             if (!condition)
                 condition = this.loadSkillCondition;
 
-            return this.$skill
-                .loadSkills(condition)
+            return this
+                .loadSkillsAsync(condition)
                 .catch(() => {
                     let loadSkillResult = new SearchResult<Skill[]>();
                     loadSkillResult.records = [];
@@ -221,22 +229,22 @@
         public loadSelectedSkills(skillCategoryId: number): Promise<{ [id: number]: SkillCategorySkillRelationship }> {
 
             // Initialize search condition.
-            let loadSkillCategorySkillRelationshipCondition = {
-                skillCategoryIds: [skillCategoryId]
-            };
+            let loadSkillCategorySkillRelationshipCondition = new LoadSkillCategorySkillRelationshipViewModel();
+            loadSkillCategorySkillRelationshipCondition.skillCategoryIds = [skillCategoryId];
 
             // Clear the selected list.
             this.mSelectedSkillMap = {};
 
-            return this.$skill
-                .loadSkillCategorySkillRelationships(loadSkillCategorySkillRelationshipCondition)
+            return this
+                .loadSkillCategorySkillRelationshipsAsync(loadSkillCategorySkillRelationshipCondition)
                 .then((loadSkillCategorySkillRelationshipResult: SearchResult<SkillCategorySkillRelationship[]>) => {
                     // Get relationships.
                     let relationships = loadSkillCategorySkillRelationshipResult.records;
                     let mSelectedSkillMap: { [id: number]: SkillCategorySkillRelationship } = {};
-                    this.$lodash.each(relationships, (relationship: SkillCategorySkillRelationship) => {
+
+                    for (let relationship of relationships) {
                         mSelectedSkillMap[relationship.skillId] = relationship;
-                    });
+                    }
 
                     return mSelectedSkillMap;
                 })
@@ -289,11 +297,11 @@
 
             let hasSkills: Array<HasSkillViewModel> = Object
                 .keys(mSelectedSkillMap)
-                .filter((key) => mSelectedSkillMap[key])
-                .map((id) => {
+                .filter((key: string) => mSelectedSkillMap[key])
+                .map((id: string) => {
                     let iId = parseInt(id);
                     let hasSkill = new HasSkillViewModel();
-                    hasSkill.skillId = parseInt(iId);
+                    hasSkill.skillId = iId;
                     hasSkill.skillCategoryId = this.skillCategory.id;
                     hasSkill.point = this.mSelectedSkillPoint[iId];
 
@@ -356,7 +364,9 @@
                     if (loadedSkills)
                         this.addSkillPointToMap(loadedSkills);
                 })
-                .finally(() => {
+                .catch(() => {
+                })
+                .then(() => {
                     this.bIsLoadingSkills = false;
                     this.deleteLoadingScreen();
                 })

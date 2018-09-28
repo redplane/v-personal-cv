@@ -1,26 +1,29 @@
 import Vue from 'vue'
-import Vuex, {StoreOptions} from 'vuex'
+import Vuex from 'vuex'
+
 Vue.use(Vuex);
 
-import {AppState} from "@/stores/app/app.state";
+import {apiUser} from "@/stores/user-service";
+import {apiUserDescription} from "@/stores/user-description-service";
+import {apiResponsibility} from '@/stores/responsibility-service';
+import {apiProject} from '@/stores/project-service';
+import {apiSkill} from "@/stores/skill-service";
+import {app} from '@/stores/app';
 
-import {actions} from "@/stores/app/app.action";
-import {mutations} from "@/stores/app/app.mutation";
-import {getters} from "@/stores/app/app.getter";
-import {BlockUiOption} from "@/models/block-ui-option";
+import {actions} from "@/stores/root/root.action";
+import {mutations} from "@/stores/root/root.mutation";
+import {RootState} from '@/stores/root/root.state';
 
-export const state: AppState = {
-    profile: null,
-    blockUi: new BlockUiOption()
-};
-
-const namespaced: boolean = true;
-
-const store: StoreOptions<AppState> = {
-    state,
-    getters,
+export default new Vuex.Store({
+    state: new RootState(),
     actions,
-    mutations
-};
-
-export default new Vuex.Store<AppState>(store);
+    mutations,
+    modules: {
+        app,
+        apiUser: apiUser,
+        apiUserDescription,
+        apiResponsibility,
+        apiProject,
+        apiSkill
+    }
+});

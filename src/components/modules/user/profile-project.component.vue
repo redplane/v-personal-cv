@@ -128,7 +128,7 @@
 
     import {Component, Prop, Vue} from 'vue-property-decorator'
     import {Profile} from "../../../models/profile";
-    import {Getter, Mutation} from "vuex-class";
+    import {Action, Getter, Mutation} from "vuex-class";
     import {SearchResult} from "../../../models/search-result";
     import {Project} from "../../../models/project";
     import {LoadProjectViewModel} from "../../../view-model/project/load-project.view-model";
@@ -140,10 +140,12 @@
     import '../../../styles/button.css';
 
     import AddEditProjectComponent from '../project/add-profile-project';
+    import {AddProjectViewModel} from "../../../view-model/project/add-project.view-model";
+    import {EditProjectViewModel} from "../../../view-model/project/edit-project.view-model";
 
     @Component({
-        dependencies: ['$ui', '$project'],
-        components:{
+        dependencies: ['$ui'],
+        components: {
             AddEditProjectComponent
         }
     })
@@ -165,7 +167,7 @@
         /*
         * Profile state.
         * */
-        @Getter('profile')
+        @Getter('profile', {namespace: 'app'})
         public profile: Profile;
 
         public $ui: any;
@@ -286,7 +288,7 @@
         /*
         * Initialize component with settings.
         * */
-        public constructor(){
+        public constructor() {
             super();
             this.loadProjectCondition = new LoadProjectViewModel();
             this.loadProjectCondition.pagination = new Pagination();
@@ -300,14 +302,26 @@
         /*
         * Add loading screen to UI.
         * */
-        @Mutation('addLoadingScreen')
-        public addLoadingScreen: any;
+        @Mutation('addLoadingScreen', {namespace: 'app'})
+        public addLoadingScreen: () => void;
 
         /*
         * Delete loading screen from UI.
         * */
         @Mutation('deleteLoadingScreen')
-        public deleteLoadingScreen: any;
+        public deleteLoadingScreen: () => void;
+
+        @Action('loadProjects')
+        public loadProjectsAsync: (conditions: LoadProjectViewModel) => Promise<SearchResult<Project[]>>;
+
+        @Action('deleteProject')
+        public deleteProjectAsync: (id: number) => Promise<void>;
+
+        @Action('addProject')
+        public addProjectAsync: (addProjectModel: AddProjectViewModel) => Promise<Project>;
+
+        @Action('editProject')
+        public editProjectAsync: (editProjectModel: EditProjectViewModel) => Promise<Project>;
 
         /*
         * Load user projects by using specific conditions.
@@ -317,8 +331,8 @@
             if (condition == null)
                 condition = this.loadProjectCondition;
 
-            return this.$project
-                .loadProjects(condition)
+            return this
+                .loadProjectsAsync(condition)
                 .then((loadProjectResult: SearchResult<Project[]>) => {
                     return loadProjectResult;
                 });
@@ -383,8 +397,7 @@
             // Freeze the ui.
             this.addLoadingScreen();
 
-            this.$project
-                .deleteProject(id)
+            this.deleteProjectAsync(id)
                 .then(() => {
                     this.$toastr.success('Project has been deleted successfully');
                     return this.loadProjects(null);
@@ -440,8 +453,17 @@
 
             // Project is is not defined. That means user is adding a new project to system.
             if (!project.id) {
-                this.$project
-                    .addProject(this.userId, project.name, project.description, project.startedTime, project.finishedTime, responsibilityIds, skillIds)
+
+                let addProjectModel = new AddProjectViewModel();
+                addProjectModel.userId = this.userId;
+                addProjectModel.name = project.name;
+                addProjectModel.description = project.description;
+                addProjectModel.startedTime = project.startedTime;
+                addProjectModel.finishedTime = project.finishedTime;
+                addProjectModel.responsibilityIds = responsibilityIds;
+                addProjectModel.skillIds = skillIds;
+
+                this.addProjectAsync(addProjectModel)
                     .then(() => {
                         // Hide the modal dialog.
                         this.bIsAddEditProjectModalVisible = false;
@@ -454,8 +476,16 @@
                 return;
             }
 
-            this.$project
-                .editProject(project.id, this.userId, project.name, project.description, project.startedTime, project.finishedTime, responsibilityIds, skillIds)
+            let editProjectModel = new EditProjectViewModel();
+            editProjectModel.id = project.id;
+            editProjectModel.name = project.name;
+            editProjectModel.description = project.description;
+            editProjectModel.startedTime = project.startedTime;
+            editProjectModel.finishedTime = project.finishedTime;
+            editProjectModel.responsibilityIds = responsibilityIds;
+            editProjectModel.skillIds = skillIds;
+
+            this.editProjectAsync(editProjectModel)
                 .then(() => {
                     // Hide the modal dialog.
                     this.bIsAddEditProjectModalVisible = false;

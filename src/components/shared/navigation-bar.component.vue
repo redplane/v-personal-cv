@@ -69,7 +69,7 @@
         /*
         * Profile state.
         * */
-        @Getter('profile')
+        @Getter('profile', {namespace: 'app'})
         public profile: Profile;
 
         //#endregion

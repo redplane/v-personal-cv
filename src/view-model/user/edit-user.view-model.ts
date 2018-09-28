@@ -1,6 +1,9 @@
 export class EditUserViewModel {
 
+
     //#region Properties
+    
+    public id: number;
 
     /*
     * User first name.

@@ -42,15 +42,17 @@
     import store from '@/store'
 
     import {Component, Vue} from 'vue-property-decorator';
-    import {Getter, Mutation, State} from "vuex-class";
+    import {Action, Getter, Mutation, State} from "vuex-class";
     import {Profile} from "./models/profile";
     import {LoginViewModel} from "./view-model/user/login.view-model";
+    import {LoginResultViewModel} from "./view-model/user/login-result.view-model";
+    import {User} from "./models/user";
 
     const GlobalConstant = require('./constants/global.constant.ts').GlobalConstant;
     const EventConstant = require('./constants/event.constant.ts').EventConstant;
 
     @Component({
-        dependencies: ['$user', '$toastr', '$localStorage'],
+        dependencies: ['$toastr', '$localStorage'],
         components: {
             NavigationBar,
             LoginBox
@@ -65,7 +67,7 @@
         private blockUi: any;
 
         // Profile information.
-        @Getter('profile')
+        @Getter('profile', {namespace: 'app'})
         private profile: Profile;
 
         // Whether login modal is available or not.
@@ -84,11 +86,23 @@
 
         //#region Methods
 
-        @Mutation('addLoadingScreen')
-        private addLoadingScreen: any;
+        @Mutation('addLoadingScreen', {namespace: 'app'})
+        private addLoadingScreen: () => void;
 
-        @Mutation('deleteLoadingScreen')
-        private deleteLoadingScreen: any;
+        @Mutation('deleteLoadingScreen', {namespace: 'app'})
+        private deleteLoadingScreen: () => void;
+
+        @Action('deleteProfile')
+        private deleteProfile: () => void;
+
+        @Action('addProfile')
+        private addProfileAsync: (profile: User) => Promise<void>;
+
+        @Action('login', {namespace: 'apiUser'})
+        private loginAsync: (loginModel: LoginViewModel) => Promise<LoginResultViewModel>;
+
+        @Action('loadProfile')
+        private loadProfileAsync: (id: number | null) => Promise<User>;
 
         //#endregion
 
@@ -116,7 +130,7 @@
                 this.$localStorage.removeItem(GlobalConstant.accessTokenKey);
 
                 // Clear profile from vuex.
-                store.commit('deleteProfile');
+                this.deleteProfile();
             })
         }
 
@@ -131,18 +145,19 @@
             // Block app UI.
             this.addLoadingScreen();
 
-            this.$user
-                .login(loginModel)
+            this.loginAsync(loginModel)
                 .then((loginResult) => {
                     // Add to access token to local storage.
                     accessToken = loginResult.accessToken;
                     // Attach access token to local storage.
                     this.$localStorage.setItem(GlobalConstant.accessTokenKey, accessToken);
-                    return this.$user
-                        .loadProfile(null);
+                    return this
+                        .loadProfileAsync(null);
                 })
                 .then((profile) => {
-                    this.$store.commit('addProfile', profile);
+
+                    // Add profile to store.
+                    this.addProfileAsync(profile);
 
 
                     // Display success message.

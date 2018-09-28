@@ -66,9 +66,10 @@
 
     import {Vue, Component, Prop} from 'vue-property-decorator'
     import {Responsibility} from "../../../models/responsibility";
+    import {cloneDeep} from 'lodash';
+
     @Component({
-        name: 'responsibility-detail',
-        dependencies: ['$lodash']
+        name: 'responsibility-detail'
     })
     export default class ResponsibilityDetailComponent extends Vue {
 
@@ -110,7 +111,7 @@
         * Called when ok button is clicked.
         * */
         public vOnClickOk(): void {
-            let responsibility: Responsibility = this.$lodash.clone(this.responsibility);
+            let responsibility: Responsibility = cloneDeep(this.responsibility);
             this.$emit('confirm', responsibility);
         }
 
@@ -131,7 +132,7 @@
         public mounted(): void {
 
             if (this.responsibilityProperty)
-                this.responsibility = this.$lodash.clone(this.responsibilityProperty);
+                this.responsibility = cloneDeep(this.responsibilityProperty);
             else
                 this.responsibility = new Responsibility();
         }

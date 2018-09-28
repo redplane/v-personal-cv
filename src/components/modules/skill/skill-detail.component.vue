@@ -57,10 +57,10 @@
 
     import {Vue, Component, Prop} from 'vue-property-decorator'
     import {Skill} from "../../../models/skill";
+    import {cloneDeep} from 'lodash';
 
     @Component({
-        name: 'skill-detail',
-        dependencies: ['$lodash']
+        name: 'skill-detail'
     })
     export default class SkillDetailComponent extends Vue {
 
@@ -91,7 +91,7 @@
         * Called when ok button is clicked.
         * */
         public vOnClickOk(): void {
-            let skill: Skill = this.$lodash.clone(this.skill);
+            let skill: Skill = cloneDeep(this.skill);
             this.$emit('confirm', skill);
         }
 
@@ -111,7 +111,7 @@
         * */
         public mounted(): void{
             if (this.skillProperty) {
-                this.skill = this.$lodash.clone(this.skillProperty);
+                this.skill = cloneDeep(this.skillProperty);
                 return;
             }
 

@@ -125,27 +125,31 @@
 
     import UserDetail from '../user/user-detail.component.vue';
     import {Component, Vue} from 'vue-property-decorator'
-    import {Mutation, State} from "vuex-class";
+    import {Action, Getter, Mutation, State} from "vuex-class";
     import {Profile} from "../../../models/profile";
     import {UserRoles} from "../../../enumerations/user-role.enum";
     import {User} from "../../../models/user";
     import {SearchResult} from "../../../models/search-result";
     import {LoadUserViewModel} from "../../../view-model/user/load-user.view-model";
     import {Pagination} from "../../../models/pagination";
-    const PaginationConstant = require('../../../constants/pagination.constant.ts').PaginationConstant;
+    import {EditUserViewModel} from "../../../view-model/user/edit-user.view-model";
+
+    const {PaginationConstant} = require('../../../constants/pagination.constant.ts');
+    import {cloneDeep} from 'lodash';
+    import {AppSetting} from "../../../models/app-setting";
 
     @Component({
         components: {
             UserDetail
         },
-        dependencies: ['$lodash', '$user', '$ui']
+        dependencies: ['$ui']
     })
     export default class UserManagementComponent extends Vue {
 
         //#region Properties
 
         // Profile information.
-        @State('profile')
+        @Getter('profile', {namespace: 'app'})
         private profile: Profile;
 
         // User information.
@@ -162,6 +166,9 @@
 
         // Load user condition.
         private loadUsersCondition: LoadUserViewModel;
+
+        @Getter('appSetting')
+        private appSetting: AppSetting;
 
         // Check whether profile can delete user or not.
         public get bIsAbleToDeleteUser(): boolean {
@@ -255,12 +262,24 @@
         //#region Methods
 
         // Add loading screen to UI.
-        @Mutation('addLoadingScreen')
-        private addLoadingScreen: any;
+        @Mutation('addLoadingScreen', {namespace: 'app'})
+        private addLoadingScreen: () => void;
 
         // Delete
-        @Mutation('deleteLoadingScreen')
-        private deleteLoadingScreen: any;
+        @Mutation('deleteLoadingScreen', {namespace: 'app'})
+        private deleteLoadingScreen: () => void;
+
+        @Action('loadUsers', {namespace: 'apiUser'})
+        private loadUserAsync: (loadUserCondition: LoadUserViewModel) => Promise<SearchResult<User[]>>;
+
+        @Action('addUser', {namespace: 'apiUser'})
+        private addUserAsync: (user: User) => Promise<User>;
+
+        @Action('editUser', {namespace: 'apiUser'})
+        private editUserAsync: (model: EditUserViewModel) => Promise<User>;
+
+        @Action('deleteUser', {namespace: 'apiUser'})
+        private deleteUserAsync: (id: number) => Promise<void>;
 
         //#endregion
 
@@ -284,7 +303,7 @@
         * Called when delete user is clicked.
         * */
         public vOnDeleteUserClick(user: User): void {
-            this.user = this.$lodash.clone(user);
+            this.user = cloneDeep(user);
             this.bIsDeleteUserModalOpened = true;
         }
 
@@ -294,28 +313,28 @@
         public addEditUser(user: User): void {
 
             // Promise to be completed.
-            let promise = null;
+            let pAddEditUserPromise = null;
 
             // Block app ui.
             this.addLoadingScreen();
 
             if (!user.id) {
-                promise = this
-                    .$user
-                    .addUser(user)
+                pAddEditUserPromise = this
+                    .addUserAsync(user)
                     .then(() => {
-                        this.$toastr.success('User has been added');
+                        this.toastr.success('User has been added successfully');
                     });
             } else {
-                promise = this
-                    .$user
-                    .editUser(user.id, user)
+                let editUserModel = <EditUserViewModel> user;
+                editUserModel.id = user.id;
+                pAddEditUserPromise = this
+                    .editUserAsync(editUserModel)
                     .then(() => {
                         this.$toastr.success('User has been edited');
                     });
             }
 
-            promise
+            pAddEditUserPromise
                 .then(() => {
                     // Close the modal dialog.
                     this.bIsUserModalOpened = false;
@@ -333,33 +352,14 @@
             // Block screen.
             this.addLoadingScreen();
 
-            this.$user
-                .deleteUser(user.id)
+            this
+                .deleteUserAsync(user.id)
                 .then(() => {
                     this.$toastr.success('User has been deleted from the system');
                     this.bIsDeleteUserModalOpened = false;
                 })
                 .finally(() => {
                     this.deleteLoadingScreen();
-                });
-        }
-
-        /*
-        * Load users base on specific conditions.
-        * */
-        public loadUsers(): any {
-
-            // Get current context.
-            let self = this;
-
-            // Get users list.
-            return self.$user
-                .loadUsers(self.loadUsersCondition)
-                .catch(() => {
-                    return {
-                        records: [],
-                        total: 0
-                    }
                 });
         }
 
@@ -372,8 +372,8 @@
             this.addLoadingScreen();
 
             // Load users using existing conditions.
-            this.loadUsers()
-                .then((loadUsersResult) => {
+            this.loadUserAsync(this.loadUsersCondition)
+                .then((loadUsersResult: SearchResult<User[]>) => {
                     this.loadUsersResult = loadUsersResult;
                 })
                 .finally(() => {
@@ -388,10 +388,14 @@
             // Add loading screen to UI.
             this.addLoadingScreen();
 
+
             // Get users list.
-            this.loadUsers()
+            this.loadUserAsync(this.loadUsersCondition)
                 .then((loadUsersResult: SearchResult<User[]>) => {
                     this.loadUsersResult = loadUsersResult;
+                })
+                .catch(() => {
+                    this.loadUsersResult = new SearchResult<User[]>();
                 })
                 .finally(() => {
                     this.deleteLoadingScreen();

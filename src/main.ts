@@ -3,6 +3,7 @@ import '../node_modules/bootstrap3/dist/css/bootstrap.css';
 
 // Import toastr notification.
 import '../node_modules/toastr/toastr.scss';
+import 'vue-toastr/src/vue-toastr.scss';
 
 // Import JQuery lib.
 import 'expose-loader?$!expose-loader?jQuery!jquery';
@@ -36,18 +37,10 @@ vueInjector.constant('paginationConstant', paginationConstant.default);
 const userRoleConstant = require('./constants/user-role.constant');
 vueInjector.constant('userRoleConstant', userRoleConstant.default);
 
-require('./services/lodash.service');
 require('./services/promise-manager.service');
 require('./services/local-storage.service');
 require('./services/axios.service');
-require('./services/user.service');
-require('./services/skill.service');
 require('./services/toastr.service');
-require('./services/responsibility.service');
-require('./services/user-description.service');
-require('./services/hobby.service');
-require('./services/skill.service');
-require('./services/project.service');
 require('./services/ui.service');
 
 Vue.use(vueInjector);
@@ -55,8 +48,10 @@ Vue.use(vueInjector);
 //#endregion
 
 //#region Vue bootstrap
+
 const uiv = require('uiv');
 Vue.use(uiv);
+
 //#endregion
 
 //#region Vue blockUI
@@ -99,35 +94,29 @@ Vue.use(VueTrumbowyg);
 const VueGrecaptcha = require('vue-recaptcha');
 Vue.use(VueGrecaptcha, {
     sitekey: 'your_key'
-})
+});
 
 //#endregion
+
 
 Vue.config.productionTip = false;
 
 
 // Import vuex.
 import store from './store';
+import axios, {AxiosResponse} from 'axios';
+import {AppSetting} from "@/models/app-setting";
 
-import * as $ from 'jquery'
-$.getJSON('/app.config.json', json => {
-    console.log(json);
-});
+axios.get('/app.config.json')
+    .then((axiosResponse: AxiosResponse<AppSetting>) => {
+        store.commit('addAppSetting', axiosResponse.data);
 
-// $.ajax({
-//     url: '/app.config.json',
-//     contentType: 'application/json',
-//     method: 'GET',
-//     cache: false,
-//     crossDomain: false,
-//     success: (data: any) => {
-//         new Vue({
-//             router,
-//             store,
-//             render: h => h(App)
-//         }).$mount('#app');
-//     }
-// });
+        new Vue({
+            router,
+            store,
+            render: h => h(App)
+        }).$mount('#app');
+    });
 
 
 

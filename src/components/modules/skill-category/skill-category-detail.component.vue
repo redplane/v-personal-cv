@@ -41,10 +41,10 @@
 
     import {Vue, Component, Prop} from 'vue-property-decorator'
     import {SkillCategory} from "../../../models/skill-category";
+    import {cloneDeep} from 'lodash';
 
     @Component({
-        name: 'skill-category-detail',
-        dependencies: ['$lodash']
+        name: 'skill-category-detail'
     })
     export default class SkillCategoryDetailComponent extends Vue {
 
@@ -88,7 +88,7 @@
         * */
         public mounted(): void {
             if (this.skillCategoryProperty)
-                this.skillCategory = this.$lodash.clone(this.skillCategoryProperty);
+                this.skillCategory = cloneDeep(this.skillCategoryProperty);
             else
                 this.skillCategory = new SkillCategory();
         }

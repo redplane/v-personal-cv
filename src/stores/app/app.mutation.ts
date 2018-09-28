@@ -1,7 +1,8 @@
-import {MutationTree} from "vuex";
+import {ActionContext, MutationTree} from "vuex";
 import {AppState} from "src/stores/app/app.state";
 import {Profile} from "@/models/profile";
 import {BlockUiOption} from "@/models/block-ui-option";
+import {AppSetting} from "@/models/app-setting";
 
 export const mutations: MutationTree<AppState> = {
 
@@ -40,5 +41,11 @@ export const mutations: MutationTree<AppState> = {
             return;
 
         state.blockUi.available = false;
+    },
+
+    // Add app setting.
+    addAppSetting: (state: AppState, appSetting: AppSetting) => {
+        state.appSetting = appSetting;
     }
+
 };
