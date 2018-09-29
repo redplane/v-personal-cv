@@ -31,15 +31,8 @@ vueInjector.constant('gCaptchaSiteKey', '6LfgV2gUAAAAACS_PGjH2iHJJwPXQGvEzP4FB83
 
 // Import constants.
 
-// Import user role constant.
-const userRoleConstant = require('./constants/user-role.constant');
-vueInjector.constant('userRoleConstant', userRoleConstant.default);
 
-require('./services/promise-manager.service');
 require('./services/local-storage.service');
-require('./services/axios.service');
-require('./services/toastr.service');
-require('./services/ui.service');
 
 Vue.use(vueInjector);
 

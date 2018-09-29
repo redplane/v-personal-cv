@@ -192,8 +192,7 @@
     import {unix} from 'moment';
 
     @Component({
-        name: 'add-profile-project',
-        dependencies: ['$promiseManager']
+        name: 'add-profile-project'
     })
     export default class AddEditProfileComponent extends Vue {
 
@@ -221,12 +220,6 @@
         * Information of responsibility will be added into project.
         * */
         private addResponsibilityModel: any;
-
-        // Promise that used for loading skills.
-        private loadSkillPromise: null;
-
-        // Promise that used for loading responsibilities.
-        private loadResponsibilityPromise: null;
 
         /*
         * Whether user can add skill or not.
@@ -291,18 +284,8 @@
             loadSkillsCondition.pagination.page = 1;
             loadSkillsCondition.pagination.records = PaginationConstant.typeaheadMaxItem;
 
-            // Cancel the previous promise.
-            if (this.loadSkillPromise) {
-                this.$promiseManager
-                    .cancelPromise(this.loadSkillPromise);
-            }
 
-            let pLoadSkillPromise = this.loadSkillsAsync(loadSkillsCondition);
-
-            this.loadSkillPromise = this.$promiseManager
-                .addCancellablePromise(pLoadSkillPromise);
-
-            this.loadSkillPromise
+            this.loadSkillsAsync(loadSkillsCondition)
                 .then((loadSkillsResult: SearchResult<Skill[]>) => {
                     done(loadSkillsResult.records);
                 })
@@ -324,18 +307,7 @@
                 }
             };
 
-            // Cancel the previous promise.
-            if (this.loadResponsibilityPromise) {
-                this.$promiseManager
-                    .cancelPromise(this.loadResponsibilityPromise);
-            }
-
-            let pLoadResponsibilityPromise = this.loadResponsibilitiesAsync(loadResponsibilitiesCondition);
-
-            this.loadResponsibilityPromise = this.$promiseManager
-                .addCancellablePromise(pLoadResponsibilityPromise);
-
-            this.loadResponsibilityPromise
+            this.loadResponsibilitiesAsync(loadResponsibilitiesCondition)
                 .then((loadResponsibilityResult: SearchResult<Responsibility[]>) => {
                     done(loadResponsibilityResult.records);
                 })
