@@ -104,7 +104,7 @@
 
 <script lang="ts">
     import {Component, Vue} from 'vue-property-decorator';
-    import {State, Getter, Action, Mutation, namespace} from 'vuex-class'
+    import {Getter, Action, Mutation} from 'vuex-class'
     import {UserDescription} from "../../../models/user-description";
     import {Profile} from "../../../models/profile";
     import {SearchResult} from "../../../models/search-result";
@@ -113,16 +113,15 @@
     import {UserRoles} from "../../../enumerations/user-role.enum";
 
     import ProfileDescriptionDetailComponent from "./profile-description-detail.component.vue";
-    import ImageCropper from '../../shared/image-cropper.component.vue';
+    import ImageCropper from '../../shared/image-cropper/image-cropper.component.vue';
     import {EditUserViewModel} from "../../../view-model/user/edit-user.view-model";
     import {LoadUserViewModel} from "../../../view-model/user/load-user.view-model";
     import {LoadUserDescriptionViewModel} from "../../../view-model/user-description/load-user-description.view-model";
-    import {Pagination} from "../../../models/pagination";
     import {AddUserDescriptionViewModel} from "../../../view-model/user-description/add-user-description.view-model";
     import {EditUserDescriptionViewModel} from "../../../view-model/user-description/edit-user-description.view-model";
+    import toastr from 'toastr';
 
     @Component({
-        dependencies: ['$toastr'],
         components: {
             ProfileDescriptionDetailComponent,
             ImageCropper
@@ -167,8 +166,6 @@
         * */
         @Getter('profile', {namespace: 'app'})
         private profile: Profile;
-
-        private $toastr: any;
 
         //#endregion
 
@@ -265,7 +262,7 @@
             this.deleteUserDescriptionAsync(id)
                 .then(() => {
                     // Display success message.
-                    this.$toastr.success('Description has been deleted successfully.');
+                    toastr.success('Description has been deleted successfully.');
                     return this.loadUserDescriptions();
                 })
                 .then((descriptions: UserDescription[]) => {
@@ -333,7 +330,7 @@
                     let userDescriptions = <UserDescription[]> loadRecordResults[1];
                     this.user.descriptions = userDescriptions;
 
-                    this.$toastr.success('User data has been loaded successfully.');
+                    toastr.success('User data has been loaded successfully.');
                     return true;
                 })
                 .then(() => {
@@ -384,7 +381,7 @@
                     .addUserDescriptionAsync(addUserDescriptionModel)
                     .then((userDescription: UserDescription) => {
                         this.bAddEditUserDescriptionModalOpened = false;
-                        this.$toastr.success('Added user description successfully.');
+                        toastr.success('Added user description successfully.');
                         return true;
                     });
             } else {
@@ -397,7 +394,7 @@
                     .editUserDescriptionAsync(editUserDescription)
                     .then((userDescription: UserDescription) => {
                         this.bAddEditUserDescriptionModalOpened = false;
-                        this.$toastr.success('Added user description successfully.');
+                        toastr.success('Added user description successfully.');
                         return true;
                     });
             }
@@ -461,7 +458,7 @@
 
             this.editUserAsync(editUserModel)
                 .then((user: User) => {
-                    this.$toastr.success('User profile image is uploaded.');
+                    toastr.success('User profile image is uploaded.');
 
                     // Update profile image.
                     if (this.user)

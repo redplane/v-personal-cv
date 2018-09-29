@@ -1,9 +1,8 @@
 import Vue from 'vue';
 import Router, {Route} from 'vue-router';
 
-import MasterLayout from './components/shared/layout/master-layout.component.vue';
-import AdminSideBar from './components/shared/admin-side-bar.component.vue';
-
+import AdminSideBar from './components/shared/admin-side-bar/admin-side-bar.component.vue';
+import MasterLayoutComponent from '@/components/shared/layout/master-layout.component.vue';
 import UserManagement from './components/modules/management/user-management.component.vue';
 import SkillManagement from './components/modules/management/skill-management.component.vue';
 import ResponsibilityManagement from './components/modules/management/responsibility-management.component.vue';
@@ -22,7 +21,7 @@ export default new Router({
     routes: [
         {
             path: '/',
-            component: MasterLayout,
+            component: MasterLayoutComponent,
             beforeEnter: (to: Route, from: Route, next: Function) => {
                 const vueInjector = require('vue-inject/dist/vue-inject');
                 const $localStorage = vueInjector.get('$localStorage');

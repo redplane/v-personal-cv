@@ -5,7 +5,7 @@ export class RootState {
     //#region Properties
 
     // Application setting.
-    public appSetting: AppSetting | null;
+    public appSettings: AppSetting;
 
     //#endregion
 

@@ -114,11 +114,10 @@
 
 <script lang="ts">
     import {Component, Vue} from 'vue-property-decorator';
-    import {State, Getter, Action, Mutation, namespace} from 'vuex-class'
+    import {Getter, Action, Mutation} from 'vuex-class'
     import {cloneDeep} from 'lodash';
 
     // Import components
-    import UserHobbyDetail from './profile-hobby-editor';
     import {Profile} from "../../../models/profile";
     import {UserRoles} from "../../../enumerations/user-role.enum";
     import {LoadHobbyViewModel} from "../../../view-model/hobby/load-hobby.view-model";
@@ -126,13 +125,13 @@
     import {Hobby} from "../../../models/hobby";
     import {Prop} from "vue-property-decorator";
     import {Pagination} from "../../../models/pagination";
-    import PaginationConstant from '../../../constants/pagination.constant.vue';
+    import {PaginationConstant} from "../../../constants/pagination.constant";
+    import toastr from 'toastr';
 
     // Import components
-    import UserHobbyDetail from './profile-hobby-editor';
+    import UserHobbyDetail from './profile-hobby-editor.vue';
 
     @Component({
-        dependencies: ['$ui', '$toastr'],
         components: {
             UserHobbyDetail
         }
@@ -160,10 +159,6 @@
         * */
         @Mutation('deleteLoadingScreen')
         private deleteLoadingScreen: () => void;
-
-
-        // Service implementations.
-        private $ui: any;
 
         /*
         * User id.
@@ -211,14 +206,13 @@
         * Get total hobbies page.
         * */
         public get totalPage(): number {
-            let $ui = this.$ui;
             if (!this.loadHobbyResult)
                 return 1;
 
             if (!this.loadHobbyCondition)
                 return 1;
 
-            return $ui.loadPageCalculation(this.loadHobbyResult.total, this.loadHobbyCondition.pagination.records);
+            return this.loadHobbyResult.totalPage(this.loadHobbyCondition.pagination.records);
         }
 
         /*
@@ -370,7 +364,7 @@
                     .editHobbyAsync(hobby)
                     .then(() => {
                         // Display the toastr notification.
-                        this.$toastr.success('Hobby has been added successfully.')
+                        toastr.success('Hobby has been added successfully.')
                     });
             } else {
                 let addHobbyModel = new Hobby();
@@ -381,7 +375,7 @@
                     .addHobbyAsync(addHobbyModel)
                     .then(() => {
                         // Display the toastr notification.
-                        this.$toastr.success('Hobby has been added successfully.')
+                        toastr.success('Hobby has been added successfully.')
                     });
             }
 
@@ -416,7 +410,7 @@
             this.deleteHobbyAsync(hobby.id)
                 .then(() => {
                     // Display success message.
-                    this.$toastr.success('Hobby has been deleted successfully.');
+                    toastr.success('Hobby has been deleted successfully.');
 
                     // Close modal.
                     this.bIsDeleteUserHobbyModalAvailable = false;

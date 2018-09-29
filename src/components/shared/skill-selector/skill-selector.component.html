@@ -1,0 +1,73 @@
+<div>
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+                <span>Add user technique</span>
+            </h3>
+        </div>
+        <div class="panel-body">
+            <!--Skills list-->
+            <div class="form-group">
+                <table class="table table-condensed table-striped">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th>Name</th>
+                        <th>Created time</th>
+                        <th>Point</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-if="bIsLoadingSkills">
+                        <td colspan="4" class="text-center">Data is being fetched ....</td>
+                    </tr>
+                    <tr v-else
+                        v-for="skill in loadedSkills">
+                        <td>
+                            <input type="checkbox"
+                                   v-model="mSelectedSkillMap[skill.id]"
+                                   v-bind:value="skill"/>
+                        </td>
+                        <td>
+                            {{skill.name}} | {{skill.id}}
+                        </td>
+                        <td>
+                            {{skill.createdTime}}
+                        </td>
+                        <td>
+                            <input type="number"
+                                   class="form-control"
+                                   v-model="mSelectedSkillPoint[skill.id]">
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!--Pagination-->
+            <div class="form-group">
+                <pagination v-model="loadSkillCondition.pagination.page"
+                            :total-page="totalSkillPage"
+                            align="center"
+                            :boundary-links="true"
+                            :direction-links="true"
+                            @change="vOnPageChanged($event)">
+                </pagination>
+            </div>
+        </div>
+        <div class="panel-footer">
+            <div class="text-center">
+                <button class="btn btn-primary"
+                        :class="{'hidden': bIsLoadingSkills}"
+                        @click="vOnModalConfirm()">
+                    <span>OK</span>
+                </button>
+                <span>&nbsp;</span>
+                <button class="btn btn-default"
+                        @click="vOnModalCancel()">
+                    <span>Cancel</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

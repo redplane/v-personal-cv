@@ -10,7 +10,7 @@ export class User {
 
     public lastName: string = '';
 
-    public photo: string = '';
+    public photo: string | Blob = '';
 
     public birthday: number|null = null;
 

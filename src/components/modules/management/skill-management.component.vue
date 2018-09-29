@@ -115,7 +115,7 @@
 <script lang="ts">
 
     // Import skill detail component.
-    import SkillDetail from '../skill/skill-detail.component'
+    import SkillDetail from '../skill/skill-detail.component.vue'
     import {Vue, Component} from 'vue-property-decorator'
     import {Action, Getter, Mutation} from "vuex-class"
     import {Profile} from "../../../models/profile"
@@ -126,13 +126,13 @@
     import {Pagination} from "../../../models/pagination";
     import {AddSkillViewModel} from "../../../view-model/skill/add-skill.view-model";
     import {EditSkillViewModel} from "../../../view-model/skill/edit-skill.view-model";
-    const PaginationConstant = require('../../../constants/pagination.constant.ts').PaginationConstant;
+    const {PaginationConstant} = require('../../../constants/pagination.constant.ts');
+    import toastr from 'toastr';
 
     @Component({
         components:{
             SkillDetail
-        },
-        dependencies: ['$toastr', '$ui']
+        }
     })
     export default class SkillManagementComponent extends Vue {
 
@@ -192,8 +192,7 @@
             if (loadUsersResult.total < 1)
                 return 1;
 
-            return this.$ui
-                .loadPageCalculation(loadUsersResult.total, pagination.records)
+            return loadUsersResult.totalPage(pagination.records);
         }
 
         //#endregion
@@ -277,7 +276,7 @@
                 pAddEditSkillPromise = this
                     .addSkillAsync(addSkillModel)
                     .then(() => {
-                        this.$toastr.success('Skill has been added to system.');
+                        toastr.success('Skill has been added to system.');
                     });
             } else {
 
@@ -288,7 +287,7 @@
                 pAddEditSkillPromise = this
                     .editSkillAsync(editSkillModel)
                     .then(() => {
-                        this.$toastr.success('Skill has been edited.')
+                        toastr.success('Skill has been edited.')
                     });
             }
 
@@ -316,7 +315,7 @@
             // Call api to delete skill.
             this.deleteSkillAsync(skill.id)
                 .then(() => {
-                    self.$toastr.success('Skill has been removed !');
+                    toastr.success('Skill has been removed !');
 
                     // Close modal dialog.
                     this.bIsDeleteSkillModalOpened = false;
@@ -331,7 +330,6 @@
         * */
         public loadSkills(): Promise<SearchResult<Skill[]>> {
             let loadSkillCondition = this.loadSkillsCondition;
-
             return this
                 .loadSkillsAsync(loadSkillCondition)
                 .catch(() => {

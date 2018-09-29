@@ -30,8 +30,6 @@ vueInjector.constant('lsAppAccessToken', 'personal-cv.io');
 vueInjector.constant('gCaptchaSiteKey', '6LfgV2gUAAAAACS_PGjH2iHJJwPXQGvEzP4FB83E');
 
 // Import constants.
-const paginationConstant = require('./constants/pagination.constant');
-vueInjector.constant('paginationConstant', paginationConstant.default);
 
 // Import user role constant.
 const userRoleConstant = require('./constants/user-role.constant');
@@ -89,12 +87,7 @@ Vue.use(VueTrumbowyg);
 
 //#endregion
 
-//#region Vue re-captcha
 
-const VueGrecaptcha = require('vue-recaptcha');
-Vue.use(VueGrecaptcha, {
-    sitekey: 'your_key'
-});
 
 //#endregion
 
@@ -109,7 +102,14 @@ import {AppSetting} from "@/models/app-setting";
 
 axios.get('/app.config.json')
     .then((axiosResponse: AxiosResponse<AppSetting>) => {
+
+        let appSetting = axiosResponse.data;
         store.commit('addAppSetting', axiosResponse.data);
+
+        //#region Vue re-captcha
+
+        const VueGrecaptcha = require('vue-recaptcha');
+        Vue.use(VueGrecaptcha, {});
 
         new Vue({
             router,

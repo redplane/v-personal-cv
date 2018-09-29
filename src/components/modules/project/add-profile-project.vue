@@ -184,9 +184,15 @@
     import {Action} from "vuex-class";
     import {LoadSkillViewModel} from "../../../view-model/skill/load-skill.view-model";
     import {Pagination} from "../../../models/pagination";
-    const {PaginationConstant} = require('../../../constants/pagination.constant.ts');
+    import {PaginationConstant} from "../../../constants/pagination.constant";
+
+    import {cloneDeep} from 'lodash';
+    import {ProjectViewModel} from "../../../view-model/project/project.view-model";
+    import * as moment from 'moment';
+    import {unix} from 'moment';
 
     @Component({
+        name: 'add-profile-project',
         dependencies: ['$promiseManager']
     })
     export default class AddEditProfileComponent extends Vue {
@@ -255,7 +261,7 @@
         /*
         * Initialize component.
         * */
-        public constructor(){
+        public constructor() {
             super();
             this.project = new Project();
             this.addedResponsibilities = new Array<Responsibility>();
@@ -280,7 +286,7 @@
         public vOnSkillQueried(query: string, done: (skills: Skill[]) => void): void {
 
             let loadSkillsCondition = new LoadSkillViewModel();
-            loadSkillsCondition.names = query ? [query]: null;
+            loadSkillsCondition.names = query ? [query] : null;
             loadSkillsCondition.pagination = new Pagination();
             loadSkillsCondition.pagination.page = 1;
             loadSkillsCondition.pagination.records = PaginationConstant.typeaheadMaxItem;
@@ -308,7 +314,7 @@
         /*
         * Called when user is querying a responsibility
         * */
-        public vOnResponsibilityQueried(query: string, done: (responsibilities: Responsibility[])): void {
+        public vOnResponsibilityQueried(query: string, done: (responsibilities: Responsibility[]) => void): void {
 
             let loadResponsibilitiesCondition = {
                 names: query ? [query] : null,
@@ -330,7 +336,7 @@
                 .addCancellablePromise(pLoadResponsibilityPromise);
 
             this.loadResponsibilityPromise
-                .then((loadResponsibilityResult) => {
+                .then((loadResponsibilityResult: SearchResult<Responsibility[]>) => {
                     done(loadResponsibilityResult.records);
                 })
                 .catch(() => {
@@ -421,16 +427,16 @@
         public vOnClickOk(): void {
 
             // Copy model to local instance.
-            let project = {};
-            project = Object.assign({}, this.project);
+            let project = <ProjectViewModel> cloneDeep(this.project);
+
             if (this.addedResponsibilities)
                 project['responsibilities'] = [].concat(this.addedResponsibilities);
 
             if (this.addedSkills)
                 project['skills'] = [].concat(this.addedSkills);
 
-            project.startedTime = this.$moment(project.startedTime, 'YYYY/MM/DD').unix();
-            project.finishedTime = this.$moment(project.finishedTime, 'YYYY/MM/DD').unix();
+            project.startedTime = unix(project.startedTime).valueOf();
+            project.finishedTime = unix(project.finishedTime).valueOf();
             this.$emit('click-ok', project);
         }
 
@@ -479,15 +485,13 @@
                     if (project.skills)
                         this.addedSkills = [].concat(project.skills);
 
-                    this.project.startedTime = this.$moment.unix(project.startedTime).format('YYYY/MM/DD');
-                    this.project.finishedTime = this.$moment.unix(project.finishedTime).format('YYYY/MM/DD');
+                    this.project.startedTime = unix(project.startedTime).valueOf();
+                    this.project.finishedTime = unix(project.finishedTime).valueOf();
                 });
         }
 
         //#endregion
     }
-
-    Vue.component('add-profile-project', AddEditProfileComponent)
 </script>
 
 <style scoped>

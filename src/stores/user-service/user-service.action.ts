@@ -36,7 +36,6 @@ export const UserServiceAction: ActionTree<RootState, RootState> = {
     * */
     loadUsers({commit, rootState}: ActionContext<RootState, RootState>, conditions: LoadUserViewModel): Promise<SearchResult<User>> {
         let baseUrl: string = ApiUrlConstant.baseUrlEndPoint;
-        console.log(rootState.appSetting);
         return $axios
             .post(`${baseUrl}/api/user/search`, conditions)
             .then((loadUserResponse: AxiosResponse<SearchResult<User>>) => {

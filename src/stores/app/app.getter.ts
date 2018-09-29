@@ -13,8 +13,5 @@ export const getters: GetterTree<AppState, RootState> = {
     /*
     * Get block UI instance.
     * */
-    blockUi: (state: any) => state.blockUi,
-
-    // App setting
-    appSetting: (state: AppState) => state.appSetting
+    blockUi: (state: AppState) => state.blockUi
 };

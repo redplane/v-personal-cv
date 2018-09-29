@@ -112,7 +112,7 @@
 <script lang="ts">
 
     // Import responsibility detail component.
-    import ResponsibilityDetail from '../responsibility/responsibility-detail.component';
+    import ResponsibilityDetailComponent from '../responsibility/responsibility-detail.component.vue';
     import {Vue, Component} from 'vue-property-decorator'
     import {SearchResult} from "../../../models/search-result";
     import {Responsibility} from "../../../models/responsibility";
@@ -120,12 +120,12 @@
     import {Pagination} from "../../../models/pagination";
     import {Profile} from "../../../models/profile";
     import {Action, Getter, Mutation} from "vuex-class";
+    import toastr from 'toastr';
 
-    const PaginationConstant = require('../../../constants/pagination.constant.ts').PaginationConstant;
+    const {PaginationConstant} = require('../../../constants/pagination.constant.ts');
 
     @Component({
-        dependencies: ['$toastr', '$ui'],
-        components: {ResponsibilityDetail}
+        components: {ResponsibilityDetailComponent}
     })
     export default class ResponsibilityManagementComponent extends Vue {
 
@@ -191,8 +191,7 @@
             if (loadUsersResult.total < 1)
                 return 1;
 
-            return this.$ui
-                .loadPageCalculation(loadUsersResult.total, pagination.records)
+            return loadUsersResult.totalPage(pagination.records);
         }
 
         // Check whether user is admin.
@@ -260,7 +259,7 @@
         /*
         * Add responsibility using specific conditions.
         * */
-        public addEditResponsibility($event): void {
+        public addEditResponsibility($event: any): void {
             // Declare promise to resolve.
             let pAddEditPromise = null;
             let responsibility = $event;
@@ -274,13 +273,13 @@
                 pAddEditPromise = this
                     .addResponsibilityAsync(responsibility)
                     .then(() => {
-                        this.$toastr.success('Added responsibility to system.');
+                        toastr.success('Added responsibility to system.');
                     });
             } else {
                 pAddEditPromise = this
                     .editResponsibilityAsync(responsibility)
                     .then(() => {
-                        this.$toastr.success('Responsibility has been edited.');
+                        toastr.success('Responsibility has been edited.');
                     });
             }
 
@@ -303,7 +302,7 @@
 
             this.deleteResponsibilityAsync(id)
                 .then(() => {
-                    this.$toastr.success('Responsibility has been delete from the system successfully.');
+                    toastr.success('Responsibility has been delete from the system successfully.');
 
                     // Close modal dialog.
                     this.bIsDeleteResponsibilityModalOpened = false;
@@ -316,7 +315,7 @@
         /*
         * Load responsibilities using global search condition.
         * */
-        public loadResponsibilities(loadResponsibilitiesCondition: LoadResponsibilityViewModel): Promise<SearchResult<Responsibility[]>> {
+        public loadResponsibilities(loadResponsibilitiesCondition: LoadResponsibilityViewModel | null): Promise<SearchResult<Responsibility[]>> {
             // Copy condition.
             let conditions: LoadResponsibilityViewModel;
             if (!loadResponsibilitiesCondition)

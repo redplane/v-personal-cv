@@ -4,5 +4,7 @@ export class AppSetting {
 
     public baseUrlEndPoint: string = '';
 
+    public googleCaptchaSiteId: string = '';
+
     //#endregion
 }

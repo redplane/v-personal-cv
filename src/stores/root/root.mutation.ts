@@ -7,8 +7,8 @@ export const mutations: MutationTree<RootState> = {
     //#region Methods
 
     // Add app setting.
-    addAppSetting: (state: RootState, appSetting: AppSetting) => {
-        state.appSetting = appSetting;
+    addAppSetting: (state: RootState, appSettings: AppSetting) => {
+        state.appSettings = appSettings;
     }
 
     //#endregion

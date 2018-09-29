@@ -74,7 +74,7 @@
     import {Vue, Component, Prop} from 'vue-property-decorator'
     import {Skill} from "../../../models/skill";
 
-    @Component
+    @Component({})
     export default class UserSkillDetailComponent extends Vue {
 
         //#region Properties
@@ -83,7 +83,7 @@
         * Skill that is used for editing.
         * */
         @Prop(Object)
-        public skillProperty: Skill
+        public skillProperty: Skill;
 
         /*
         * Skill information.

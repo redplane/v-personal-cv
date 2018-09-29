@@ -133,18 +133,18 @@
     import {Project} from "../../../models/project";
     import {LoadProjectViewModel} from "../../../view-model/project/load-project.view-model";
     import {ProjectViewModel} from "../../../view-model/project/project.view-model";
-    import PaginationConstant from '../../../constants/pagination.constant.vue';
+    import {PaginationConstant} from "../../../constants/pagination.constant";
     import {Pagination} from "../../../models/pagination";
 
     import '../../../styles/timeline.css';
     import '../../../styles/button.css';
 
-    import AddEditProjectComponent from '../project/add-profile-project';
+    import AddEditProjectComponent from '../project/add-profile-project.vue';
     import {AddProjectViewModel} from "../../../view-model/project/add-project.view-model";
     import {EditProjectViewModel} from "../../../view-model/project/edit-project.view-model";
+    import toastr from 'toastr';
 
     @Component({
-        dependencies: ['$ui'],
         components: {
             AddEditProjectComponent
         }
@@ -169,8 +169,6 @@
         * */
         @Getter('profile', {namespace: 'app'})
         public profile: Profile;
-
-        public $ui: any;
 
         /*
         * Load project result.
@@ -269,7 +267,6 @@
         * Total page that will be displayed on screen.
         * */
         public get totalPage(): number {
-            let $ui: any = this.$ui;
             let loadProjectResult: SearchResult<Project[]> = this.loadProjectResult;
             if (!loadProjectResult)
                 return 1;
@@ -278,7 +275,7 @@
             if (!loadProjectResult)
                 return 1;
 
-            return $ui.loadPageCalculation(loadProjectResult.total, loadProjectCondition.pagination.records)
+            return loadProjectResult.totalPage(loadProjectCondition.pagination.records);
         }
 
         //#endregion
@@ -356,7 +353,6 @@
             this.loadProjects(null)
                 .then((loadProjectsResult: SearchResult<Project[]>) => {
                     // Scroll to top.
-                    this.$ui.scrollTop(document);
                     this.loadProjectResult = loadProjectsResult;
                     return loadProjectsResult;
                 })
@@ -381,7 +377,6 @@
             this.addLoadingScreen();
             this.loadProjects(null)
                 .then((loadProjectResult: SearchResult<Project[]>) => {
-                    this.$ui.scrollTop(document);
                     this.loadProjectResult = loadProjectResult;
                     return true;
                 })
@@ -399,7 +394,7 @@
 
             this.deleteProjectAsync(id)
                 .then(() => {
-                    this.$toastr.success('Project has been deleted successfully');
+                    toastr.success('Project has been deleted successfully');
                     return this.loadProjects(null);
                 })
                 .then((loadProjectResult: SearchResult<Project[]>) => {

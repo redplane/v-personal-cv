@@ -75,22 +75,21 @@
 </template>
 
 <script lang="ts">
-    import {SkillCategory} from "../../models/skill-category";
     import {Component, Prop, Vue} from 'vue-property-decorator';
-    import {LoadSkillViewModel} from "../../view-model/skill/load-skill.view-model";
-    import {SearchResult} from "../../models/search-result";
-    import {Skill} from "../../models/skill";
-    import {SkillCategorySkillRelationship} from "../../models/skill-category-skill-relationship";
     import {Action, Mutation} from "vuex-class";
-    import {Pagination} from "../../models/pagination";
-    import PaginationConstant from '../../constants/pagination.constant.vue';
-    import {HasSkillViewModel} from "../../view-model/has-skill.view-model";
-    import {LoadSkillCategorySkillRelationshipViewModel} from "../../view-model/skill/load-skill-category-skill-relationship.view-model";
-    import {ProjectSkillRelationship} from "../../models/project-skill-relationship";
+    import {SkillCategory} from "../../../models/skill-category";
+    import {LoadSkillViewModel} from "../../../view-model/skill/load-skill.view-model";
+    import {SkillCategorySkillRelationship} from "../../../models/skill-category-skill-relationship";
+    import {Skill} from "../../../models/skill";
+    import {SearchResult} from "../../../models/search-result";
+    import {Pagination} from "../../../models/pagination";
+    import {LoadSkillCategorySkillRelationshipViewModel} from "../../../view-model/skill/load-skill-category-skill-relationship.view-model";
+    import {HasSkillViewModel} from "../../../view-model/has-skill.view-model";
+    import {ProjectSkillRelationship} from "../../../models/project-skill-relationship";
+    import {PaginationConstant} from "../../../constants/pagination.constant";
 
     @Component({
-        name: 'skill-selector',
-        dependencies: ['$ui']
+        name: 'skill-selector'
     })
     export default class SkillSelectorComponent extends Vue {
 
@@ -136,7 +135,6 @@
         * Calculate total skill page to display.
         * */
         public get totalSkillPage(): number {
-            let $ui = this.$ui;
 
             // Get skill result.
             let loadSkillResult: SearchResult<Skill[]> = this.loadSkillResult;
@@ -147,7 +145,7 @@
             if (!loadSkillCondition || !loadSkillCondition.pagination || !loadSkillCondition.pagination.records)
                 return 1;
 
-            return $ui.loadPageCalculation(this.loadSkillResult.total, this.loadSkillCondition.pagination.records);
+            return loadSkillResult.totalPage(this.loadSkillCondition.pagination.records);
         }
 
         /*
@@ -171,7 +169,7 @@
             super();
             this.bIsLoadingSkills = false;
 
-            let pagination: Pagination = new Pagination();
+            let pagination = new Pagination();
             pagination.page = 1;
             pagination.records = PaginationConstant.selectorMaxItem;
 
@@ -208,7 +206,7 @@
         * Load skill by using specific condition.
         * */
         public loadSkills(loadSkillCondition: LoadSkillViewModel | null): Promise<SearchResult<Skill[]>> {
-            let condition: LoadSkillViewModel = loadSkillCondition;
+            let condition = loadSkillCondition;
             if (!condition)
                 condition = this.loadSkillCondition;
 
@@ -271,7 +269,8 @@
                     if (skills)
                         this.addSkillPointToMap(skills);
                 })
-                .finally(() => {
+                .catch(() => {})
+                .then(() => {
                     this.deleteLoadingScreen();
                     this.bIsLoadingSkills = false;
                 });
@@ -291,7 +290,7 @@
             // Get selected skill map.
             let mSelectedSkillMap = this.mSelectedSkillMap;
             if (!mSelectedSkillMap)
-                return null;
+                return;
 
             // List of skills.
 
@@ -355,7 +354,8 @@
             let pLoadSelectedSkillMapPromise = this
                 .loadSelectedSkills(this.skillCategory.id);
 
-            Promise.all([pLoadSkillPromise, pLoadSelectedSkillMapPromise])
+            let promises: any[] = [pLoadSkillPromise, pLoadSelectedSkillMapPromise];
+            Promise.all(promises)
                 .then((loadedResults: Array<any>) => {
                     this.loadSkillResult = <SearchResult<Skill[]>> loadedResults[0];
                     this.mSelectedSkillMap = loadedResults[1];

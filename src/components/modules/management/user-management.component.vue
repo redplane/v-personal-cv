@@ -137,12 +137,12 @@
     const {PaginationConstant} = require('../../../constants/pagination.constant.ts');
     import {cloneDeep} from 'lodash';
     import {AppSetting} from "../../../models/app-setting";
+    import toastr from 'toastr';
 
     @Component({
         components: {
             UserDetail
-        },
-        dependencies: ['$ui']
+        }
     })
     export default class UserManagementComponent extends Vue {
 
@@ -167,7 +167,7 @@
         // Load user condition.
         private loadUsersCondition: LoadUserViewModel;
 
-        @Getter('appSetting')
+        @Getter('appSettings', {namespace: 'app'})
         private appSetting: AppSetting;
 
         // Check whether profile can delete user or not.
@@ -233,8 +233,7 @@
             if (loadUsersResult.total < 1)
                 return 1;
 
-            return this.$ui
-                .loadPageCalculation(loadUsersResult.total, pagination.records)
+            return loadUsersResult.totalPage(pagination.records);
         }
 
         //#endregion
@@ -322,7 +321,7 @@
                 pAddEditUserPromise = this
                     .addUserAsync(user)
                     .then(() => {
-                        this.toastr.success('User has been added successfully');
+                        toastr.success('User has been added successfully');
                     });
             } else {
                 let editUserModel = <EditUserViewModel> user;
@@ -330,7 +329,7 @@
                 pAddEditUserPromise = this
                     .editUserAsync(editUserModel)
                     .then(() => {
-                        this.$toastr.success('User has been edited');
+                        toastr.success('User has been edited');
                     });
             }
 
@@ -355,7 +354,7 @@
             this
                 .deleteUserAsync(user.id)
                 .then(() => {
-                    this.$toastr.success('User has been deleted from the system');
+                    toastr.success('User has been deleted from the system');
                     this.bIsDeleteUserModalOpened = false;
                 })
                 .finally(() => {

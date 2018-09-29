@@ -8,7 +8,6 @@
                     <h3 class="panel-title"><b class="fa fa-camera"></b> Login</h3>
                 </div>
                 <div class="panel-body">
-                    <!--Email-->
                     <div class="row">
                         <div class="col-lg-12">
                             <label>Email</label>
@@ -34,8 +33,7 @@
                     <!--Google recaptcha-->
                     <div class="row">
                         <div class="col-lg-12">
-                            <vue-recaptcha :sitekey="captchaSiteKey"
-                                           @verify="vOnGoogleCaptchaVerify"></vue-recaptcha>
+                            <vue-recaptcha :sitekey="appSettings.googleCaptchaSiteId" @verify="vOnGoogleCaptchaVerify"></vue-recaptcha>
                         </div>
                     </div>
                 </div>
@@ -58,18 +56,19 @@
 </template>
 
 <script lang="ts">
-
     import VueRecaptcha from 'vue-recaptcha';
     import {Vue, Component} from 'vue-property-decorator'
-    import {LoginViewModel} from "../../view-model/user/login.view-model";
+    import {Getter} from "vuex-class";
+    import {LoginViewModel} from "../../../view-model/user/login.view-model";
+    import {AppSetting} from "../../../models/app-setting";
 
     @Component({
-        dependencies: ['gCaptchaSiteKey'],
-        components:{
+        components: {
             VueRecaptcha
-        }
+        },
+        name: 'login-box'
     })
-    export default class LoginBoxComponent extends Vue{
+    export default class LoginBoxComponent extends Vue {
 
         //#region Properties
 
@@ -81,18 +80,18 @@
         /*
         * Captcha key that is used by front-end.
         * */
-        public get captchaSiteKey(): string{
-            return this.gCaptchaSiteKey;
-        }
+        @Getter('appSettings')
+        public appSettings: AppSetting;
 
         //#endregion
 
         //#region Constructor
 
-        public constructor(){
+        public constructor() {
             super();
             this.loginModel = new LoginViewModel();
         }
+
         //#endregion
 
         //#region Methods
@@ -100,7 +99,8 @@
         /*
         * Called when form is submitted.
         * */
-        public vOnSubmitForm($event: any): void{
+        public vOnSubmitForm($event: any): void {
+
             // Prevent form default behaviour.
             if ($event)
                 $event.preventDefault();
@@ -113,14 +113,14 @@
         /*
         * Called when cancel button is clicked.
         * */
-        public vOnCancelClick(): void{
+        public vOnCancelClick(): void {
             this.$emit('click-cancel');
         }
 
         /*
         * Called when captcha is verified.
         * */
-        public vOnGoogleCaptchaVerify(response: string){
+        public vOnGoogleCaptchaVerify(response: string): void {
             this.loginModel.clientCaptchaCode = response;
         }
 
@@ -131,8 +131,7 @@
         /*
         * Called when component is mounted successfully.
         * */
-        public mounted(): void{
-            console.log(this.captchaSiteKey);
+        public mounted(): void {
         }
 
         //#endregion

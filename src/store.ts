@@ -12,12 +12,14 @@ import {app} from '@/stores/app';
 
 import {actions} from "@/stores/root/root.action";
 import {mutations} from "@/stores/root/root.mutation";
+import {getters} from "@/stores/root/root.getter";
 import {RootState} from '@/stores/root/root.state';
 
 export default new Vuex.Store({
     state: new RootState(),
     actions,
     mutations,
+    getters,
     modules: {
         app,
         apiUser: apiUser,

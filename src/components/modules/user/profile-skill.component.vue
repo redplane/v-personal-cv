@@ -155,18 +155,17 @@
                v-if="bIsSkillCategoryPhotoModalVisible"
                class="replace-body">
             <div slot="default">
-                <image-cropper v-on:cancel="vOnSkillCategoryPhotoCancel()"
-                               v-on:image-cropped="vOnSkillCategoryPhotoCropped"></image-cropper>
+                <image-cropper @cancel="vOnSkillCategoryPhotoCancel()"
+                               @image-cropped="vOnSkillCategoryPhotoCropped"></image-cropper>
             </div>
         </modal>
     </div>
 </template>
 
 <script lang="ts">
-    import SkillCategoryDetail from "../skill-category/skill-category-detail.component";
-    import SkillSelector from "../../shared/skill-selector.component";
-    import ImageCropper from '../../shared/image-cropper.component';
-    import UserSkillDetail from './user-skill-detail.component';
+    import SkillCategoryDetail from "../skill-category/skill-category-detail.component.vue";
+    import ImageCropper from '../../shared/image-cropper/image-cropper.component.vue';
+    import UserSkillDetailComponent from './user-skill-detail.component.vue';
     import {Component, Prop, Vue} from 'vue-property-decorator';
     import {Profile} from "../../../models/profile";
     import {Action, Getter, Mutation} from "vuex-class";
@@ -176,20 +175,20 @@
     import {SearchResult} from "../../../models/search-result";
     import {Skill} from "../../../models/skill";
     import {HasSkillViewModel} from "../../../view-model/has-skill.view-model";
-    import {SkillViewModel} from "../../../view-model/skill/skill.view-model";
     import {SkillCategoryViewModel} from "../../../view-model/skill-category.view-model";
     import {EditSkillCategoryViewModel} from "../../../view-model/skill-category/edit-skill-category.view-model";
-    import {SkillInfoViewModel} from "../../../view-model/skill/skill-info.view-model";
     import {AddSkillsToCategoryViewModel} from "../../../view-model/skill-category/add-skills-to-category.view-model";
     import {EditSkillCategorySkillRelationshipViewModel} from "../../../view-model/skill-category-skill-relationship/edit-skill-category-skill-relationship.view-model";
     import {DeleteCategorySkillRelationshipViewModel} from "../../../view-model/skill-category-skill-relationship/delete-category-skill-relationship.view-model";
     import {AddSkillCategoryViewModel} from "../../../view-model/skill-category/add-skill-category.view-model";
+    import SkillSelectorComponent from '@/components/shared/skill-selector/skill-selector.component.vue';
+
+    import toastr from 'toastr';
 
     @Component({
         components: {
-            UserSkillDetail, SkillSelector, SkillCategoryDetail, ImageCropper
-        },
-        dependencies: ['paginationConstant', 'userRoleConstant', '$ui', '$toastr']
+            UserSkillDetailComponent, SkillSelectorComponent, SkillCategoryDetail, ImageCropper
+        }
     })
     export default class ProfileSkillComponent extends Vue {
 
@@ -269,7 +268,6 @@
         * Total page that will be displayed on screen.
         * */
         public get totalSkillCategoryPage(): number {
-            let $ui = this.$ui;
 
             // Invalid search result.
             if (!this.loadSkillCategoryResult || !this.loadSkillCategoryResult.total)
@@ -278,8 +276,7 @@
             if (!this.loadSkillCategoryCondition || !this.loadSkillCategoryCondition.pagination || !this.loadSkillCategoryCondition.pagination.records)
                 return 1;
 
-            return $ui
-                .loadPageCalculation(this.loadSkillCategoryResult.total, this.loadSkillCategoryCondition.pagination.records)
+            return this.loadSkillCategoryResult.totalPage(this.loadSkillCategoryCondition.pagination.records);
         }
 
         //#endregion
@@ -308,10 +305,10 @@
         public deleteLoadingScreen: () => void;
 
         @Action('loadSkillCategories')
-        public loadSkillCategoriesAsync: (conditions: LoadSkillCategoryViewModel) => Promise<SearchResult<SkillCategory[]>>;
+        public loadSkillCategoriesAsync: (conditions: LoadSkillCategoryViewModel) => Promise<SearchResult<SkillCategoryViewModel[]>>;
 
         @Action('addSkillsToCategory')
-        public addSkillsToCategoryAsync: (model: AddSkillsToCategoryViewModel) => Promise<void>;
+        public addSkillsToCategoryAsync: (model: AddSkillsToCategoryViewModel) => Promise<SkillCategoryViewModel[]>;
 
         @Action('editSkillCategorySkillRelationship')
         public editSkillCategorySkillRelationshipAsync: (model: EditSkillCategorySkillRelationshipViewModel) => Promise<void>;
@@ -324,9 +321,6 @@
 
         @Action('editSkillCategory')
         public editSkillCategoryAsync: (model: EditSkillCategoryViewModel) => Promise<SkillCategory>;
-
-        @Action('editSkillCategorySkillRelationship')
-        public editSkillCategorySkillRelationshipAsync: (model: EditSkillCategorySkillRelationshipViewModel) => Promise<void>;
 
         /*
         * Called when technique is clicked to be edited.
@@ -366,14 +360,15 @@
             // Add loading screen.
             this.addLoadingScreen();
 
-            return this
+            this
                 .loadSkillCategories()
                 .then((loadSkillCategoryResult: SearchResult<SkillCategoryViewModel[]>) => {
                     this.loadSkillCategoryResult = loadSkillCategoryResult;
-                })
-                .finally(() => {
                     this.deleteLoadingScreen();
                 })
+                .catch(() => {
+                    this.deleteLoadingScreen();
+                });
         }
 
         //#region Skill
@@ -411,8 +406,8 @@
             model.hasSkills = hasSkills;
 
             this.addSkillsToCategoryAsync(model)
-                .then((skillCategories) => {
-                    this.$toastr.success(`${skillCategories.length} have/has been added to system successfully.`);
+                .then((skillCategories: SkillCategoryViewModel[]) => {
+                    toastr.success(`${skillCategories.length} have/has been added to system successfully.`);
                     // Close modal dialog.
                     this.bIsAddEditSkillModalOpened = false;
 
@@ -445,7 +440,7 @@
             this.editSkillCategorySkillRelationshipAsync(model)
                 .then(() => {
                     // Display toast notification.
-                    this.$toastr.success('Skill is edited successfully.');
+                    toastr.success('Skill is edited successfully.');
 
                     // Hide modal dialog.
                     this.bIsUserSkillModalAvailable = false;
@@ -509,7 +504,7 @@
 
                 pAddEditTechniquePromise = this.addSkillCategoryAsync(addSkillCategoryModel)
                     .then((skillCategory: SkillCategory) => {
-                        this.$toastr.success('A skill category has been added.');
+                        toastr.success('A skill category has been added.');
                     });
             }
             else {
@@ -521,7 +516,7 @@
                 pAddEditTechniquePromise = this
                     .editSkillCategoryAsync(technique)
                     .then((editSkillCategoryResult: SkillCategory) => {
-                        this.$toastr.success('Skill category has been edited successfully.');
+                        toastr.success('Skill category has been edited successfully.');
                         for (let skillCategory of this.loadSkillCategoryResult.records) {
                             if (skillCategory.id !== editSkillCategoryResult.id)
                                 continue;
@@ -582,7 +577,7 @@
             this.editSkillCategoryAsync(model)
                 .then((editSkillCategoryResult: SkillCategory) => {
                     // Display toast notification.
-                    this.$toastr.success('Skill category photo has been uploaded to server successfully.');
+                    toastr.success('Skill category photo has been uploaded to server successfully.');
 
                     for (let skillCategory of this.loadSkillCategoryResult.records) {
                         if (skillCategory.id !== editSkillCategoryResult.id)
@@ -649,7 +644,7 @@
                     this.editingSkill = new HasSkillViewModel();
                     this.loadSkillCategoryResult = loadSkillResult;
 
-                    this.$toastr.success('Skill point has been edited');
+                    toastr.success('Skill point has been edited');
                     return loadSkillResult;
                 })
                 .finally(() => {
@@ -674,7 +669,7 @@
             });
 
             loadUserPromise
-                .then((userId) => {
+                .then((userId: number) => {
                     this.userId = userId;
                     this.loadSkillCategoryCondition.userIds = [userId];
                     this.loadSkillCategoryCondition.includeSkills = true;

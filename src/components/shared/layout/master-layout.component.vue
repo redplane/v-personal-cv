@@ -1,6 +1,6 @@
 <template>
     <div>
-        <router-view/>
+        <router-view></router-view>
     </div>
 </template>
 
@@ -8,9 +8,10 @@
 
     import store from '@/store';
     import {Component, Vue} from 'vue-property-decorator';
-    import {Profile} from "../../../models/profile";
     import {Action, Getter} from "vuex-class";
-    import {User} from "../../../models/user";
+    import {Route} from "vue-router";
+    import {Profile} from "@/models/profile";
+    import {User} from "@/models/user";
 
     @Component({
         name: 'master-layout'
@@ -23,7 +24,7 @@
         public profile: Profile;
 
         @Action('loadProfile', {namespace: 'apiUser'})
-        private loadProfileAsync: () => Promise<User>;
+        private loadProfileAsync: (id: number | null) => Promise<User>;
 
         //#endregion
 
@@ -32,7 +33,7 @@
         /*
         * Called before route is entered.
         * */
-        public beforeRouteEnter(to, from, next){
+        public beforeRouteEnter(to: Route, from: Route, next: () => void) {
             // Import vuex store.
             const injector = require('vue-inject/dist/vue-inject');
             const lsAppAccessToken = injector.get('lsAppAccessToken');
@@ -47,12 +48,12 @@
                 loadUserProfilePromise = this.loadProfileAsync(0);
             } else {
                 loadUserProfilePromise = new Promise(resolve => {
-                    resolve(null);
+                    resolve();
                 });
             }
 
             loadUserProfilePromise
-                .then((profile: Profile) => {
+                .then((profile: any) => {
                     store.commit('addProfile', profile);
                     next();
                 });

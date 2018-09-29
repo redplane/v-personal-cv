@@ -37,9 +37,7 @@
 <script lang="ts">
 
     // Import vuex map
-    import {mapMutations, mapGetters} from 'vuex';
     import {Component, Vue} from 'vue-property-decorator';
-    import Component from "vue-class-component";
     import {User} from "../../../models/user";
     import {Profile} from "../../../models/profile";
     import {Getter, Mutation} from "vuex-class";

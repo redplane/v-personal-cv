@@ -1,6 +1,5 @@
 export class EditUserViewModel {
 
-
     //#region Properties
     
     public id: number;

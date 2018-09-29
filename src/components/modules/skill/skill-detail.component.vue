@@ -56,8 +56,8 @@
 <script lang="ts">
 
     import {Vue, Component, Prop} from 'vue-property-decorator'
-    import {Skill} from "../../../models/skill";
     import {cloneDeep} from 'lodash';
+    import {Skill} from "../../../models/skill";
 
     @Component({
         name: 'skill-detail'

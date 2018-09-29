@@ -6,7 +6,7 @@
                  :html="blockUi.html"
                  v-if="blockUi && blockUi.available"></BlockUI>
 
-        <navigation-bar/>
+        <navigation-bar></navigation-bar>
 
         <div class="container-fluid">
             <div class="col-lg-12">
@@ -31,16 +31,7 @@
 </template>
 
 <script lang="ts">
-
-    // Import toastr style.
-
-    import NavigationBar from './components/shared/navigation-bar.component'
-    import LoginBox from './components/shared/login-box.component';
-
-    import {EventBus} from '@/event-bus'
-    import {mapState, mapMutations} from 'vuex'
-    import store from '@/store'
-
+    import {EventBus} from '@/event-bus';
     import {Component, Vue} from 'vue-property-decorator';
     import {Action, Getter, Mutation, State} from "vuex-class";
     import {Profile} from "./models/profile";
@@ -48,14 +39,17 @@
     import {LoginResultViewModel} from "./view-model/user/login-result.view-model";
     import {User} from "./models/user";
 
-    const GlobalConstant = require('./constants/global.constant.ts').GlobalConstant;
-    const EventConstant = require('./constants/event.constant.ts').EventConstant;
+    const {GlobalConstant} = require('./constants/global.constant.ts');
+    const {EventConstant} = require('./constants/event.constant.ts');
+    import NavigationBar from '@/components/shared/navigation-bar/navigation-bar.component.vue';
+    import LoginBoxComponent from '@/components/shared/login-box/login.component.vue';
+
+    import toastr from 'toastr';
 
     @Component({
-        dependencies: ['$toastr', '$localStorage'],
         components: {
             NavigationBar,
-            LoginBox
+            LoginBoxComponent
         }
     })
     export default class AppComponent extends Vue {
@@ -92,10 +86,10 @@
         @Mutation('deleteLoadingScreen', {namespace: 'app'})
         private deleteLoadingScreen: () => void;
 
-        @Action('deleteProfile')
-        private deleteProfile: () => void;
+        @Action('deleteProfile', {namespace: 'app'})
+        private deleteProfileAsync: () => Promise<void>;
 
-        @Action('addProfile')
+        @Action('addProfile', {namespace: 'app'})
         private addProfileAsync: (profile: User) => Promise<void>;
 
         @Action('login', {namespace: 'apiUser'})
@@ -127,10 +121,10 @@
             * */
             EventBus.$on('eventClickSignOut', () => {
                 // Clear the access token.
-                this.$localStorage.removeItem(GlobalConstant.accessTokenKey);
+                // this.$localStorage.removeItem(GlobalConstant.accessTokenKey);
 
                 // Clear profile from vuex.
-                this.deleteProfile();
+                this.deleteProfileAsync();
             })
         }
 
@@ -150,7 +144,7 @@
                     // Add to access token to local storage.
                     accessToken = loginResult.accessToken;
                     // Attach access token to local storage.
-                    this.$localStorage.setItem(GlobalConstant.accessTokenKey, accessToken);
+                    // this.$localStorage.setItem(GlobalConstant.accessTokenKey, accessToken);
                     return this
                         .loadProfileAsync(null);
                 })
@@ -159,9 +153,8 @@
                     // Add profile to store.
                     this.addProfileAsync(profile);
 
-
                     // Display success message.
-                    this.$toastr.success('Login successfully.');
+                    toastr.success('Login successfully.');
 
                     // Close login modal.
                     this.bIsLoginModalAvailable = false;
