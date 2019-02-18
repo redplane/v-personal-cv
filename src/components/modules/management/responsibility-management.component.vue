@@ -120,9 +120,12 @@
     import {Pagination} from "../../../models/pagination";
     import {Profile} from "../../../models/profile";
     import {Action, Getter, Mutation} from "vuex-class";
+    import {PaginationConstant} from "../../../constants/pagination.constant";
+    import {UserRoles} from "../../../enumerations/user-role.enum";
+
+    import {getTotalPage} from "../../../functions/get-total-page.function";
     import toastr from 'toastr';
 
-    const {PaginationConstant} = require('../../../constants/pagination.constant.ts');
 
     @Component({
         components: {ResponsibilityDetailComponent}
@@ -187,11 +190,11 @@
             if (!this.loadResponsibilitiesResult)
                 return 1;
 
-            let loadUsersResult = this.loadResponsibilitiesResult;
-            if (loadUsersResult.total < 1)
+            let loadResponsibilitiesResult = this.loadResponsibilitiesResult;
+            if (loadResponsibilitiesResult.total < 1)
                 return 1;
 
-            return loadUsersResult.totalPage(pagination.records);
+            return getTotalPage(loadResponsibilitiesResult.total, pagination.records);
         }
 
         // Check whether user is admin.
@@ -199,7 +202,7 @@
             if (!this.profile)
                 return false;
 
-            return this.profile.role === PaginationConstant.admin;
+            return this.profile.role === UserRoles.admin;
         }
 
         //#endregion

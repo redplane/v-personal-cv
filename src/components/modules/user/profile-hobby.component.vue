@@ -126,6 +126,8 @@
     import {Prop} from "vue-property-decorator";
     import {Pagination} from "../../../models/pagination";
     import {PaginationConstant} from "../../../constants/pagination.constant";
+    import {getTotalPage} from "../../../functions/get-total-page.function";
+
     import toastr from 'toastr';
 
     // Import components
@@ -212,7 +214,7 @@
             if (!this.loadHobbyCondition)
                 return 1;
 
-            return this.loadHobbyResult.totalPage(this.loadHobbyCondition.pagination.records);
+            return getTotalPage(this.loadHobbyResult.total, this.loadHobbyCondition.pagination.records);
         }
 
         /*

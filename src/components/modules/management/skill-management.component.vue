@@ -126,7 +126,9 @@
     import {Pagination} from "../../../models/pagination";
     import {AddSkillViewModel} from "../../../view-model/skill/add-skill.view-model";
     import {EditSkillViewModel} from "../../../view-model/skill/edit-skill.view-model";
-    const {PaginationConstant} = require('../../../constants/pagination.constant.ts');
+    import {PaginationConstant} from '../../../constants/pagination.constant';
+
+    import {getTotalPage} from "../../../functions/get-total-page.function";
     import toastr from 'toastr';
 
     @Component({
@@ -188,11 +190,11 @@
             if (!this.loadSkillsResult)
                 return 1;
 
-            let loadUsersResult = this.loadSkillsResult;
-            if (loadUsersResult.total < 1)
+            let loadSkillsResult = this.loadSkillsResult;
+            if (loadSkillsResult.total < 1)
                 return 1;
 
-            return loadUsersResult.totalPage(pagination.records);
+            return getTotalPage(loadSkillsResult.total, pagination.records);
         }
 
         //#endregion

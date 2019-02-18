@@ -137,6 +137,8 @@
     const {PaginationConstant} = require('../../../constants/pagination.constant.ts');
     import {cloneDeep} from 'lodash';
     import {AppSetting} from "../../../models/app-setting";
+    import {getTotalPage} from "../../../functions/get-total-page.function";
+
     import toastr from 'toastr';
 
     @Component({
@@ -233,7 +235,8 @@
             if (loadUsersResult.total < 1)
                 return 1;
 
-            return loadUsersResult.totalPage(pagination.records);
+
+            return getTotalPage(loadUsersResult.total, pagination.records);
         }
 
         //#endregion

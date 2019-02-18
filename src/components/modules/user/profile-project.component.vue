@@ -142,6 +142,8 @@
     import AddEditProjectComponent from '../project/add-profile-project.vue';
     import {AddProjectViewModel} from "../../../view-model/project/add-project.view-model";
     import {EditProjectViewModel} from "../../../view-model/project/edit-project.view-model";
+    import {getTotalPage} from "../../../functions/get-total-page.function";
+
     import toastr from 'toastr';
 
     @Component({
@@ -275,7 +277,7 @@
             if (!loadProjectResult)
                 return 1;
 
-            return loadProjectResult.totalPage(loadProjectCondition.pagination.records);
+            return getTotalPage(loadProjectResult.total, loadProjectCondition.pagination.records);
         }
 
         //#endregion

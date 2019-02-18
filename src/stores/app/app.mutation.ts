@@ -47,5 +47,4 @@ export const mutations: MutationTree<AppState> = {
     addAppSetting: (state: AppState, appSetting: AppSetting) => {
         state.appSetting = appSetting;
     }
-
 };
